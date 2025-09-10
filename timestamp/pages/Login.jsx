@@ -12,8 +12,7 @@ export default function Login() {
   const handleLogin = async () => {
     try {
       const res = await axios.post('https://api-checkin-out.bpit-staff.com/api/login', { username, password }, {
-        username,
-        password
+
       });
 
       // ถ้า login สำเร็จ
