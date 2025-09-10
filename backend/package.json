@@ -1,4 +1,11 @@
 {
+  "name": "time-attendance-backend",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "echo \"No tests yet\" && exit 0"
+  },
   "dependencies": {
     "bcrypt": "^6.0.0",
     "body-parser": "^2.2.0",
