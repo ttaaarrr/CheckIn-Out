@@ -16,7 +16,7 @@ export default function Checkin() {
 
     const fetchCompanies = async () => {
       try {
-        const res = await fetch('/api/company');
+        const res = await fetch('https://api-checkin-out.bpit-staff.com/api/company');
         const data = await res.json();
         if (data.success) {
           setCompanies(data.companies.map(c => ({ id: c.name, name: c.name })));
@@ -32,7 +32,7 @@ export default function Checkin() {
 
   const getTimeRecords = async (empId) => {
     try {
-      const res = await axios.get(`/api/time-record/${empId}`);
+      const res = await axios.get(`https://api-checkin-out.bpit-staff.com/api/time-record/${empId}`);
       return res.data.success ? res.data.records : [];
     } catch {
       return [];
@@ -41,7 +41,7 @@ export default function Checkin() {
 
   const logTime = async ({ empId, type, company_name, latitude, longitude }) => {
     try {
-      const res = await axios.post('/api/time-record', { empId, type, company_name, latitude, longitude });
+      const res = await axios.post('https://api-checkin-out.bpit-staff.com/api/time-record', { empId, type, company_name, latitude, longitude });
       return res.data;
     } catch (err) {
       console.error(err);
@@ -64,7 +64,7 @@ const handleCheckin = async (type) => {
     const { latitude, longitude } = position.coords;
 
     // ตรวจสอบรหัสพนักงาน
-    const resEmp = await fetch(`/api/employees?company_name=${companyId}`);
+    const resEmp = await fetch(`https://api-checkin-out.bpit-staff.com/api/employees?company_name=${companyId}`);
     const data = await resEmp.json();
     if (!data.success || !data.employees.some(e => e.em_code == empId)) {
       return alert("ไม่พบรหัสพนักงานนี้ในบริษัทที่เลือก");

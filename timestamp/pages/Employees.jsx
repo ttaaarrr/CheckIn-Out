@@ -55,7 +55,7 @@ export default function Employees() {
   //ข้อมูลบริษัท
   const fetchCompanies = async () => {
     try {
-      const res = await axios.get('/api/company');
+      const res = await axios.get('https://api-checkin-out.bpit-staff.com/api/company');
       if (res.data.success) {
         setCompanies(res.data.companies.map(c => ({ id: c.name, name: c.name })));
       }
@@ -72,7 +72,7 @@ export default function Employees() {
   const fetchEmployees = async (companyName) => {
     if (!companyName) return;
     try {
-      const res = await axios.get(`/api/employees?company_name=${companyName}`);
+      const res = await axios.get(`https://api-checkin-out.bpit-staff.com/api/employees?company_name=${companyName}`);
       if (res.data.success) setEmployees(res.data.employees);
     } catch (err) {
       console.error(err);
@@ -83,7 +83,7 @@ export default function Employees() {
   const addCompany = async () => {
     if (!newCompanyName) return alert("กรอกชื่อบริษัท");
     try {
-      const res = await axios.post('/api/company', {
+      const res = await axios.post('https://api-checkin-out.bpit-staff.com/api/company', {
         name: newCompanyName,
         address: newCompanyAddress,
         latitude: newCompanyLat || null,
@@ -106,7 +106,7 @@ export default function Employees() {
   //ลบบริษัท
   const deleteCompany = async (companyName) => {
     try {
-      const res = await axios.delete(`/api/company/${companyName}`);
+      const res = await axios.delete(`https://api-checkin-out.bpit-staff.com/api/company/${companyName}`);
       if (res.data.success) {
         alert(`ลบบริษัท ${companyName} เรียบร้อยแล้ว`);
         if (selectedCompany === companyName) setSelectedCompany('');
@@ -125,7 +125,7 @@ export default function Employees() {
     if (!selectedCompany) return alert("กรุณาเลือกบริษัทก่อน");
 
     try {
-      const res = await axios.post('/api/employees', { ...newEmp, company_name: selectedCompany });
+      const res = await axios.post('https://api-checkin-out.bpit-staff.com/api/employees', { ...newEmp, company_name: selectedCompany });
       if (res.data.success) {
         fetchEmployees(selectedCompany);
         setFormVisible(false);
@@ -146,7 +146,7 @@ export default function Employees() {
     if (!confirm("ลบพนักงาน?")) return;
 
     try {
-      const res = await axios.delete(`/api/employees/${em_code}?company_name=${selectedCompany}`);
+      const res = await axios.delete(`https://api-checkin-out.bpit-staff.com/api/employees/${em_code}?company_name=${selectedCompany}`);
       if (res.data.success) fetchEmployees(selectedCompany);
     } catch (err) {
       console.error(err.response?.data || err.message);

@@ -26,8 +26,8 @@ export default function Dashboard({ user }) {
       try {
         const url =
           selectedCompany === "all"
-            ? "/api/employees?company_name=A"
-            : `/api/employees?company_name=${selectedCompany}`;
+            ? "https://api-checkin-out.bpit-staff.com/api/employees?company_name=A"
+            : `https://api-checkin-out.bpit-staff.com/api/employees?company_name=${selectedCompany}`;
         const res = await axios.get(url);
         if (res.data.success) setEmployees(res.data.employees);
       } catch (err) {
@@ -42,7 +42,7 @@ export default function Dashboard({ user }) {
     if (!user) return;
     const fetchData = async () => {
       try {
-        const compRes = await axios.get("/api/company");
+        const compRes = await axios.get("https://api-checkin-out.bpit-staff.com/api/company");
         if (compRes.data.success) {
           setCompanies(
             compRes.data.companies.map((c, index) => ({
@@ -52,7 +52,7 @@ export default function Dashboard({ user }) {
           );
         }
 
-        const recRes = await axios.get(`/api/time-record?date=${selectedDate}`);
+        const recRes = await axios.get(`https://api-checkin-out.bpit-staff.com/api/time-record?date=${selectedDate}`);
         if (recRes.data.success) setRecords(recRes.data.records || []);
       } catch (err) {
         console.error(err);
@@ -106,7 +106,7 @@ const exportExcel = async () => {
   let monthlyRecords = [];
   try {
     const res = await axios.get(
-      `/api/time-record/monthly?month=${monthStr}&company=${selectedCompany}`
+      `https://api-checkin-out.bpit-staff.com/api/time-record/monthly?month=${monthStr}&company=${selectedCompany}`
     );
     if (res.data.success) monthlyRecords = res.data.records;
   } catch (err) {
