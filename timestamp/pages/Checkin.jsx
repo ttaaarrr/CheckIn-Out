@@ -56,7 +56,7 @@ const getPosition = () =>
   });
 
 const handleCheckin = async (type) => {
-  if (!empId) return alert("กรุณาใส่รหัสพนักงาน");
+  if (!empId) return alert("กรุณาใส่ชื่อหรือรหัสพนักงาน");
   if (!companyId) return alert("กรุณาเลือกบริษัท");
 
   try {
@@ -66,12 +66,21 @@ const handleCheckin = async (type) => {
     // ตรวจสอบรหัสพนักงาน
     const resEmp = await fetch(`https://api-checkin-out.bpit-staff.com/api/employees?company_name=${companyId}`);
     const data = await resEmp.json();
-    if (!data.success || !data.employees.some(e => e.em_code == empId)) {
-      return alert("ไม่พบรหัสพนักงานนี้ในบริษัทที่เลือก");
+
+     // ตรวจสอบทั้งรหัส และ ชื่อ
+    const matchedEmp = data.success 
+      ? data.employees.find(e => 
+          e.em_code.toString() === empId.trim() || 
+          e.name.trim() === empId.trim()
+        )
+      : null;
+      if (!matchedEmp) {
+      return alert("ไม่พบรหัสหรือชื่อพนักงานนี้ในบริษัทที่เลือก");
     }
 
     const today = new Date().toLocaleDateString('sv-SE'); 
     const empRecords = await getTimeRecords(empId);
+    
     if (empRecords.some(r => r.date === today && r.type === type)) {
       return alert(`คุณได้บันทึก "${typeMapTH[type]}" ไปแล้วในวันนี้`);
     }
@@ -101,7 +110,7 @@ const handleCheckin = async (type) => {
         type="text"
         value={empId}
         onChange={e => setEmpId(e.target.value)}
-        placeholder="รหัสพนักงาน"
+        placeholder="ชื่อหรือรหัสพนักงาน"
         className="w-full px-4 py-3 border border-gray-300 rounded-lg mb-4"
       />
 
