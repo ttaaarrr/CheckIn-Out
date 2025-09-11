@@ -9,7 +9,7 @@ export default function Navbar() {
       <Link to="/" className={({ isActive }) => isActive ? activeClass : normalClass}>ลงเวลา</Link>
       <Link to="/employees" className={({ isActive }) => isActive ? activeClass : normalClass}>จัดการ</Link>
       <Link to="/dashboard" className={({ isActive }) => isActive ? activeClass : normalClass}>แดชบอร์ด</Link>
-      {/* <NavLink to="/summary" className={({ isActive }) => isActive ? activeClass : normalClass}>สรุปรายเดือน</NavLink> */}
+      
     </div>
   );
 }
