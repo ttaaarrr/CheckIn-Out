@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, Link } from 'react-router-dom';
 import Navbar from '../components/Navbaar';
 import Checkin from '../pages/Checkin';
 import Employees from '../pages/Employees';
@@ -29,9 +29,11 @@ function AdminRoute({ children }) {
 
 function App() {
   return (
-    <UserProvider>
-      <Router>
-        <Navbar />
+    <div>
+            <nav>
+-        <Link to="/login">LOGIN</Link>
+
+      </nav>
         <div className="container mx-auto px-4 py-6">
           <Routes>
             <Route path="/" element={<Checkin />} />
@@ -45,8 +47,7 @@ function App() {
             <Route path="/summary" element={<AdminRoute><Summary /></AdminRoute>} />
           </Routes>
         </div>
-      </Router>
-    </UserProvider>
+    </div>
   );
 }
 
