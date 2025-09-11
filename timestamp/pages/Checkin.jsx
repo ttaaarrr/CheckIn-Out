@@ -49,56 +49,65 @@ export default function Checkin() {
     }
   };
 
-const getPosition = () =>
-  new Promise((resolve, reject) => {
-    if (!navigator.geolocation) return reject(new Error("Browser ไม่รองรับ GPS"));
-    navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true });
-  });
+  const getPosition = () =>
+    new Promise((resolve, reject) => {
+      if (!navigator.geolocation) return reject(new Error("Browser ไม่รองรับ GPS"));
+      navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true });
+    });
 
-const handleCheckin = async (type) => {
-  if (!empId) return alert("กรุณาใส่ชื่อหรือรหัสพนักงาน");
-  if (!companyId) return alert("กรุณาเลือกบริษัท");
+  const handleCheckin = async (type) => {
+    if (!empId) return alert("กรุณาใส่รหัสหรือชื่อพนักงาน");
+    if (!companyId) return alert("กรุณาเลือกบริษัท");
 
-  try {
-    const position = await getPosition(); // รอ user อนุญาต GPS
-    const { latitude, longitude } = position.coords;
+    try {
+      const position = await getPosition();
+      const { latitude, longitude } = position.coords;
 
-    // ตรวจสอบรหัสพนักงาน
-    const resEmp = await fetch(`https://api-checkin-out.bpit-staff.com/api/employees?company_name=${companyId}`);
-    const data = await resEmp.json();
+      // ดึงพนักงานของบริษัทนี้
+      const resEmp = await fetch(`https://api-checkin-out.bpit-staff.com/api/employees?company_name=${companyId}`);
+      const data = await resEmp.json();
 
-     // ตรวจสอบทั้งรหัส และ ชื่อ
-    const matchedEmp = data.success 
-      ? data.employees.find(e => 
-          e.em_code.toString() === empId.trim() || 
-          e.name.trim() === empId.trim()
-        )
-      : null;
+      // หา match จาก "รหัส" หรือ "ชื่อ"
+      const matchedEmp = data.success 
+        ? data.employees.find(e => 
+            e.em_code.toString() === empId.trim() || 
+            e.name.trim() === empId.trim()
+          )
+        : null;
+
       if (!matchedEmp) {
-      return alert("ไม่พบรหัสหรือชื่อพนักงานนี้ในบริษัทที่เลือก");
-    }
+        return alert("ไม่พบรหัสหรือชื่อพนักงานนี้ในบริษัทที่เลือก");
+      }
 
-    const today = new Date().toLocaleDateString('sv-SE'); 
-    const empRecords = await getTimeRecords(empId);
-    
-    if (empRecords.some(r => r.date === today && r.type === type)) {
-      return alert(`คุณได้บันทึก "${typeMapTH[type]}" ไปแล้วในวันนี้`);
-    }
+      const today = new Date().toLocaleDateString('sv-SE'); 
+      const empRecords = await getTimeRecords(matchedEmp.em_code);
 
-    const res = await logTime({ empId, type, company_name: companyId, latitude, longitude });
-    if (res.success) {
-      setMessage({ text: `บันทึกเวลา ${typeMapTH[type]} สำเร็จ: ${res.time}`, type: 'success' });
-      setEmpId('');
-      setRecords(await getTimeRecords(empId));
-    } else {
-      setMessage({ text: res.message, type: 'error' });
-    }
+      if (empRecords.some(r => r.date === today && r.type === type)) {
+        return alert(`คุณได้บันทึก "${typeMapTH[type]}" ไปแล้วในวันนี้`);
+      }
 
-  } catch (err) {
-    console.error(err);
-    alert(err.message || "กรุณาอนุญาต GPS ก่อนลงเวลา");
-  }
-};
+      const res = await logTime({ 
+        empId: matchedEmp.em_code, // ส่งด้วยรหัสจริง
+        type, 
+        company_name: companyId, 
+        latitude, 
+        longitude 
+      });
+
+      if (res.success) {
+        setMessage({ text: `บันทึกเวลา ${typeMapTH[type]} สำเร็จ: ${res.time}`, type: 'success' });
+        setEmpId('');
+        setRecords(await getTimeRecords(matchedEmp.em_code));
+      } else {
+        setMessage({ text: res.message, type: 'error' });
+      }
+
+    } catch (err) {
+      console.error(err);
+      alert(err.message || "กรุณาอนุญาต GPS ก่อนลงเวลา");
+    }
+  };
+
   return (
     <div className="max-w-md mx-auto bg-white rounded-2xl shadow-xl p-8 mt-10">
       <div className="text-center mb-6">
@@ -106,11 +115,12 @@ const handleCheckin = async (type) => {
         <p className="text-gray-600 mt-2">{currentTime.toLocaleTimeString('th-TH')}</p>
       </div>
 
+      {/* 🔹 ช่องนี้กรอกได้ทั้ง "ชื่อ" หรือ "รหัส" */}
       <input
         type="text"
         value={empId}
         onChange={e => setEmpId(e.target.value)}
-        placeholder="ชื่อหรือรหัสพนักงาน"
+        placeholder="รหัสพนักงานหรือชื่อพนักงาน"
         className="w-full px-4 py-3 border border-gray-300 rounded-lg mb-4"
       />
 
