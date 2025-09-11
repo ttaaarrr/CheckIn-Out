@@ -6,9 +6,9 @@ export default function Navbar() {
 
   return (
     <div className="flex justify-center mb-8">
-      <Link to="/" className={({ isActive }) => isActive ? activeClass : normalClass}>ลงเวลา</Link>
-      <Link to="/employees" className={({ isActive }) => isActive ? activeClass : normalClass}>จัดการ</Link>
-      <Link to="/dashboard" className={({ isActive }) => isActive ? activeClass : normalClass}>แดชบอร์ด</Link>
+      <NavLinkLink to="/" className={({ isActive }) => isActive ? activeClass : normalClass}>ลงเวลา</NavLinkLink>
+      <NavLinkLink to="/employees" className={({ isActive }) => isActive ? activeClass : normalClass}>จัดการ</NavLinkLink>
+      <NavLinkLink to="/dashboard" className={({ isActive }) => isActive ? activeClass : normalClass}>แดชบอร์ด</NavLinkLink>
       
     </div>
   );
