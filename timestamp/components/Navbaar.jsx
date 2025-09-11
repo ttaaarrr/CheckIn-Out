@@ -1,4 +1,4 @@
-import { NavLink, Link } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 
 export default function Navbar() {
   const activeClass = "bg-blue-500 text-white px-6 py-3 rounded-lg mx-1";
@@ -6,10 +6,10 @@ export default function Navbar() {
 
   return (
     <div className="flex justify-center mb-8">
-      <NavLinkLink to="/" className={({ isActive }) => isActive ? activeClass : normalClass}>ลงเวลา</NavLinkLink>
-      <NavLinkLink to="/employees" className={({ isActive }) => isActive ? activeClass : normalClass}>จัดการ</NavLinkLink>
-      <NavLinkLink to="/dashboard" className={({ isActive }) => isActive ? activeClass : normalClass}>แดชบอร์ด</NavLinkLink>
-      
+      <NavLink to="/" className={({ isActive }) => isActive ? activeClass : normalClass}>ลงเวลา</NavLink>
+      <NavLink to="/employees" className={({ isActive }) => isActive ? activeClass : normalClass}>จัดการ</NavLink>
+      <NavLink to="/dashboard" className={({ isActive }) => isActive ? activeClass : normalClass}>แดชบอร์ด</NavLink>
+      {/* <NavLink to="/summary" className={({ isActive }) => isActive ? activeClass : normalClass}>สรุปรายเดือน</NavLink> */}
     </div>
   );
 }
