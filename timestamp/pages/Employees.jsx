@@ -41,7 +41,16 @@ const MarkerSetter = ({ lat, lng, setLat, setLng }) => {
     },
   });
 
-  return position ? <Marker position={[position.lat, position.lng]} /> : null;
+ const customIcon = new L.Icon({
+  iconUrl: markerIcon,
+  iconRetinaUrl: markerIcon2x,
+  shadowUrl: markerShadow,
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+});
+
+return position ? <Marker position={[position.lat, position.lng]} icon={customIcon} /> : null;
+
 };
 export default function Employees() {
   const [companies, setCompanies] = useState([]);
