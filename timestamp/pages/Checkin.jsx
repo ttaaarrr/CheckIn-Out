@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Clock, Building2, User, LogIn, LogOut } from 'lucide-react';
+import { Clock, Building2, User, LogIn, LogOut, Edit } from 'lucide-react';
 
 export default function Checkin() {
   const [empId, setEmpId] = useState('');
@@ -9,6 +9,15 @@ export default function Checkin() {
   const [message, setMessage] = useState(null);
   const [companies, setCompanies] = useState([]);
   const [records, setRecords] = useState([]);
+
+  // Modal OT ล่วงหน้า
+  const [showOTModal, setShowOTModal] = useState(false);
+  const [otDate, setOtDate] = useState('');
+  const [otStartHour, setOtStartHour] = useState('08');
+  const [otStartMinute, setOtStartMinute] = useState('00');
+  const [otEndHour, setOtEndHour] = useState('17');
+  const [otEndMinute, setOtEndMinute] = useState('00');
+  const [otReason, setOtReason] = useState('');
 
   const typeMapTH = { in: 'เข้างาน', out: 'ออกงาน', ot_in: 'เข้า OT', ot_out: 'ออก OT' };
   const typeColor = {
@@ -76,15 +85,12 @@ export default function Checkin() {
       const position = await getPosition();
       const { latitude, longitude } = position.coords;
 
-      const resEmp = await fetch(
-        `https://api-checkin-out.bpit-staff.com/api/employees?company_name=${companyId}`
-      );
+      const resEmp = await fetch(`https://api-checkin-out.bpit-staff.com/api/employees?company_name=${companyId}`);
       const data = await resEmp.json();
 
       const matchedEmp = data.success
         ? data.employees.find(
-            (e) =>
-              e.em_code.toString() === empId.trim() || e.name.trim() === empId.trim()
+            (e) => e.em_code.toString() === empId.trim() || e.name.trim() === empId.trim()
           )
         : null;
 
@@ -123,14 +129,57 @@ export default function Checkin() {
     }
   };
 
+  // ส่งคำขอ OT ล่วงหน้า
+  const handleSubmitOTRequest = async () => {
+    if (!empId || !companyId || !otDate || !otStartHour || !otStartMinute || !otEndHour || !otEndMinute || !otReason)
+      return alert('กรุณากรอกข้อมูลให้ครบ');
+
+    try {
+      const resEmp = await fetch(`https://api-checkin-out.bpit-staff.com/api/employees?company_name=${companyId}`);
+      const data = await resEmp.json();
+      const matchedEmp = data.success
+        ? data.employees.find(
+            (e) => e.em_code.toString() === empId.trim() || e.name.trim() === empId.trim()
+          )
+        : null;
+      if (!matchedEmp) return alert('ไม่พบพนักงาน');
+
+      const otStart = `${otStartHour}:${otStartMinute}`;
+      const otEnd = `${otEndHour}:${otEndMinute}`;
+
+      const res = await axios.post('https://api-checkin-out.bpit-staff.com/api/ot-request', {
+        empId: matchedEmp.em_code,
+        company_name: companyId,
+        date: otDate,
+        start_time: otStart,
+        end_time: otEnd,
+        reason: otReason,
+      });
+
+      if (res.data.success) {
+        setMessage({ text: 'ส่งคำขอ OT ล่วงหน้าสำเร็จ', type: 'success' });
+        setShowOTModal(false);
+        setOtDate(''); setOtStartHour('08'); setOtStartMinute('00'); setOtEndHour('17'); setOtEndMinute('00'); setOtReason('');
+      } else {
+        setMessage({ text: res.data.message || 'เกิดข้อผิดพลาด', type: 'error' });
+      }
+    } catch (err) {
+      console.error(err);
+      setMessage({ text: err.message || 'เกิดข้อผิดพลาด', type: 'error' });
+    }
+  };
+
   return (
     <div className="max-w-lg mx-auto bg-white rounded-2xl shadow-2xl p-8 mt-10 border border-gray-100">
       {/* Header */}
       <div className="text-center mb-6">
+        <div className="mx-auto w-14 h-14 flex items-center justify-center text-white text-2xl font-bold">
+          <img src="/src/assets/logo.png" alt="BPIT Logo" className="w-32 h-16" />
+        </div>
         <h2 className="text-3xl font-extrabold text-blue-700">ลงเวลาเข้า-ออกงาน</h2>
         <p className="flex items-center justify-center gap-2 text-gray-600 mt-2 text-lg">
           <Clock className="w-5 h-5 text-blue-500" />
-          {currentTime.toLocaleTimeString('th-TH')}
+          {currentTime.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })}
         </p>
       </div>
 
@@ -156,9 +205,7 @@ export default function Checkin() {
         >
           <option value="">เลือกบริษัท</option>
           {companies.map((c) => (
-            <option key={c.id} value={c.name}>
-              {c.name}
-            </option>
+            <option key={c.id} value={c.name}>{c.name}</option>
           ))}
         </select>
       </div>
@@ -178,15 +225,17 @@ export default function Checkin() {
         ))}
       </div>
 
+      {/* ปุ่มขอ OT ล่วงหน้า */}
+      <button
+        onClick={() => setShowOTModal(true)}
+        className="flex items-center justify-center gap-2 w-full py-3 mb-6 rounded-xl bg-purple-500 hover:bg-purple-600 text-white font-semibold shadow-md"
+      >
+        <Edit className="w-5 h-5" /> ขอ OT ล่วงหน้า
+      </button>
+
       {/* ข้อความสถานะ */}
       {message && (
-        <div
-          className={`mt-4 p-4 rounded-lg text-center font-medium ${
-            message.type === 'success'
-              ? 'bg-green-100 text-green-800'
-              : 'bg-red-100 text-red-800'
-          }`}
-        >
+        <div className={`mt-4 p-4 rounded-lg text-center font-medium ${message.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
           {message.text}
         </div>
       )}
@@ -194,19 +243,98 @@ export default function Checkin() {
       {/* ประวัติ */}
       {records.length > 0 && (
         <div className="mt-8">
-          <h3 className="text-lg font-bold text-gray-800 mb-3">
-            ประวัติเวลาพนักงาน
-          </h3>
+          <h3 className="text-lg font-bold text-gray-800 mb-3">ประวัติเวลาพนักงาน</h3>
           <ul className="max-h-60 overflow-auto border border-gray-200 rounded-lg divide-y divide-gray-100 bg-gray-50">
             {records.map((r) => (
               <li key={r.id} className="px-3 py-2 text-sm text-gray-700">
                 {new Date(r.date).toLocaleDateString('th-TH')} {r.time}{' '}
-                <span className="font-semibold text-blue-600">
-                  [{typeMapTH[r.type] || r.type}]
-                </span>
+                <span className="font-semibold text-blue-600">[{typeMapTH[r.type] || r.type}]</span>
               </li>
             ))}
           </ul>
+        </div>
+      )}
+
+      {/* Modal ขอ OT ล่วงหน้า */}
+      {showOTModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 w-80 relative">
+            <h3 className="text-xl font-bold mb-4">ขอ OT ล่วงหน้า</h3>
+            
+            <div className="mb-3">
+              <label className="block mb-1 text-sm font-medium">วันที่</label>
+              <input type="date" value={otDate} onChange={e => setOtDate(e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-2" />
+            </div>
+
+           <div className="mb-3 grid grid-cols-2 gap-2">
+  <div>
+    <label className="block mb-1 text-sm font-medium">เวลาเริ่ม</label>
+    <div className="flex gap-2">
+      <select
+        value={otStartHour}
+        onChange={(e) => setOtStartHour(e.target.value)}
+        className="w-1/2 border border-gray-300 rounded-lg px-2 py-2"
+      >
+        {[...Array(24)].map((_, h) => (
+          <option key={h} value={h.toString().padStart(2, '0')}>
+            {h.toString().padStart(2, '0')}
+          </option>
+        ))}
+      </select>
+      <select
+        value={otStartMinute}
+        onChange={(e) => setOtStartMinute(e.target.value)}
+        className="w-1/2 border border-gray-300 rounded-lg px-2 py-2"
+      >
+        {[...Array(60)].map((_, m) => (
+          <option key={m} value={m.toString().padStart(2, '0')}>
+            {m.toString().padStart(2, '0')}
+          </option>
+        ))}
+      </select>
+    </div>
+  </div>
+
+  <div>
+    <label className="block mb-1 text-sm font-medium">เวลาสิ้นสุด</label>
+    <div className="flex gap-2">
+      <select
+        value={otEndHour}
+        onChange={(e) => setOtEndHour(e.target.value)}
+        className="w-1/2 border border-gray-300 rounded-lg px-2 py-2"
+      >
+        {[...Array(24)].map((_, h) => (
+          <option key={h} value={h.toString().padStart(2, '0')}>
+            {h.toString().padStart(2, '0')}
+          </option>
+        ))}
+      </select>
+      <select
+        value={otEndMinute}
+        onChange={(e) => setOtEndMinute(e.target.value)}
+        className="w-1/2 border border-gray-300 rounded-lg px-2 py-2"
+      >
+        {[...Array(60)].map((_, m) => (
+          <option key={m} value={m.toString().padStart(2, '0')}>
+            {m.toString().padStart(2, '0')}
+          </option>
+        ))}
+      </select>
+    </div>
+  </div>
+</div>
+
+
+            <div className="mb-3">
+              <label className="block mb-1 text-sm font-medium">เหตุผล</label>
+              <textarea value={otReason} onChange={e => setOtReason(e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-2" />
+            </div>
+
+            <div className="flex justify-end gap-2 mt-4">
+              <button onClick={() => setShowOTModal(false)} className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300">ยกเลิก</button>
+              <button onClick={handleSubmitOTRequest} className="px-4 py-2 rounded-lg bg-purple-500 hover:bg-purple-600 text-white">ส่งคำขอ</button>
+            </div>
+          </div>
         </div>
       )}
     </div>
