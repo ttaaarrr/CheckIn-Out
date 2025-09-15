@@ -30,11 +30,11 @@ export default function Login() {
         {/* Logo / Title */}
         <div className="text-center mb-6">
           <div className="mx-auto w-14 h-14  flex items-center justify-center text-white text-2xl font-bold ">
-            <img 
+            {/* <img 
     src="/src/assets/logo.png" 
     alt="BPIT Logo" 
     className="w-32 h-16" 
-  />
+  /> */}
           </div>
           <h2 className="text-2xl font-bold text-gray-800 mt-4">เข้าสู่ระบบ</h2>
           </div>

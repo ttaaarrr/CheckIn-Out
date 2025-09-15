@@ -5,6 +5,7 @@ const timeRecordRoutes = require('./routes/timeRecord');
 const companyRoutes = require('./routes/company');
 const employeeRoutes = require('./routes/employees');
 const login = require('./routes/login');
+const otRequestRoutes = require('./routes/ot-request');
 
 const app = express();
 
@@ -20,7 +21,7 @@ app.use('/api/time-record', timeRecordRoutes);
 app.use('/api/company', companyRoutes);
 app.use('/api/employees', employeeRoutes);
 app.use('/api/login', login);
-
+app.use('/api/ot-request', otRequestRoutes);
 // Health check
 app.get('/health', (req, res) => res.send('OK'));
 

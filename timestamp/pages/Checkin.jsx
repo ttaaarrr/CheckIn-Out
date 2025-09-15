@@ -174,7 +174,7 @@ export default function Checkin() {
       {/* Header */}
       <div className="text-center mb-6">
         <div className="mx-auto w-14 h-14 flex items-center justify-center text-white text-2xl font-bold">
-          <img src="/src/assets/logo.png" alt="BPIT Logo" className="w-32 h-16" />
+          {/* <img src="/src/assets/logo.png" alt="BPIT Logo" className="w-32 h-16" /> */}
         </div>
         <h2 className="text-3xl font-extrabold text-blue-700">ลงเวลาเข้า-ออกงาน</h2>
         <p className="flex items-center justify-center gap-2 text-gray-600 mt-2 text-lg">
