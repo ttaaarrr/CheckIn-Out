@@ -10,7 +10,7 @@ const otRequestRoutes = require('./routes/ot-request');
 const app = express();
 
 app.use(cors({
-  origin: 'https://check-in-out.vercel.app', // URL frontend
+  origin: ['https://check-in-out.vercel.app', 'http://localhost:5174'],
   credentials: true
 }));
 
