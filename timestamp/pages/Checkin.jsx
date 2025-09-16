@@ -11,13 +11,25 @@ export default function Checkin() {
   const [records, setRecords] = useState([]);
   const [showOTButtons, setShowOTButtons] = useState(false);
 
-  const typeMapTH = { in: 'เข้างาน', out: 'ออกงาน', ot_in: 'เข้า OT', ot_out: 'ออก OT' };
-  const typeColor = {
-    in: 'bg-green-500 hover:bg-green-600',
-    out: 'bg-red-500 hover:bg-red-600',
-    ot_in: 'bg-indigo-500 hover:bg-indigo-600',
-    ot_out: 'bg-yellow-500 hover:bg-yellow-600',
-  };
+  const typeMapTH = { 
+  in: 'เข้างาน', 
+  out: 'ออกงาน', 
+  ot_in: 'เข้า OT', 
+  ot_out: 'ออก OT',
+  ot_in_before: 'เข้า OT ก่อนเข้างาน',
+  ot_in_after: 'เข้า OT หลังเข้างาน',
+  ot_out_before: 'ออก OT ก่อนเข้างาน',
+  ot_out_after: 'ออก OT หลังเข้างาน'
+};
+
+const typeColor = {
+  in: 'bg-green-500 hover:bg-green-600',
+  out: 'bg-red-500 hover:bg-red-600',
+  ot_in_before: 'bg-indigo-500 hover:bg-indigo-600',
+  ot_in_after: 'bg-indigo-500 hover:bg-indigo-600',
+  ot_out_before: 'bg-yellow-500 hover:bg-yellow-600',
+  ot_out_after: 'bg-yellow-500 hover:bg-yellow-600',
+};
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
