@@ -298,20 +298,18 @@ headerRow.eachCell(cell => (cell.font = { bold: true }));
 
 <tbody>
   {Object.values(tableData).map((d, i) => (
-    Object.entries(d.records || {}).map(([date, r], j) => (
-      <tr key={`${i}-${j}`} className={(i+j) % 2 === 0 ? "bg-gray-50" : "bg-white"}>
-        <td>{d.em_code}</td>
-        <td>{d.name}</td>
-        <td>{r.checkIn || "-"}</td>
-        <td>{r.checkOut || "-"}</td>
-        <td>{r.otInBefore || "-"} / {r.otInAfter || "-"}</td>
-        <td>{r.otOutBefore || "-"} / {r.otOutAfter || "-"}</td>
-        <td>{r.otIn || "-"}</td>
-        <td>{r.otOut || "-"}</td>
-        <td>{calcDuration(r.checkIn, r.checkOut)}</td>
-        <td>{calcDuration(r.otIn, r.otOut)}</td>
-      </tr>
-    ))
+    <tr key={i} className={i % 2 === 0 ? "bg-gray-50" : "bg-white"}>
+      <td>{d.em_code}</td>
+      <td>{d.name}</td>
+      <td>{d.checkIn || "-"}</td>
+      <td>{d.checkOut || "-"}</td>
+      <td>{d.otInBefore || "-"}</td>
+      <td>{d.otOutBefore || "-"}</td>
+      <td>{d.otInAfter || "-"}</td>
+      <td>{d.otOutAfter || "-"}</td>
+      <td>{calcDuration(d.checkIn, d.checkOut)}</td>
+      <td>{calcDuration(d.otIn, d.otOut)}</td>
+    </tr>
   ))}
 </tbody>
 
