@@ -48,27 +48,29 @@ export default function Dashboard({ user }) {
 
   // Fetch companies + records
   useEffect(() => {
-    if (!user) return;
-    const fetchData = async () => {
-      try {
-        const compRes = await axios.get("https://api-checkin-out.bpit-staff.com/api/company");
-        if (compRes.data.success) {
-          setCompanies(
-            compRes.data.companies.map((c, index) => ({
-              id: index,
-              name: c.name,
-            }))
-          );
-        }
-
-        const recRes = await axios.get(`https://api-checkin-out.bpit-staff.com/api/time-record?date=${selectedDate}`);
-        if (recRes.data.success) setRecords(recRes.data.records || []);
-      } catch (err) {
-        console.error(err);
+  if (!user) return;
+  const fetchData = async () => {
+    try {
+      const compRes = await axios.get("https://api-checkin-out.bpit-staff.com/api/company");
+      if (compRes.data.success) {
+        setCompanies(
+          compRes.data.companies.map((c, index) => ({
+            id: index,
+            name: c.name,
+          }))
+        );
       }
-    };
-    fetchData();
-  }, [user, selectedDate]);
+
+      const recRes = await axios.get(
+        `https://api-checkin-out.bpit-staff.com/api/time-record?date=${selectedDate}${selectedCompany !== "all" ? `&company=${selectedCompany}` : ""}`
+      );
+      if (recRes.data.success) setRecords(recRes.data.records || []);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+  fetchData();
+}, [user, selectedDate, selectedCompany]);
 
   // ฟังก์ชันคำนวณเวลา
   const calcDuration = (start, end) => {
@@ -252,81 +254,75 @@ headerRow.eachCell(cell => (cell.font = { bold: true }));
   if (!user) return null;
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      <h1 className="text-2xl font-bold mb-6 text-gray-800">Dashboard ลงเวลา</h1>
+   <div className="p-6 bg-gray-50 min-h-screen">
+  <h1 className="text-2xl font-bold mb-6 text-gray-800">Dashboard ลงเวลา</h1>
 
-      <div className="flex flex-col md:flex-row gap-4 mb-6">
-        <input
-          type="date"
-          value={selectedDate}
-          onChange={(e) => setSelectedDate(e.target.value)}
-          className="px-4 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 focus:outline-none"
-        />
-        <select
-          value={selectedCompany}
-          onChange={(e) => setSelectedCompany(e.target.value)}
-          className="px-4 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 focus:outline-none"
-        >
-          <option value="all">เลือกบริษัท</option>
-          {companies.map((c) => (
-            <option key={c.id} value={c.name}>
-              {c.name}
-            </option>
+  <div className="flex flex-col md:flex-row gap-4 mb-6">
+    <input
+      type="date"
+      value={selectedDate}
+      onChange={(e) => setSelectedDate(e.target.value)}
+      className="px-4 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 focus:outline-none"
+    />
+    <select
+      value={selectedCompany}
+      onChange={(e) => setSelectedCompany(e.target.value)}
+      className="px-4 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 focus:outline-none"
+    >
+      <option value="all">เลือกบริษัท</option>
+      {companies.map((c) => (
+        <option key={c.id} value={c.name}>
+          {c.name}
+        </option>
+      ))}
+    </select>
+    <button onClick={exportExcel} className="px-4 py-2 bg-blue-500 text-white rounded">
+      ดาวน์โหลด Excel
+    </button>
+  </div>
+
+  {selectedCompany === "all" ? (
+    <div className="text-red-500 font-semibold text-lg">กรุณาเลือกบริษัทก่อนแสดงข้อมูล</div>
+  ) : (
+    <div className="bg-white shadow-md rounded-lg overflow-auto">
+      <table className="min-w-full border border-gray-300 border-collapse">
+        <thead className="bg-blue-50">
+          <tr>
+            <th rowSpan={2} className="border border-gray-300 px-2 py-1">รหัสพนักงาน</th>
+            <th rowSpan={2} className="border border-gray-300 px-2 py-1">ชื่อ</th>
+            <th rowSpan={2} className="border border-gray-300 px-2 py-1">เวลาเข้า</th>
+            <th rowSpan={2} className="border border-gray-300 px-2 py-1">เวลาออก</th>
+            <th colSpan={4} className="border border-gray-300 px-2 py-1 text-center">OT</th>
+            <th rowSpan={2} className="border border-gray-300 px-2 py-1">ชั่วโมงทำงาน</th>
+            <th rowSpan={2} className="border border-gray-300 px-2 py-1">ชั่วโมง OT</th>
+          </tr>
+          <tr>
+            <th className="border border-gray-300 px-2 py-1">OT IN (ก่อนงาน)</th>
+            <th className="border border-gray-300 px-2 py-1">OT OUT (ก่อนงาน)</th>
+            <th className="border border-gray-300 px-2 py-1">OT IN (หลังงาน)</th>
+            <th className="border border-gray-300 px-2 py-1">OT OUT (หลังงาน)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {Object.values(tableData).map((d, i) => (
+            <tr key={i} className={i % 2 === 0 ? "bg-gray-50" : "bg-white"}>
+              <td className="border border-gray-300 px-2 py-1">{d.em_code}</td>
+              <td className="border border-gray-300 px-2 py-1">{d.name}</td>
+              <td className="border border-gray-300 px-2 py-1">{d.checkIn || "-"}</td>
+              <td className="border border-gray-300 px-2 py-1">{d.checkOut || "-"}</td>
+              <td className="border border-gray-300 px-2 py-1">{d.otInBefore || "-"}</td>
+              <td className="border border-gray-300 px-2 py-1">{d.otOutBefore || "-"}</td>
+              <td className="border border-gray-300 px-2 py-1">{d.otInAfter || "-"}</td>
+              <td className="border border-gray-300 px-2 py-1">{d.otOutAfter || "-"}</td>
+              <td className="border border-gray-300 px-2 py-1">{calcDuration(d.checkIn, d.checkOut)}</td>
+              <td className="border border-gray-300 px-2 py-1">{calcDuration(d.otIn, d.otOut)}</td>
+            </tr>
           ))}
-        </select>
-        <button onClick={exportExcel} className="px-4 py-2 bg-blue-500 text-white rounded">
-          ดาวน์โหลด Excel
-        </button>
-      </div>
-
-      <div className="bg-white shadow-md rounded-lg overflow-auto">
-     <table className="min-w-full border border-gray-400 border-collapse">
-  <thead className="bg-blue-100 text-gray-700 text-sm">
-    {/* แถวหลัก */}
-    <tr>
-      <th rowSpan={2} className="border border-gray-400 px-4 py-2">รหัสพนักงาน</th>
-      <th rowSpan={2} className="border border-gray-400 px-4 py-2">ชื่อ</th>
-      <th rowSpan={2} className="border border-gray-400 px-4 py-2">เวลาเข้า</th>
-      <th rowSpan={2} className="border border-gray-400 px-4 py-2">เวลาออก</th>
-      <th colSpan={4} className="border border-gray-400 px-4 py-2 text-center">OT</th>
-      <th rowSpan={2} className="border border-gray-400 px-4 py-2">ชั่วโมงทำงาน</th>
-      <th rowSpan={2} className="border border-gray-400 px-4 py-2">ชั่วโมง OT</th>
-    </tr>
-    {/* แถวย่อย OT */}
-    <tr>
-      <th className="border border-gray-400 px-2 py-2 text-center">OT IN (ก่อนงาน)</th>
-      <th className="border border-gray-400 px-2 py-2 text-center">OT OUT (ก่อนงาน)</th>
-      <th className="border border-gray-400 px-2 py-2 text-center">OT IN (หลังงาน)</th>
-      <th className="border border-gray-400 px-2 py-2 text-center">OT OUT (หลังงาน)</th>
-    </tr>
-  </thead>
-
-  <tbody>
-    {Object.values(tableData).map((d, i) => (
-      <tr
-        key={i}
-        className={`text-sm ${i % 2 === 0 ? "bg-white" : "bg-gray-50"} hover:bg-blue-50 transition-colors`}
-      >
-        <td className="border border-gray-400 px-4 py-2">{d.em_code}</td>
-        <td className="border border-gray-400 px-4 py-2">{d.name}</td>
-        <td className="border border-gray-400 px-4 py-2">{d.checkIn || "-"}</td>
-        <td className="border border-gray-400 px-4 py-2">{d.checkOut || "-"}</td>
-
-        {/* OT ย่อย */}
-        <td className="border border-gray-400 px-2 py-2 text-center">{d.otInBefore || "-"}</td>
-        <td className="border border-gray-400 px-2 py-2 text-center">{d.otOutBefore || "-"}</td>
-        <td className="border border-gray-400 px-2 py-2 text-center">{d.otInAfter || "-"}</td>
-        <td className="border border-gray-400 px-2 py-2 text-center">{d.otOutAfter || "-"}</td>
-
-        <td className="border border-gray-400 px-4 py-2 text-center">{calcDuration(d.checkIn, d.checkOut)}</td>
-        <td className="border border-gray-400 px-4 py-2 text-center">{calcDuration(d.otIn, d.otOut)}</td>
-      </tr>
-    ))}
-  </tbody>
-</table>
-
-
-      </div>
+        </tbody>
+      </table>
     </div>
+  )}
+</div>
+
   );
 }
