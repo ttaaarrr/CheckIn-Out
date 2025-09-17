@@ -137,7 +137,6 @@ const exportExcel = async () => {
   const workbook = new ExcelJS.Workbook();
   const dayNames = ["อาทิตย์","จันทร์","อังคาร","พุธ","พฤหัสบดี","ศุกร์","เสาร์"];
 
-  // --- สร้าง sheet แยกตามพนักงาน ---
   employees.forEach(emp => {
     const sheet = workbook.addWorksheet(emp.name || emp.em_code);
 
@@ -156,8 +155,8 @@ const exportExcel = async () => {
     sheet.getCell("E4").value = `ช่วงเวลา: ${startDate} ถึง ${endDate}`;
     sheet.getCell("E4").alignment = { horizontal: "center" };
 
-    // Table Header
-    const header = ["วัน", "TIME IN", "TIME OUT",
+    // Table Header (เพิ่ม "วัน/Date")
+    const header = ["วัน/Date", "TIME IN", "TIME OUT",
       "OT IN (ก่อนงาน)", "OT OUT (ก่อนงาน)", "OT IN (หลังงาน)", "OT OUT (หลังงาน)", 
       "ชม.ทำงาน", "ชม. OT"];
     const headerRow = sheet.addRow(header);
@@ -169,7 +168,7 @@ const exportExcel = async () => {
     });
 
     // Loop วัน
-    let rowIndex = 5; // เริ่มหลัง header
+    let rowIndex = 5;
     for (let d = new Date(startDate); d <= new Date(endDate); d.setDate(d.getDate()+1)) {
       const dateStr = d.toISOString().slice(0,10);
       const dayName = dayNames[d.getDay()];
@@ -178,7 +177,7 @@ const exportExcel = async () => {
                 { checkIn: "-", checkOut: "-", otInBefore: "-", otInAfter: "-", otOutBefore: "-", otOutAfter: "-", otIn: "-", otOut: "-" };
 
       const row = sheet.addRow([
-        `${dayName} ${dateStr}`,
+        `${dayName} ${dateStr}`, // คอลัมน์วันที่
         r.checkIn,
         r.checkOut,
         r.otInBefore,
@@ -201,17 +200,20 @@ const exportExcel = async () => {
       rowIndex++;
     }
 
-    // Footer
+    // Footer ลายเซ็น 3 บรรทัด
     const footerStartRow = rowIndex + 2;
     sheet.mergeCells(`B${footerStartRow}:D${footerStartRow}`);
     sheet.getCell(`B${footerStartRow}`).value = "พนักงานลงชื่อ:";
     sheet.getCell(`B${footerStartRow}`).alignment = { vertical:'middle', horizontal:'center' };
+
     sheet.mergeCells(`E${footerStartRow}:G${footerStartRow}`);
-    sheet.getCell(`E${footerStartRow}`).value = "ผู้อนุมัติเซ็น:";
+    sheet.getCell(`E${footerStartRow}`).value = "ผู้อนุมัติ:";
     sheet.getCell(`E${footerStartRow}`).alignment = { vertical:'middle', horizontal:'center' };
 
     sheet.mergeCells(`B${footerStartRow+1}:D${footerStartRow+1}`);
     sheet.mergeCells(`E${footerStartRow+1}:G${footerStartRow+1}`);
+    sheet.mergeCells(`B${footerStartRow+2}:D${footerStartRow+2}`);
+    sheet.mergeCells(`E${footerStartRow+2}:G${footerStartRow+2}`);
 
     // Set column width
     sheet.columns.forEach(col => col.width = 18);
@@ -221,9 +223,7 @@ const exportExcel = async () => {
   const buf = await workbook.xlsx.writeBuffer();
   saveAs(new Blob([buf]), `TimeRecords_${startDate}_to_${endDate}.xlsx`);
 };
-
-
-  if (!user) return null;
+ if (!user) return null;
 
   return (
    <div className="p-6 bg-gray-50 min-h-screen">
