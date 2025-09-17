@@ -25,10 +25,10 @@ export default function Checkin() {
 const typeColor = {
   in: 'bg-green-500 hover:bg-green-600',
   out: 'bg-red-500 hover:bg-red-600',
-  ot_in_before: 'bg-indigo-500 hover:bg-indigo-600',
-  ot_in_after: 'bg-indigo-500 hover:bg-indigo-600',
-  ot_out_before: 'bg-yellow-500 hover:bg-yellow-600',
-  ot_out_after: 'bg-yellow-500 hover:bg-yellow-600',
+  ot_in_before: 'bg-green-500 hover:bg-green-600',
+  ot_in_after: 'bg-green-500 hover:bg-green-600',
+  ot_out_before: 'bg-red-500 hover:bg-red-600',
+  ot_out_after: 'bg-red-500 hover:bg-red-600',
 };
 
   useEffect(() => {
