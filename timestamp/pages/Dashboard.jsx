@@ -280,24 +280,24 @@ headerRow.eachCell(cell => (cell.font = { bold: true }));
       </div>
 
       <div className="bg-white shadow-md rounded-lg overflow-auto">
-       <table className="min-w-full border border-gray-200 rounded-lg overflow-hidden">
+     <table className="min-w-full border border-gray-400 border-collapse">
   <thead className="bg-blue-100 text-gray-700 text-sm">
     {/* แถวหลัก */}
     <tr>
-      <th rowSpan={2} className="border-b border-gray-300 px-4 py-2">รหัสพนักงาน</th>
-      <th rowSpan={2} className="border-b border-gray-300 px-4 py-2">ชื่อ</th>
-      <th rowSpan={2} className="border-b border-gray-300 px-4 py-2">เวลาเข้า</th>
-      <th rowSpan={2} className="border-b border-gray-300 px-4 py-2">เวลาออก</th>
-      <th colSpan={4} className="border-b border-gray-300 px-4 py-2 text-center">OT</th>
-      <th rowSpan={2} className="border-b border-gray-300 px-4 py-2">ชั่วโมงทำงาน</th>
-      <th rowSpan={2} className="border-b border-gray-300 px-4 py-2">ชั่วโมง OT</th>
+      <th rowSpan={2} className="border border-gray-400 px-4 py-2">รหัสพนักงาน</th>
+      <th rowSpan={2} className="border border-gray-400 px-4 py-2">ชื่อ</th>
+      <th rowSpan={2} className="border border-gray-400 px-4 py-2">เวลาเข้า</th>
+      <th rowSpan={2} className="border border-gray-400 px-4 py-2">เวลาออก</th>
+      <th colSpan={4} className="border border-gray-400 px-4 py-2 text-center">OT</th>
+      <th rowSpan={2} className="border border-gray-400 px-4 py-2">ชั่วโมงทำงาน</th>
+      <th rowSpan={2} className="border border-gray-400 px-4 py-2">ชั่วโมง OT</th>
     </tr>
     {/* แถวย่อย OT */}
     <tr>
-      <th className="border-b border-gray-300 px-2 py-2 text-center">OT IN (ก่อนงาน)</th>
-      <th className="border-b border-gray-300 px-2 py-2 text-center">OT OUT (ก่อนงาน)</th>
-      <th className="border-b border-gray-300 px-2 py-2 text-center">OT IN (หลังงาน)</th>
-      <th className="border-b border-gray-300 px-2 py-2 text-center">OT OUT (หลังงาน)</th>
+      <th className="border border-gray-400 px-2 py-2 text-center">OT IN (ก่อนงาน)</th>
+      <th className="border border-gray-400 px-2 py-2 text-center">OT OUT (ก่อนงาน)</th>
+      <th className="border border-gray-400 px-2 py-2 text-center">OT IN (หลังงาน)</th>
+      <th className="border border-gray-400 px-2 py-2 text-center">OT OUT (หลังงาน)</th>
     </tr>
   </thead>
 
@@ -305,27 +305,26 @@ headerRow.eachCell(cell => (cell.font = { bold: true }));
     {Object.values(tableData).map((d, i) => (
       <tr
         key={i}
-        className={`text-sm ${
-          i % 2 === 0 ? "bg-white" : "bg-gray-50"
-        } hover:bg-blue-50 transition-colors`}
+        className={`text-sm ${i % 2 === 0 ? "bg-white" : "bg-gray-50"} hover:bg-blue-50 transition-colors`}
       >
-        <td className="border-b border-gray-200 px-4 py-2">{d.em_code}</td>
-        <td className="border-b border-gray-200 px-4 py-2">{d.name}</td>
-        <td className="border-b border-gray-200 px-4 py-2">{d.checkIn || "-"}</td>
-        <td className="border-b border-gray-200 px-4 py-2">{d.checkOut || "-"}</td>
+        <td className="border border-gray-400 px-4 py-2">{d.em_code}</td>
+        <td className="border border-gray-400 px-4 py-2">{d.name}</td>
+        <td className="border border-gray-400 px-4 py-2">{d.checkIn || "-"}</td>
+        <td className="border border-gray-400 px-4 py-2">{d.checkOut || "-"}</td>
 
         {/* OT ย่อย */}
-        <td className="border-b border-gray-200 px-2 py-2 text-center">{d.otInBefore || "-"}</td>
-        <td className="border-b border-gray-200 px-2 py-2 text-center">{d.otOutBefore || "-"}</td>
-        <td className="border-b border-gray-200 px-2 py-2 text-center">{d.otInAfter || "-"}</td>
-        <td className="border-b border-gray-200 px-2 py-2 text-center">{d.otOutAfter || "-"}</td>
+        <td className="border border-gray-400 px-2 py-2 text-center">{d.otInBefore || "-"}</td>
+        <td className="border border-gray-400 px-2 py-2 text-center">{d.otOutBefore || "-"}</td>
+        <td className="border border-gray-400 px-2 py-2 text-center">{d.otInAfter || "-"}</td>
+        <td className="border border-gray-400 px-2 py-2 text-center">{d.otOutAfter || "-"}</td>
 
-        <td className="border-b border-gray-200 px-4 py-2 text-center">{calcDuration(d.checkIn, d.checkOut)}</td>
-        <td className="border-b border-gray-200 px-4 py-2 text-center">{calcDuration(d.otIn, d.otOut)}</td>
+        <td className="border border-gray-400 px-4 py-2 text-center">{calcDuration(d.checkIn, d.checkOut)}</td>
+        <td className="border border-gray-400 px-4 py-2 text-center">{calcDuration(d.otIn, d.otOut)}</td>
       </tr>
     ))}
   </tbody>
 </table>
+
 
       </div>
     </div>
