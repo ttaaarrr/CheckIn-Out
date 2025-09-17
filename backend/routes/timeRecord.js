@@ -2,7 +2,7 @@ const express = require('express');
 const pool = require('../db');
 const router = express.Router();
 
-// --- POST บันทึกเวลา พร้อม GPS ---
+//  บันทึกเวลา พร้อม GPS
 router.post('/', async (req, res) => {
   const { empId, type, company_name, latitude, longitude } = req.body;
   const conn = await pool.getConnection();
@@ -108,7 +108,7 @@ router.post('/', async (req, res) => {
   }
 });
 
-// --- GET ประวัติพนักงาน ---
+// ประวัติพนักงาน 
 router.get('/', async (req, res) => {
   const { date } = req.query;
   if (!date) return res.json({ success: false, message: 'ต้องระบุวันที่' });
@@ -132,7 +132,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-// --- GET รายเดือน ---
+//  รายเดือน 
 router.get('/monthly', async (req, res) => {
   const { month, company } = req.query;
   const conn = await pool.getConnection();
@@ -157,5 +157,28 @@ router.get('/monthly', async (req, res) => {
     conn.release();
   }
 });
+// เลือกเวลา
+router.get('/range', async (req, res) => {
+  const { start, end, company } = req.query;
+  if (!start || !end || !company) return res.status(400).json({ success: false, message: 'Missing parameters' });
 
+  const conn = await pool.getConnection();
+  try {
+    const [rows] = await conn.query(
+      `SELECT tr.em_code, tr.company_name, tr.date, tr.type, tr.time, e.name
+       FROM time_records tr
+       LEFT JOIN employees e ON tr.em_code = e.em_code
+       WHERE tr.company_name = ? AND tr.date BETWEEN ? AND ?
+       ORDER BY tr.em_code, tr.date, tr.type`,
+      [company, start, end]
+    );
+
+    res.json({ success: true, records: rows });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: 'Database error' });
+  } finally {
+    conn.release();
+  }
+});
 module.exports = router;

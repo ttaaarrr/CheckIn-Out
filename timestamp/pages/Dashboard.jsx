@@ -137,49 +137,41 @@ const exportExcel = async () => {
   const workbook = new ExcelJS.Workbook();
   const dayNames = ["อาทิตย์","จันทร์","อังคาร","พุธ","พฤหัสบดี","ศุกร์","เสาร์"];
 
-  const sheet = workbook.addWorksheet("Time Report");
-
-  // Header โลโก้
-  const logo1 = workbook.addImage({ base64: "headerLogoBase64", extension: "png" });
-  sheet.addImage(logo1, "B2:D5");
-
-  sheet.mergeCells("E2:H2");
-  sheet.getCell("E2").value = "BPIT holdings CO.,LTD.";
-  sheet.getCell("E2").font = { bold: true, size: 16 };
-  sheet.getCell("E2").alignment = { horizontal: "center", vertical: "middle" };
-
-  sheet.mergeCells("E3:H3");
-  sheet.getCell("E3").value = "TIME RECORD REPORT";
-  sheet.getCell("E3").font = { bold: true, size: 14 };
-  sheet.getCell("E3").alignment = { horizontal: "center", vertical: "middle" };
-
-  sheet.mergeCells("E4:H4");
-  sheet.getCell("E4").value = `ช่วงเวลา: ${startDate} ถึง ${endDate}`;
-  sheet.getCell("E4").alignment = { horizontal: "center" };
-
-  //Table Header
-  const header = ["วัน", "รหัสพนักงาน", "ชื่อ", "TIME IN", "TIME OUT",
-    "OT IN (ก่อนงาน)", "OT OUT (ก่อนงาน)", "OT IN (หลังงาน)", "OT OUT (หลังงาน)", 
-    "ชม.ทำงาน", "ชม. OT"];
-  const headerRow = sheet.addRow(header);
-
-  headerRow.eachCell(cell => {
-    cell.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 12 };
-    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F4E78' } };
-    cell.alignment = { vertical: 'middle', horizontal: 'center' };
-    cell.border = {
-      top: { style: 'thin' },
-      left: { style: 'thin' },
-      bottom: { style: 'thin' },
-      right: { style: 'thin' }
-    };
-  });
-
-  // --- Loop วันและพนักงาน ---
-  let rowIndex = 2;
+  // --- สร้าง sheet แยกตามพนักงาน ---
   employees.forEach(emp => {
-    for (let d = new Date(startDate); d <= new Date(endDate); d.setDate(d.getDate() + 1)) {
-      const dateStr = d.toISOString().slice(0, 10);
+    const sheet = workbook.addWorksheet(emp.name || emp.em_code);
+
+    // Header โลโก้ + ข้อมูลบริษัท
+    const logo1 = workbook.addImage({ base64: "headerLogoBase64", extension: "png" });
+    sheet.addImage(logo1, "B2:D5");
+    sheet.mergeCells("E2:H2");
+    sheet.getCell("E2").value = "BPIT holdings CO.,LTD.";
+    sheet.getCell("E2").font = { bold: true, size: 16 };
+    sheet.getCell("E2").alignment = { horizontal: "center", vertical: "middle" };
+    sheet.mergeCells("E3:H3");
+    sheet.getCell("E3").value = "TIME RECORD REPORT";
+    sheet.getCell("E3").font = { bold: true, size: 14 };
+    sheet.getCell("E3").alignment = { horizontal: "center", vertical: "middle" };
+    sheet.mergeCells("E4:H4");
+    sheet.getCell("E4").value = `ช่วงเวลา: ${startDate} ถึง ${endDate}`;
+    sheet.getCell("E4").alignment = { horizontal: "center" };
+
+    // Table Header
+    const header = ["วัน", "TIME IN", "TIME OUT",
+      "OT IN (ก่อนงาน)", "OT OUT (ก่อนงาน)", "OT IN (หลังงาน)", "OT OUT (หลังงาน)", 
+      "ชม.ทำงาน", "ชม. OT"];
+    const headerRow = sheet.addRow(header);
+    headerRow.eachCell(cell => {
+      cell.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 12 };
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F4E78' } };
+      cell.alignment = { vertical: 'middle', horizontal: 'center' };
+      cell.border = { top:{style:'thin'}, left:{style:'thin'}, bottom:{style:'thin'}, right:{style:'thin'} };
+    });
+
+    // Loop วัน
+    let rowIndex = 5; // เริ่มหลัง header
+    for (let d = new Date(startDate); d <= new Date(endDate); d.setDate(d.getDate()+1)) {
+      const dateStr = d.toISOString().slice(0,10);
       const dayName = dayNames[d.getDay()];
 
       const r = rangeRecords.find(rec => rec.em_code === emp.em_code && rec.date === dateStr) || 
@@ -187,8 +179,6 @@ const exportExcel = async () => {
 
       const row = sheet.addRow([
         `${dayName} ${dateStr}`,
-        emp.em_code,
-        emp.name,
         r.checkIn,
         r.checkOut,
         r.otInBefore,
@@ -200,42 +190,38 @@ const exportExcel = async () => {
       ]);
 
       row.eachCell(cell => {
-        cell.border = {
-          top: { style: 'thin' },
-          left: { style: 'thin' },
-          bottom: { style: 'thin' },
-          right: { style: 'thin' }
-        };
+        cell.border = { top:{style:'thin'}, left:{style:'thin'}, bottom:{style:'thin'}, right:{style:'thin'} };
       });
 
       if (rowIndex % 2 === 0) {
         row.eachCell(cell => {
-          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD9E1F2' } };
+          cell.fill = { type:'pattern', pattern:'solid', fgColor:{ argb:'FFD9E1F2' } };
         });
       }
       rowIndex++;
     }
+
+    // Footer
+    const footerStartRow = rowIndex + 2;
+    sheet.mergeCells(`B${footerStartRow}:D${footerStartRow}`);
+    sheet.getCell(`B${footerStartRow}`).value = "พนักงานลงชื่อ:";
+    sheet.getCell(`B${footerStartRow}`).alignment = { vertical:'middle', horizontal:'center' };
+    sheet.mergeCells(`E${footerStartRow}:G${footerStartRow}`);
+    sheet.getCell(`E${footerStartRow}`).value = "ผู้อนุมัติเซ็น:";
+    sheet.getCell(`E${footerStartRow}`).alignment = { vertical:'middle', horizontal:'center' };
+
+    sheet.mergeCells(`B${footerStartRow+1}:D${footerStartRow+1}`);
+    sheet.mergeCells(`E${footerStartRow+1}:G${footerStartRow+1}`);
+
+    // Set column width
+    sheet.columns.forEach(col => col.width = 18);
   });
 
-  // Footer 
-  const footerStartRow = rowIndex + 2;
-  sheet.mergeCells(`B${footerStartRow}:D${footerStartRow}`);
-  sheet.getCell(`B${footerStartRow}`).value = "พนักงานลงชื่อ:";
-  sheet.getCell(`B${footerStartRow}`).alignment = { vertical: 'middle', horizontal: 'center' };
-  sheet.mergeCells(`E${footerStartRow}:G${footerStartRow}`);
-  sheet.getCell(`E${footerStartRow}`).value = "ผู้อนุมัติเซ็น:";
-  sheet.getCell(`E${footerStartRow}`).alignment = { vertical: 'middle', horizontal: 'center' };
-
-  sheet.mergeCells(`B${footerStartRow+1}:D${footerStartRow+1}`);
-  sheet.mergeCells(`E${footerStartRow+1}:G${footerStartRow+1}`);
-
-  // Set ความกว้าง
-  sheet.columns.forEach(col => col.width = 18);
-
-  // Save file 
+  // Save file
   const buf = await workbook.xlsx.writeBuffer();
   saveAs(new Blob([buf]), `TimeRecords_${startDate}_to_${endDate}.xlsx`);
 };
+
 
   if (!user) return null;
 
