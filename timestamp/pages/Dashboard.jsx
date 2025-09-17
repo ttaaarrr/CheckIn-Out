@@ -160,8 +160,8 @@ const exportExcel = async () => {
     sheet.getCell("E4").alignment = { horizontal: "center" };
 
     // --- Table Header (เพิ่มคอลัมน์วันที่) ---
-    const header = ["วัน/Date", "TIME IN", "TIME OUT",
-      "OT IN (ก่อนงาน)", "OT OUT (ก่อนงาน)", "OT IN (หลังงาน)", "OT OUT (หลังงาน)", 
+    const header = ["วัน","วัน/เดือน/ปี", "เข้างาน", "เลิกงาน",
+      "เริ่ม OT (ก่อนเข้างาน)", "เลิก OT (ก่อนเข้างาน)", "เริ่ม OT  (หลังเลิกงาน)", "เลิก OT (หลังเลิกงาน)", 
       "ชม.ทำงาน", "ชม. OT"];
     const headerRow = sheet.addRow(header);
 
