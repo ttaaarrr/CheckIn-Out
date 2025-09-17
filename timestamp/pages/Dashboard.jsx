@@ -171,7 +171,19 @@ const exportExcel = async () => {
       cell.alignment = { vertical: 'middle', horizontal: 'center' };
       cell.border = { top:{style:'thin'}, left:{style:'thin'}, bottom:{style:'thin'}, right:{style:'thin'} };
     });
-
+ // --- Set column width ---
+  sheet.columns = [
+    { width: 12 },
+    { width: 15 },
+    { width: 12 },
+    { width: 12 },
+    { width: 18 },
+    { width: 18 },
+    { width: 18 },
+    { width: 18 },
+    { width: 12 },
+    { width: 12 }
+  ];
     // --- Loop วัน ---
     let rowIndex = 5;
     for (let d = new Date(startDate); d <= new Date(endDate); d.setDate(d.getDate()+1)) {
@@ -207,7 +219,10 @@ const exportExcel = async () => {
     }
 
     // --- Footer ลายเซ็น 3 บรรทัด ---
-    const footerStartRow = sheet.lastRow.number + 2;
+     const footerStartRow = sheet.lastRow.number + 2;
+  sheet.getRow(footerStartRow).height = 20;
+  sheet.getRow(footerStartRow+1).height = 15;
+  sheet.getRow(footerStartRow+2).height = 15;
     sheet.mergeCells(`B${footerStartRow}:D${footerStartRow}`);
 sheet.getCell(`B${footerStartRow}`).value = "พนักงานลงชื่อ:";
 sheet.getCell(`B${footerStartRow}`).alignment = { vertical:'middle', horizontal:'center' };
