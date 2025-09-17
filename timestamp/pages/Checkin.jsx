@@ -82,7 +82,7 @@ const typeColor = {
     });
 
 const handleCheckin = async (type) => {
-  if (!empId) return alert('กรุณาใส่รหัสหรือชื่อพนักงาน');
+  if (!empId.trim()) return alert('กรุณาใส่รหัสหรือชื่อพนักงาน');
   if (!companyId) return alert('กรุณาเลือกบริษัท');
 
   try {
@@ -99,49 +99,42 @@ const handleCheckin = async (type) => {
         )
       : null;
 
-    if (!matchedEmp) {
-      return alert('ไม่พบรหัสหรือชื่อพนักงานนี้ในบริษัทที่เลือก');
-    }
+    if (!matchedEmp) return alert('ไม่พบรหัสหรือชื่อพนักงานนี้ในบริษัทที่เลือก');
 
     const today = new Date().toLocaleDateString('sv-SE');
     const empRecords = await getTimeRecords(matchedEmp.em_code);
 
-    // เช็คบันทึกซ้ำ
-    if (empRecords.some((r) => r.date === today && r.type === type)) {
+    // ป้องกันบันทึกซ้ำ type เดิม
+    if (empRecords.some(r => r.date === today && r.type === type)) {
       return alert(`คุณได้บันทึก "${typeMapTH[type]}" ไปแล้วในวันนี้`);
     }
 
     // OT logic
+    const hasCheckedIn = empRecords.some(r => r.date === today && r.type === 'in');
+    const hasCheckedOut = empRecords.some(r => r.date === today && r.type === 'out');
+    const hasOTInBefore = empRecords.some(r => r.date === today && r.type === 'ot_in_before');
+    const hasOTInAfter = empRecords.some(r => r.date === today && r.type === 'ot_in_after');
+    const hasOTOutBefore = empRecords.some(r => r.date === today && r.type === 'ot_out_before');
+    const hasOTOutAfter = empRecords.some(r => r.date === today && r.type === 'ot_out_after');
+
     if (type === 'ot_in_before') {
-      // OT ก่อนเข้างาน ต้องยังไม่เคยเช็คอินปกติ
-      const hasCheckedIn = empRecords.some(r => r.date === today && r.type === 'in');
-      if (hasCheckedIn) {
-        return alert('คุณไม่สามารถบันทึก OT ก่อนเข้างานหลังจากเข้าทำงานแล้ว');
-      }
+      if (hasCheckedIn) return alert('คุณไม่สามารถบันทึก OT ก่อนเข้างานหลังจากเข้าทำงานแล้ว');
+      if (hasOTInBefore) return alert('คุณได้บันทึก OT ก่อนเข้างานไปแล้ว');
     }
 
     if (type === 'ot_in_after') {
-      // OT หลังเข้างาน ต้องเช็คอินปกติแล้ว
-      const hasCheckedIn = empRecords.some(r => r.date === today && r.type === 'in');
-      if (!hasCheckedIn) {
-        return alert('คุณยังไม่บันทึกเข้างานปกติ ไม่สามารถบันทึก OT หลังเข้างานได้');
-      }
+      if (!hasCheckedIn) return alert('คุณยังไม่บันทึกเข้างานปกติ ไม่สามารถบันทึก OT หลังเข้างานได้');
+      if (hasOTInAfter) return alert('คุณได้บันทึก OT หลังเข้างานไปแล้ว');
     }
 
     if (type === 'ot_out_before') {
-      // OT ก่อนออกงาน ต้องยังไม่เช็คเอาท์ปกติ
-      const hasCheckedOut = empRecords.some(r => r.date === today && r.type === 'out');
-      if (hasCheckedOut) {
-        return alert('คุณไม่สามารถบันทึก OT ก่อนออกงานหลังจากออกงานแล้ว');
-      }
+      if (hasCheckedOut) return alert('คุณไม่สามารถบันทึก OT ก่อนออกงานหลังจากออกงานแล้ว');
+      if (hasOTOutBefore) return alert('คุณได้บันทึก OT ก่อนออกงานไปแล้ว');
     }
 
     if (type === 'ot_out_after') {
-      // OT หลังเลิกงาน ต้องเช็คเอาท์ปกติแล้ว
-      const hasCheckedOut = empRecords.some(r => r.date === today && r.type === 'out');
-      if (!hasCheckedOut) {
-        return alert('คุณยังไม่บันทึกออกงานปกติ ไม่สามารถบันทึก OT หลังเลิกงานได้');
-      }
+      if (!hasCheckedOut) return alert('คุณยังไม่บันทึกออกงานปกติ ไม่สามารถบันทึก OT หลังเลิกงานได้');
+      if (hasOTOutAfter) return alert('คุณได้บันทึก OT หลังเลิกงานไปแล้ว');
     }
 
     // บันทึกเวลา
@@ -161,18 +154,18 @@ const handleCheckin = async (type) => {
       setEmpId('');
       setRecords(await getTimeRecords(matchedEmp.em_code));
 
-      // ถ้าเป็น OT ให้ซ่อนปุ่ม OT 4 ปุ่มหลังบันทึกเสร็จ
-      if (type.startsWith('ot')) {
-        setShowOTButtons(false);
-      }
+      // ซ่อนปุ่ม OT หลังบันทึก OT เสร็จ
+      if (type.startsWith('ot')) setShowOTButtons(false);
     } else {
       setMessage({ text: res.message, type: 'error' });
     }
+
   } catch (err) {
     console.error(err);
     alert(err.message || 'กรุณาอนุญาต GPS ก่อนลงเวลา');
   }
 };
+
 
   return (
     <div className="max-w-lg mx-auto bg-white rounded-2xl shadow-2xl p-8 mt-10 border border-gray-100">
