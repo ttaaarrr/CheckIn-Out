@@ -116,141 +116,125 @@ export default function Dashboard({ user }) {
 
   // ฟังก์ชัน export Excel
 const exportExcel = async () => {
-  if (!selectedCompany || selectedCompany === "all") {
-    alert("กรุณาเลือกบริษัทก่อน export Excel");
+  if (!selectedCompany || selectedCompany === "all" || !startDate || !endDate) {
+    alert("กรุณาเลือกบริษัทและช่วงวันที่ก่อน export Excel");
     return;
   }
 
-  const monthStr = selectedDate.slice(0, 7); // YYYY-MM
-  let monthlyRecords = [];
+  let rangeRecords = [];
   try {
     const res = await axios.get(
-      `https://api-checkin-out.bpit-staff.com/api/time-record/monthly?month=${monthStr}&company=${selectedCompany}`
+      `https://api-checkin-out.bpit-staff.com/api/time-record/range?start=${startDate}&end=${endDate}&company=${selectedCompany}`
     );
-    if (res.data.success) monthlyRecords = res.data.records;
+    if (res.data.success) rangeRecords = res.data.records;
   } catch (err) {
     console.error(err);
     return;
   }
 
   const workbook = new ExcelJS.Workbook();
-  const monthNames = [
-    "มกราคม","กุมภาพันธ์","มีนาคม","เมษายน","พฤษภาคม","มิถุนายน",
-    "กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤศจิกายน","ธันวาคม"
-  ];
   const dayNames = ["อาทิตย์","จันทร์","อังคาร","พุธ","พฤหัสบดี","ศุกร์","เสาร์"];
-  const [year, month] = monthStr.split("-");
-  const daysInMonth = new Date(year, month, 0).getDate();
 
-  // สร้าง tableData แยกพนักงาน
-  const tableData = {};
-  // สร้าง tableData สำหรับทุกพนักงาน
-employees.forEach(emp => {
-  const key = `${emp.em_code}_${emp.company_name}`;
-  tableData[key] = { 
-    em_code: emp.em_code, 
-    name: emp.name, 
-    company: emp.company_name, 
-    records: {} 
-  };
-});
+  const sheet = workbook.addWorksheet("Time Report");
 
-// ใส่ข้อมูลลง tableData
-monthlyRecords.forEach(r => {
-  const key = `${r.em_code}_${r.company_name}`;
-  if (!tableData[key]) return;
+  // --- Header โลโก้ ---
+  const logo1 = workbook.addImage({ base64: "headerLogoBase64", extension: "png" });
+  sheet.addImage(logo1, "B2:D5");
 
-  // Normalize วันที่เป็น YYYY-MM-DD
-  const d = new Date(r.date);
-  const dateKey = `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}-${d.getDate().toString().padStart(2,'0')}`;
+  sheet.mergeCells("E2:H2");
+  sheet.getCell("E2").value = "BPIT holdings CO.,LTD.";
+  sheet.getCell("E2").font = { bold: true, size: 16 };
+  sheet.getCell("E2").alignment = { horizontal: "center", vertical: "middle" };
 
-  if (!tableData[key].records[dateKey]) {
-    tableData[key].records[dateKey] = {
-      checkIn: "-", 
-      checkOut: "-", 
-      otIn: "-", 
-      otOut: "-",
-      otInBefore: "-",
-      otInAfter: "-",
-      otOutBefore: "-",
-      otOutAfter: "-"
+  sheet.mergeCells("E3:H3");
+  sheet.getCell("E3").value = "TIME RECORD REPORT";
+  sheet.getCell("E3").font = { bold: true, size: 14 };
+  sheet.getCell("E3").alignment = { horizontal: "center", vertical: "middle" };
+
+  sheet.mergeCells("E4:H4");
+  sheet.getCell("E4").value = `ช่วงเวลา: ${startDate} ถึง ${endDate}`;
+  sheet.getCell("E4").alignment = { horizontal: "center" };
+
+  // --- Table Header ---
+  const header = ["วัน", "รหัสพนักงาน", "ชื่อ", "TIME IN", "TIME OUT",
+    "OT IN (ก่อนงาน)", "OT OUT (ก่อนงาน)", "OT IN (หลังงาน)", "OT OUT (หลังงาน)", 
+    "ชม.ทำงาน", "ชม. OT"];
+  const headerRow = sheet.addRow(header);
+
+  headerRow.eachCell(cell => {
+    cell.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 12 };
+    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F4E78' } };
+    cell.alignment = { vertical: 'middle', horizontal: 'center' };
+    cell.border = {
+      top: { style: 'thin' },
+      left: { style: 'thin' },
+      bottom: { style: 'thin' },
+      right: { style: 'thin' }
     };
-  }
-
-  const field = typeMap[r.type.toLowerCase()];
-  if (field) tableData[key].records[dateKey][field] = r.time;
-});
-
-  // สร้าง sheet สำหรับแต่ละพนักงาน
-  Object.values(tableData).forEach(empData => {
-    const sheet = workbook.addWorksheet(empData.name);
-// --- โลโก้  --- // 
- const logo1 = workbook.addImage({ 
-      base64:  "header",   extension: "png" }); 
- sheet.addImage(logo1, "B2:C5"); 
- const logo2 = workbook.addImage({ 
-      base64: "header2",   extension: "jpg" }); 
- sheet.addImage(logo2, "G1:H5");
-    // Header
-    sheet.getCell("D2").value = "BPIT holdings CO.,LTD.";
-    sheet.getCell("D3").value = "TIME RECORD REPORT";
-    sheet.getCell("D4").value = `${monthNames[parseInt(month)-1]} ${year}`;
-    sheet.getCell("B7").value = "NO.";
-    sheet.getCell("C7").value = empData.em_code;
-    sheet.getCell("B8").value = "ชื่อ-นามสกุล:";
-    sheet.getCell("C8").value = empData.name;
-    sheet.getCell("E8").value = "ตำแหน่ง : ";
-    sheet.getCell("F8").value = note;
-    sheet.getCell("H8").value = "บริษัท :";
-    sheet.getCell("B36").value = ""
-
-    sheet.addRow([]);
-    const headerRow = sheet.addRow([
-  "วัน",
-  "TIME IN",
-  "TIME OUT",
-  "OT IN (ก่อนเริ่มงาน)",
-  "OT OUT (ก่อนเริ่มงาน)",
-  "OT IN (หลังเลิกงาน)",
-  "OT OUT (หลังเลิกงาน)",
-  "ชม.ทำงาน",
-  "ชม. OT"
-]);
-headerRow.eachCell(cell => (cell.font = { bold: true }));
-
-    // Loop วันทำงาน
-    for (let d = 1; d <= daysInMonth; d++) {
-  const dateStr = `${year}-${month}-${d.toString().padStart(2,"0")}`;
-  const dayName = dayNames[new Date(dateStr).getDay()];
-  if (dayName === "เสาร์" || dayName === "อาทิตย์") continue;
-
-  const r = empData.records[dateStr] || { 
-    checkIn: "-", checkOut: "-", 
-    otIn: "-", otOut: "-", 
-    otInBefore: "-", otInAfter: "-", 
-    otOutBefore: "-", otOutAfter: "-" 
-  };
-
-  sheet.addRow([
-    `${dayName} ${d}/${month}`,
-    r.checkIn,
-    r.checkOut,
-    r.otIn,
-    r.otOut,
-    `${r.otInBefore || "-"} / ${r.otInAfter || "-"}`,
-    `${r.otOutBefore || "-"} / ${r.otOutAfter || "-"}`,
-    calcDuration(r.checkIn, r.checkOut),
-    calcDuration(r.otIn, r.otOut),
-  ]);
-}
-
-    // Set width
-    sheet.columns.forEach(col => { col.width = 15; });
   });
 
+  // --- Loop วันและพนักงาน ---
+  let rowIndex = 2;
+  employees.forEach(emp => {
+    for (let d = new Date(startDate); d <= new Date(endDate); d.setDate(d.getDate() + 1)) {
+      const dateStr = d.toISOString().slice(0, 10);
+      const dayName = dayNames[d.getDay()];
+
+      const r = rangeRecords.find(rec => rec.em_code === emp.em_code && rec.date === dateStr) || 
+                { checkIn: "-", checkOut: "-", otInBefore: "-", otInAfter: "-", otOutBefore: "-", otOutAfter: "-", otIn: "-", otOut: "-" };
+
+      const row = sheet.addRow([
+        `${dayName} ${dateStr}`,
+        emp.em_code,
+        emp.name,
+        r.checkIn,
+        r.checkOut,
+        r.otInBefore,
+        r.otOutBefore,
+        r.otInAfter,
+        r.otOutAfter,
+        calcDuration(r.checkIn, r.checkOut),
+        calcDuration(r.otIn, r.otOut)
+      ]);
+
+      row.eachCell(cell => {
+        cell.border = {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'thin' },
+          right: { style: 'thin' }
+        };
+      });
+
+      if (rowIndex % 2 === 0) {
+        row.eachCell(cell => {
+          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD9E1F2' } };
+        });
+      }
+      rowIndex++;
+    }
+  });
+
+  // --- Footer ---
+  const footerStartRow = rowIndex + 2;
+  sheet.mergeCells(`B${footerStartRow}:D${footerStartRow}`);
+  sheet.getCell(`B${footerStartRow}`).value = "พนักงานลงชื่อ:";
+  sheet.getCell(`B${footerStartRow}`).alignment = { vertical: 'middle', horizontal: 'center' };
+  sheet.mergeCells(`E${footerStartRow}:G${footerStartRow}`);
+  sheet.getCell(`E${footerStartRow}`).value = "ผู้อนุมัติเซ็น:";
+  sheet.getCell(`E${footerStartRow}`).alignment = { vertical: 'middle', horizontal: 'center' };
+
+  sheet.mergeCells(`B${footerStartRow+1}:D${footerStartRow+1}`);
+  sheet.mergeCells(`E${footerStartRow+1}:G${footerStartRow+1}`);
+
+  // Set ความกว้าง
+  sheet.columns.forEach(col => col.width = 18);
+
+  // --- Save file ---
   const buf = await workbook.xlsx.writeBuffer();
-  saveAs(new Blob([buf]), `TimeRecords_${monthStr}.xlsx`);
+  saveAs(new Blob([buf]), `TimeRecords_${startDate}_to_${endDate}.xlsx`);
 };
+
   if (!user) return null;
 
   return (
