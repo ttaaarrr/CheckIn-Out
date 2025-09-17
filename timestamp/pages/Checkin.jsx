@@ -205,28 +205,28 @@ const typeColor = {
 {showOTButtons && (
   <div className="grid grid-cols-2 gap-3 mb-6">
     <button
-      className="bg-indigo-500 hover:bg-indigo-600 text-white py-2 px-4 rounded"
+      className="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded"
       onClick={() => handleCheckin('ot_in_before')}
     >
-      เข้า OT ก่อนเข้างาน
+      เข้า OT ก่อนเริ่มงาน
     </button>
     <button
-      className="bg-indigo-500 hover:bg-indigo-600 text-white py-2 px-4 rounded"
+      className="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded"
       onClick={() => handleCheckin('ot_in_after')}
     >
-      เข้า OT หลังเข้างาน
+      เข้า OT หลังเลิกงาน
     </button>
     <button
-      className="bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-4 rounded"
+      className="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded"
       onClick={() => handleCheckin('ot_out_before')}
     >
-      ออก OT ก่อนเข้างาน
+      ออก OT ก่อนเริ่มงาน
     </button>
     <button
-      className="bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-4 rounded"
+      className="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded"
       onClick={() => handleCheckin('ot_out_after')}
     >
-      ออก OT หลังเข้างาน
+      ออก OT หลังเลิกงาน
     </button>
   </div>
 )}
