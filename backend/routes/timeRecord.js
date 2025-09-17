@@ -61,19 +61,18 @@ router.post('/', async (req, res) => {
     function validateOT(type, records) {
       const types = records.map(r => r.type);
       if (type === 'ot_in_before' && types.includes('in')) {
-        return 'ไม่สามารถบันทึก OT ก่อนเข้างานหลังจากเข้าทำงานแล้ว';
+        return 'ไม่สามารถบันทึก OT ก่อนเข้างานได้ เนื่องจากมีการลงเวลาเข้าทำงานแล้ว';
       }
       if (type === 'ot_in_after') {
-        if (!types.includes('out')) return 'ต้องลงเวลาออกปกติก่อน OT หลังเข้างาน';
+        if (!types.includes('out')) return 'ต้องลงเวลาออกปกติก่อน ';
         if (types.includes('ot_in_before') && !types.includes('ot_out_before'))
-          return 'ก่อน OT หลังเข้างาน ต้อง OT ก่อนเข้างานและออกก่อนแล้ว';
+          return ' ต้องลงเวลาออก OT ก่อนเข้างานก่อน';
       }
-      if (type === 'ot_out_before' && types.includes('in')) {
-        return 'OT ก่อนออกงาน ต้องยังไม่เข้าทำงานปกติ';
-      }
+      if (type === 'ot_out_before') {
+        if (!types.includes('ot_in_before')) return 'คุณยังไม่ได้บันทึกเวลาเข้า OT ก่อนเข้างาน';
+        }
       if (type === 'ot_out_after') {
-        if (!types.includes('out')) return 'ต้องออกงานปกติก่อน OT หลังออกงาน';
-        if (!types.includes('ot_in_after')) return 'ต้องทำ OT หลังเข้างานก่อน OT หลังออกงาน';
+        if (!types.includes('ot_in_after')) return 'ต้องลงเวลา OT หลังเลิกงานก่อน ';
       }
       return null;
     }

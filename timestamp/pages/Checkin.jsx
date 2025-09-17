@@ -15,7 +15,7 @@ export default function Checkin() {
     in: 'เข้างาน', 
     out: 'ออกงาน', 
     ot_in_before: 'เข้า OT ก่อนเข้างาน',
-    ot_in_after: 'เข้า OT หลังเข้างาน',
+    ot_in_after: 'เข้า OT หลังเลิกงาน',
     ot_out_before: 'ออก OT ก่อนเข้างาน',
     ot_out_after: 'ออก OT หลังเลิกงาน'
   };
