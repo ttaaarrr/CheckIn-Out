@@ -281,39 +281,42 @@ headerRow.eachCell(cell => (cell.font = { bold: true }));
 
       <div className="bg-white shadow-md rounded-lg overflow-auto">
         <table className="min-w-full border-collapse">
-         <thead className="bg-blue-50">
-  <tr>
-    <th>รหัสพนักงาน</th>
-    <th>ชื่อ</th>
-    <th>TIME IN</th>
-    <th>TIME OUT</th>
-    <th>OT IN (ก่อนเริ่มงาน)</th>
-    <th>OT OUT (ก่อนเริ่มงาน)</th>
-    <th>OT IN (หลังเลิกงาน)</th>
-    <th>OT OUT (หลังเลิกงาน)</th>
-    <th>ระยะเวลาทำงาน</th>
-    <th>ระยะเวลา OT</th>
-  </tr>
-</thead>
-
-<tbody>
-  {Object.values(tableData).map((d, i) => (
-    <tr key={i} className={i % 2 === 0 ? "bg-gray-50" : "bg-white"}>
-      <td>{d.em_code}</td>
-      <td>{d.name}</td>
-      <td>{d.checkIn || "-"}</td>
-      <td>{d.checkOut || "-"}</td>
-      <td>{d.otInBefore || "-"}</td>
-      <td>{d.otOutBefore || "-"}</td>
-      <td>{d.otInAfter || "-"}</td>
-      <td>{d.otOutAfter || "-"}</td>
-      <td>{calcDuration(d.checkIn, d.checkOut)}</td>
-      <td>{calcDuration(d.otIn, d.otOut)}</td>
+  <thead className="bg-blue-50">
+    <tr>
+      <th rowSpan={2}>รหัสพนักงาน</th>
+      <th rowSpan={2}>ชื่อ</th>
+      <th rowSpan={2}>เวลาเข้า</th>
+      <th rowSpan={2}>เวลาออก</th>
+      <th colSpan={4} className="text-center">OT</th>
+      <th rowSpan={2}>ชั่วโมงทำงาน</th>
+      <th rowSpan={2}>ชั่วโมง OT</th>
     </tr>
-  ))}
-</tbody>
+    <tr>
+      <th>OT IN (ก่อนงาน)</th>
+      <th>OT OUT (ก่อนงาน)</th>
+      <th>OT IN (หลังงาน)</th>
+      <th>OT OUT (หลังงาน)</th>
+    </tr>
+  </thead>
 
-        </table>
+  <tbody>
+    {Object.values(tableData).map((d, i) => (
+      <tr key={i} className={i % 2 === 0 ? "bg-gray-50" : "bg-white"}>
+        <td>{d.em_code}</td>
+        <td>{d.name}</td>
+        <td>{d.checkIn || "-"}</td>
+        <td>{d.checkOut || "-"}</td>
+        <td>{d.otInBefore || "-"}</td>
+        <td>{d.otOutBefore || "-"}</td>
+        <td>{d.otInAfter || "-"}</td>
+        <td>{d.otOutAfter || "-"}</td>
+        <td>{calcDuration(d.checkIn, d.checkOut)}</td>
+        <td>{calcDuration(d.otIn, d.otOut)}</td>
+      </tr>
+    ))}
+  </tbody>
+</table>
+
       </div>
     </div>
   );
