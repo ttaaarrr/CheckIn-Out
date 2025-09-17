@@ -137,29 +137,34 @@ const exportExcel = async () => {
   const workbook = new ExcelJS.Workbook();
   const dayNames = ["อาทิตย์","จันทร์","อังคาร","พุธ","พฤหัสบดี","ศุกร์","เสาร์"];
 
+  // --- Loop แต่ละพนักงาน ---
   employees.forEach(emp => {
     const sheet = workbook.addWorksheet(emp.name || emp.em_code);
 
-    // Header โลโก้ + ข้อมูลบริษัท
+    // --- Header ---
     const logo1 = workbook.addImage({ base64: "headerLogoBase64", extension: "png" });
     sheet.addImage(logo1, "B2:D5");
+
     sheet.mergeCells("E2:H2");
     sheet.getCell("E2").value = "BPIT holdings CO.,LTD.";
     sheet.getCell("E2").font = { bold: true, size: 16 };
     sheet.getCell("E2").alignment = { horizontal: "center", vertical: "middle" };
+
     sheet.mergeCells("E3:H3");
     sheet.getCell("E3").value = "TIME RECORD REPORT";
     sheet.getCell("E3").font = { bold: true, size: 14 };
     sheet.getCell("E3").alignment = { horizontal: "center", vertical: "middle" };
+
     sheet.mergeCells("E4:H4");
     sheet.getCell("E4").value = `ช่วงเวลา: ${startDate} ถึง ${endDate}`;
     sheet.getCell("E4").alignment = { horizontal: "center" };
 
-    // Table Header (เพิ่ม "วัน/Date")
+    // --- Table Header (เพิ่มคอลัมน์วันที่) ---
     const header = ["วัน/Date", "TIME IN", "TIME OUT",
       "OT IN (ก่อนงาน)", "OT OUT (ก่อนงาน)", "OT IN (หลังงาน)", "OT OUT (หลังงาน)", 
       "ชม.ทำงาน", "ชม. OT"];
     const headerRow = sheet.addRow(header);
+
     headerRow.eachCell(cell => {
       cell.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 12 };
       cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F4E78' } };
@@ -167,7 +172,7 @@ const exportExcel = async () => {
       cell.border = { top:{style:'thin'}, left:{style:'thin'}, bottom:{style:'thin'}, right:{style:'thin'} };
     });
 
-    // Loop วัน
+    // --- Loop วัน ---
     let rowIndex = 5;
     for (let d = new Date(startDate); d <= new Date(endDate); d.setDate(d.getDate()+1)) {
       const dateStr = d.toISOString().slice(0,10);
@@ -177,7 +182,7 @@ const exportExcel = async () => {
                 { checkIn: "-", checkOut: "-", otInBefore: "-", otInAfter: "-", otOutBefore: "-", otOutAfter: "-", otIn: "-", otOut: "-" };
 
       const row = sheet.addRow([
-        `${dayName} ${dateStr}`, // คอลัมน์วันที่
+        `${dayName} ${dateStr}`, // คอลัมน์วัน/Date
         r.checkIn,
         r.checkOut,
         r.otInBefore,
@@ -200,7 +205,7 @@ const exportExcel = async () => {
       rowIndex++;
     }
 
-    // Footer ลายเซ็น 3 บรรทัด
+    // --- Footer ลายเซ็น 3 บรรทัด ---
     const footerStartRow = rowIndex + 2;
     sheet.mergeCells(`B${footerStartRow}:D${footerStartRow}`);
     sheet.getCell(`B${footerStartRow}`).value = "พนักงานลงชื่อ:";
@@ -215,14 +220,15 @@ const exportExcel = async () => {
     sheet.mergeCells(`B${footerStartRow+2}:D${footerStartRow+2}`);
     sheet.mergeCells(`E${footerStartRow+2}:G${footerStartRow+2}`);
 
-    // Set column width
+    // --- Set column width ---
     sheet.columns.forEach(col => col.width = 18);
   });
 
-  // Save file
+  // --- Save file ---
   const buf = await workbook.xlsx.writeBuffer();
   saveAs(new Blob([buf]), `TimeRecords_${startDate}_to_${endDate}.xlsx`);
 };
+
  if (!user) return null;
 
   return (
