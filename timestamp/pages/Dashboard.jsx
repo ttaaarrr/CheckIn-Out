@@ -11,6 +11,8 @@ export default function Dashboard({ user }) {
   const [companies, setCompanies] = useState([]);
   const [selectedCompany, setSelectedCompany] = useState("all");
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0]);
+  const [startDate, setStartDate] = useState(new Date().toISOString().split("T")[0]);
+  const [endDate, setEndDate] = useState(new Date().toISOString().split("T")[0]);
 
   const typeMap = {
   in: "checkIn",
@@ -137,7 +139,7 @@ const exportExcel = async () => {
 
   const sheet = workbook.addWorksheet("Time Report");
 
-  // --- Header โลโก้ ---
+  // Header โลโก้
   const logo1 = workbook.addImage({ base64: "headerLogoBase64", extension: "png" });
   sheet.addImage(logo1, "B2:D5");
 
@@ -155,7 +157,7 @@ const exportExcel = async () => {
   sheet.getCell("E4").value = `ช่วงเวลา: ${startDate} ถึง ${endDate}`;
   sheet.getCell("E4").alignment = { horizontal: "center" };
 
-  // --- Table Header ---
+  //Table Header
   const header = ["วัน", "รหัสพนักงาน", "ชื่อ", "TIME IN", "TIME OUT",
     "OT IN (ก่อนงาน)", "OT OUT (ก่อนงาน)", "OT IN (หลังงาน)", "OT OUT (หลังงาน)", 
     "ชม.ทำงาน", "ชม. OT"];
@@ -215,7 +217,7 @@ const exportExcel = async () => {
     }
   });
 
-  // --- Footer ---
+  // Footer 
   const footerStartRow = rowIndex + 2;
   sheet.mergeCells(`B${footerStartRow}:D${footerStartRow}`);
   sheet.getCell(`B${footerStartRow}`).value = "พนักงานลงชื่อ:";
@@ -230,7 +232,7 @@ const exportExcel = async () => {
   // Set ความกว้าง
   sheet.columns.forEach(col => col.width = 18);
 
-  // --- Save file ---
+  // Save file 
   const buf = await workbook.xlsx.writeBuffer();
   saveAs(new Blob([buf]), `TimeRecords_${startDate}_to_${endDate}.xlsx`);
 };
@@ -260,6 +262,20 @@ const exportExcel = async () => {
         </option>
       ))}
     </select>
+    <div className="flex gap-2 mb-4">
+  <input
+    type="date"
+    value={startDate}
+    onChange={(e) => setStartDate(e.target.value)}
+    className="px-4 py-2 border rounded-lg"
+  />
+  <input
+    type="date"
+    value={endDate}
+    onChange={(e) => setEndDate(e.target.value)}
+    className="px-4 py-2 border rounded-lg"
+  />
+</div>
     <button onClick={exportExcel} className="px-4 py-2 bg-blue-500 text-white rounded">
       ดาวน์โหลด Excel
     </button>
