@@ -182,7 +182,8 @@ const exportExcel = async () => {
                 { checkIn: "-", checkOut: "-", otInBefore: "-", otInAfter: "-", otOutBefore: "-", otOutAfter: "-", otIn: "-", otOut: "-" };
 
       const row = sheet.addRow([
-        `${dayName} ${dateStr}`, // คอลัมน์วัน/Date
+        `${dayName}`, 
+        `${dateStr}`, 
         r.checkIn,
         r.checkOut,
         r.otInBefore,
@@ -206,19 +207,19 @@ const exportExcel = async () => {
     }
 
     // --- Footer ลายเซ็น 3 บรรทัด ---
-    const footerStartRow = rowIndex + 2;
+    const footerStartRow = sheet.lastRow.number + 2;
     sheet.mergeCells(`B${footerStartRow}:D${footerStartRow}`);
-    sheet.getCell(`B${footerStartRow}`).value = "พนักงานลงชื่อ:";
-    sheet.getCell(`B${footerStartRow}`).alignment = { vertical:'middle', horizontal:'center' };
+sheet.getCell(`B${footerStartRow}`).value = "พนักงานลงชื่อ:";
+sheet.getCell(`B${footerStartRow}`).alignment = { vertical:'middle', horizontal:'center' };
 
-    sheet.mergeCells(`E${footerStartRow}:G${footerStartRow}`);
-    sheet.getCell(`E${footerStartRow}`).value = "ผู้อนุมัติ:";
-    sheet.getCell(`E${footerStartRow}`).alignment = { vertical:'middle', horizontal:'center' };
+sheet.mergeCells(`E${footerStartRow}:G${footerStartRow}`);
+sheet.getCell(`E${footerStartRow}`).value = "ผู้อนุมัติ:";
+sheet.getCell(`E${footerStartRow}`).alignment = { vertical:'middle', horizontal:'center' };
 
-    sheet.mergeCells(`B${footerStartRow+1}:D${footerStartRow+1}`);
-    sheet.mergeCells(`E${footerStartRow+1}:G${footerStartRow+1}`);
-    sheet.mergeCells(`B${footerStartRow+2}:D${footerStartRow+2}`);
-    sheet.mergeCells(`E${footerStartRow+2}:G${footerStartRow+2}`);
+sheet.mergeCells(`B${footerStartRow+1}:D${footerStartRow+1}`);
+sheet.mergeCells(`E${footerStartRow+1}:G${footerStartRow+1}`);
+sheet.mergeCells(`B${footerStartRow+2}:D${footerStartRow+2}`);
+sheet.mergeCells(`E${footerStartRow+2}:G${footerStartRow+2}`);
 
     // --- Set column width ---
     sheet.columns.forEach(col => col.width = 18);
