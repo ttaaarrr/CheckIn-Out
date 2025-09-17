@@ -53,26 +53,36 @@ router.post('/', async (req, res) => {
       'SELECT type FROM time_records WHERE em_code = ? AND date = ? AND company_name = ?',
       [empId, today, company_name]
     );
+    //ฟังก์ชันตรวจลงเวลา
+    function validateOT(type, records) {
+      const types = records.map(r => r.type);
+      
+      //  เช็คการเข้า/ออกงานปกติ
+  if (type === 'in') {
+    if (types.includes('ot_in_before') && !types.includes('ot_out_before')) {
+      return 'คุณต้องบันทึกเวลาออก OT ก่อนเข้างาน ก่อนเข้าทำงานปกติ';
+    }
+  }
+    if (type === 'out' && !records.some(r => r.type === 'in')) {
+  return res.json({ success: false, message: 'คุณยังไม่ได้ลงเวลาเข้างาน ไม่สามารถลงเวลาออกได้' });
+}
     if (records.some(r => r.type === type)) {
       return res.json({ success: false, message: `คุณได้บันทึก "${type}" ไปแล้ววันนี้` });
     }
-
-    // --- ฟังก์ชันตรวจ OT ---
-    function validateOT(type, records) {
-      const types = records.map(r => r.type);
+// เช็คOT
       if (type === 'ot_in_before' && types.includes('in')) {
         return 'ไม่สามารถบันทึก OT ก่อนเข้างานได้ เนื่องจากมีการลงเวลาเข้าทำงานแล้ว';
       }
       if (type === 'ot_in_after') {
-        if (!types.includes('out')) return 'ต้องลงเวลาออกปกติก่อน ';
+        if (!types.includes('out')) return 'คุณยังไม่ได้ลงเวลาออกปกติ ';
         if (types.includes('ot_in_before') && !types.includes('ot_out_before'))
-          return ' ต้องลงเวลาออก OT ก่อนเข้างานก่อน';
+          return ' คุณยังไม่ได้ลงเวลาออก OT ก่อนเข้างาน';
       }
       if (type === 'ot_out_before') {
         if (!types.includes('ot_in_before')) return 'คุณยังไม่ได้บันทึกเวลาเข้า OT ก่อนเข้างาน';
         }
       if (type === 'ot_out_after') {
-        if (!types.includes('ot_in_after')) return 'ต้องลงเวลา OT หลังเลิกงานก่อน ';
+        if (!types.includes('ot_in_after')) return 'คุณยังไม่ได้บันทึกเวลาเข้า OT หลังเลิกงาน ';
       }
       return null;
     }
