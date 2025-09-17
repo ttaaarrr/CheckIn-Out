@@ -12,24 +12,22 @@ export default function Checkin() {
   const [showOTButtons, setShowOTButtons] = useState(false);
 
   const typeMapTH = { 
-  in: 'เข้างาน', 
-  out: 'ออกงาน', 
-  ot_in: 'เข้า OT', 
-  ot_out: 'ออก OT',
-  ot_in_before: 'เข้า OT ก่อนเข้างาน',
-  ot_in_after: 'เข้า OT หลังเข้างาน',
-  ot_out_before: 'ออก OT ก่อนเข้างาน',
-  ot_out_after: 'ออก OT หลังเข้างาน'
-};
+    in: 'เข้างาน', 
+    out: 'ออกงาน', 
+    ot_in_before: 'เข้า OT ก่อนเข้างาน',
+    ot_in_after: 'เข้า OT หลังเข้างาน',
+    ot_out_before: 'ออก OT ก่อนเข้างาน',
+    ot_out_after: 'ออก OT หลังเลิกงาน'
+  };
 
-const typeColor = {
-  in: 'bg-green-500 hover:bg-green-600',
-  out: 'bg-red-500 hover:bg-red-600',
-  ot_in_before: 'bg-blue-500 hover:bg-blue-600',
-  ot_in_after: 'bg-blue-500 hover:bg-blue-600',
-  ot_out_before: 'bg-yellow-500 hover:bg-yellow-600',
-  ot_out_after: 'bg-yellow-500 hover:bg-yellow-600',
-};
+  const typeColor = {
+    in: 'bg-green-500 hover:bg-green-600',
+    out: 'bg-red-500 hover:bg-red-600',
+    ot_in_before: 'bg-blue-500 hover:bg-blue-600',
+    ot_in_after: 'bg-blue-500 hover:bg-blue-600',
+    ot_out_before: 'bg-yellow-500 hover:bg-yellow-600',
+    ot_out_after: 'bg-yellow-500 hover:bg-yellow-600',
+  };
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -81,97 +79,42 @@ const typeColor = {
       navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true });
     });
 
-const handleCheckin = async (type) => {
-  if (!empId.trim()) return alert('กรุณาใส่รหัสหรือชื่อพนักงาน');
-  if (!companyId) return alert('กรุณาเลือกบริษัท');
-
-  try {
-    const position = await getPosition();
-    const { latitude, longitude } = position.coords;
-
-    // ดึงพนักงานจากบริษัท
-    const resEmp = await fetch(`https://api-checkin-out.bpit-staff.com/api/employees?company_name=${companyId}`);
-    const data = await resEmp.json();
-
-    const matchedEmp = data.success
-      ? data.employees.find(
-          (e) => e.em_code.toString() === empId.trim() || e.name.trim() === empId.trim()
-        )
-      : null;
-
-    if (!matchedEmp) return alert('ไม่พบรหัสหรือชื่อพนักงานนี้ในบริษัทที่เลือก');
-
-    const today = new Date().toLocaleDateString('sv-SE');
-    const empRecords = await getTimeRecords(matchedEmp.em_code);
-
-    // ป้องกันบันทึกซ้ำ type เดิม
-    if (empRecords.some(r => r.date === today && r.type === type)) {
-      return alert(`คุณได้บันทึก "${typeMapTH[type]}" ไปแล้วในวันนี้`);
+  const handleCheckin = async (type) => {
+    if (!empId || !companyId) {
+      setMessage({ text: 'กรุณากรอกข้อมูลพนักงานและเลือกบริษัท', type: 'error' });
+      return;
     }
 
-    // OT logic
-    const hasCheckedIn = empRecords.some(r => r.date === today && r.type === 'in');
-    const hasCheckedOut = empRecords.some(r => r.date === today && r.type === 'out');
-    const hasOTInBefore = empRecords.some(r => r.date === today && r.type === 'ot_in_before');
-    const hasOTInAfter = empRecords.some(r => r.date === today && r.type === 'ot_in_after');
-    const hasOTOutBefore = empRecords.some(r => r.date === today && r.type === 'ot_out_before');
-    const hasOTOutAfter = empRecords.some(r => r.date === today && r.type === 'ot_out_after');
+    try {
+      const position = await getPosition();
+      const { latitude, longitude } = position.coords;
 
-    if (type === 'ot_in_before') {
-      if (hasCheckedIn) return alert('คุณไม่สามารถบันทึก OT ก่อนเข้างานหลังจากเข้าทำงานแล้ว');
-      if (hasOTInBefore) return alert('คุณได้บันทึก OT ก่อนเข้างานไปแล้ว');
+      // log เวลาไป backend
+      const res = await logTime({ empId, type, company_name: companyId, latitude, longitude });
+
+      if (res.success) {
+        setMessage({ text: `บันทึกเวลา ${typeMapTH[type]} สำเร็จ: ${res.time}`, type: 'success' });
+        setEmpId('');
+        setRecords(await getTimeRecords(empId));
+
+        if (type.startsWith('ot')) {
+          setShowOTButtons(false); 
+        }
+      } else {
+        setMessage({ text: res.message, type: 'error' });
+      }
+    } catch (err) {
+      console.error(err);
+      setMessage({ text: err.message || 'กรุณาอนุญาต GPS ก่อนลงเวลา', type: 'error' });
     }
-
-    if (type === 'ot_in_after') {
-      if (!hasCheckedIn) return alert('คุณยังไม่บันทึกเข้างานปกติ ไม่สามารถบันทึก OT หลังเข้างานได้');
-      if (hasOTInAfter) return alert('คุณได้บันทึก OT หลังเข้างานไปแล้ว');
-    }
-
-    if (type === 'ot_out_before') {
-      if (hasCheckedOut) return alert('คุณไม่สามารถบันทึก OT ก่อนออกงานหลังจากออกงานแล้ว');
-      if (hasOTOutBefore) return alert('คุณได้บันทึก OT ก่อนออกงานไปแล้ว');
-    }
-
-    if (type === 'ot_out_after') {
-      if (!hasCheckedOut) return alert('คุณยังไม่บันทึกออกงานปกติ ไม่สามารถบันทึก OT หลังเลิกงานได้');
-      if (hasOTOutAfter) return alert('คุณได้บันทึก OT หลังเลิกงานไปแล้ว');
-    }
-
-    // บันทึกเวลา
-    const res = await logTime({
-      empId: matchedEmp.em_code,
-      type,
-      company_name: companyId,
-      latitude,
-      longitude,
-    });
-
-    if (res.success) {
-      setMessage({
-        text: `บันทึกเวลา ${typeMapTH[type]} สำเร็จ: ${res.time}`,
-        type: 'success',
-      });
-      setEmpId('');
-      setRecords(await getTimeRecords(matchedEmp.em_code));
-
-      // ซ่อนปุ่ม OT หลังบันทึก OT เสร็จ
-      if (type.startsWith('ot')) setShowOTButtons(false);
-    } else {
-      setMessage({ text: res.message, type: 'error' });
-    }
-
-  } catch (err) {
-    console.error(err);
-    alert(err.message || 'กรุณาอนุญาต GPS ก่อนลงเวลา');
-  }
-};
-
+  };
 
   return (
     <div className="max-w-lg mx-auto bg-white rounded-2xl shadow-2xl p-8 mt-10 border border-gray-100">
       <div className="mb-10 mx-auto flex items-center justify-center text-blue-800 text-5xl font-extrabold">
-          <h1>BPIT Time App</h1>
-        </div>
+        <h1>BPIT Time App</h1>
+      </div>
+
       <div className="text-center mb-6">
         <h4 className="y-10 text-2xl font-extrabold text-blue-700">บันทึกเวลาเข้า-ออกงาน</h4>
         <p className="flex items-center justify-center gap-2 text-gray-600 mt-2 text-lg">
@@ -222,43 +165,28 @@ const handleCheckin = async (type) => {
         ))}
       </div>
 
-     {/* ปุ่มขอ OT */}
-<button
-  onClick={() => setShowOTButtons(true)}
-  className="flex items-center justify-center gap-2 w-full py-3 mb-6 rounded-xl bg-purple-500 hover:bg-purple-600 text-white font-semibold shadow-md"
->
-  <Edit className="w-5 h-5" /> OT 
-</button>
+      {/* ปุ่มขอ OT */}
+      <button
+        onClick={() => setShowOTButtons(true)}
+        className="flex items-center justify-center gap-2 w-full py-3 mb-6 rounded-xl bg-purple-500 hover:bg-purple-600 text-white font-semibold shadow-md"
+      >
+        <Edit className="w-5 h-5" /> OT
+      </button>
 
-{/* ปุ่ม OT 4 ปุ่ม แสดงเมื่อ showOTButtons เป็น true */}
-{showOTButtons && (
-  <div className="grid grid-cols-2 gap-3 mb-6">
-    <button
-      className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded"
-      onClick={() => handleCheckin('ot_in_before')}
-    >
-      เข้า OT ก่อนเริ่มงาน
-    </button>
-    <button
-      className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded"
-      onClick={() => handleCheckin('ot_in_after')}
-    >
-      เข้า OT หลังเลิกงาน
-    </button>
-    <button
-      className="bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-4 rounded"
-      onClick={() => handleCheckin('ot_out_before')}
-    >
-      ออก OT ก่อนเริ่มงาน
-    </button>
-    <button
-      className="bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-4 rounded"
-      onClick={() => handleCheckin('ot_out_after')}
-    >
-      ออก OT หลังเลิกงาน
-    </button>
-  </div>
-)}
+      {/* ปุ่ม OT 4 ปุ่ม */}
+      {showOTButtons && (
+        <div className="grid grid-cols-2 gap-3 mb-6">
+          {['ot_in_before', 'ot_in_after', 'ot_out_before', 'ot_out_after'].map((type) => (
+            <button
+              key={type}
+              className={`text-white py-2 px-4 rounded ${typeColor[type]} hover:opacity-90`}
+              onClick={() => handleCheckin(type)}
+            >
+              {typeMapTH[type]}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* ข้อความสถานะ */}
       {message && (
@@ -281,7 +209,6 @@ const handleCheckin = async (type) => {
           </ul>
         </div>
       )}
-
     </div>
   );
 }

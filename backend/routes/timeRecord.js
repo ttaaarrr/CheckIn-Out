@@ -8,16 +8,16 @@ router.post('/', async (req, res) => {
   const conn = await pool.getConnection();
 
   try {
-    const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+    const today = new Date().toISOString().slice(0, 10);
 
-    // ตรวจสอบ type
+    // ตรวจ type
     const validTypes = ['in','out','ot_in','ot_out','ot_in_before','ot_in_after','ot_out_before','ot_out_after'];
     if (!validTypes.includes(type)) {
-      return res.status(400).json({ success: false, message: `Type ไม่ถูกต้อง: ${type}` });
+      return res.json({ success: false, message: `Type ไม่ถูกต้อง: ${type}` });
     }
 
     if (!latitude || !longitude) {
-      return res.status(400).json({ success: false, message: 'ต้องเปิด GPS ก่อนลงเวลา' });
+      return res.json({ success: false, message: 'ต้องเปิด GPS ก่อนลงเวลา' });
     }
 
     // ดึงพิกัดบริษัท
@@ -26,29 +26,26 @@ router.post('/', async (req, res) => {
       [company_name]
     );
     if (companyRow.length === 0) {
-      return res.status(400).json({ success: false, message: 'ไม่พบบริษัท' });
+      return res.json({ success: false, message: 'ไม่พบบริษัท' });
     }
     const companyLat = companyRow[0].lat;
     const companyLng = companyRow[0].lng;
     const radiusKm = companyRow[0].radius_km || 0.5;
 
-    // ฟังก์ชันคำนวณระยะทาง
+    // ตรวจระยะทาง
     function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
-      const R = 6371; // km
+      const R = 6371;
       const dLat = ((lat2 - lat1) * Math.PI) / 180;
       const dLon = ((lon2 - lon1) * Math.PI) / 180;
       const a =
-        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-        Math.cos((lat1 * Math.PI) / 180) *
-        Math.cos((lat2 * Math.PI) / 180) *
-        Math.sin(dLon / 2) * Math.sin(dLon / 2);
-      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-      return R * c;
+        Math.sin(dLat/2)**2 +
+        Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+      const c = 2*Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      return R*c;
     }
-
     const distance = getDistanceFromLatLonInKm(latitude, longitude, companyLat, companyLng);
     if (distance > radiusKm) {
-      return res.status(400).json({ success: false, message: 'คุณอยู่นอกพื้นที่บริษัท' });
+      return res.json({ success: false, message: 'คุณอยู่นอกพื้นที่บริษัท' });
     }
 
     // ตรวจ record ซ้ำ
@@ -56,32 +53,47 @@ router.post('/', async (req, res) => {
       'SELECT type FROM time_records WHERE em_code = ? AND date = ? AND company_name = ?',
       [empId, today, company_name]
     );
-
     if (records.some(r => r.type === type)) {
-      return res.status(400).json({ success: false, message: `คุณได้บันทึก "${type}" ไปแล้ววันนี้` });
+      return res.json({ success: false, message: `คุณได้บันทึก "${type}" ไปแล้ววันนี้` });
     }
 
-    // OT หลังและ out ต้องมี in ก่อน
-    const requiresIn = ['out','ot_in','ot_out','ot_in_after','ot_out_after'];
-    if (requiresIn.includes(type) && !records.some(r => r.type === 'in')) {
-      return res.status(400).json({
-        success: false,
-        message: 'ต้องลงเวลาเข้า ("in") ก่อนจึงจะลงเวลาออกหรือ OT หลังได้'
-      });
+    // --- ฟังก์ชันตรวจ OT ---
+    function validateOT(type, records) {
+      const types = records.map(r => r.type);
+      if (type === 'ot_in_before' && types.includes('in')) {
+        return 'ไม่สามารถบันทึก OT ก่อนเข้างานหลังจากเข้าทำงานแล้ว';
+      }
+      if (type === 'ot_in_after') {
+        if (!types.includes('out')) return 'ต้องลงเวลาออกปกติก่อน OT หลังเข้างาน';
+        if (types.includes('ot_in_before') && !types.includes('ot_out_before'))
+          return 'ก่อน OT หลังเข้างาน ต้อง OT ก่อนเข้างานและออกก่อนแล้ว';
+      }
+      if (type === 'ot_out_before' && types.includes('in')) {
+        return 'OT ก่อนออกงาน ต้องยังไม่เข้าทำงานปกติ';
+      }
+      if (type === 'ot_out_after') {
+        if (!types.includes('out')) return 'ต้องออกงานปกติก่อน OT หลังออกงาน';
+        if (!types.includes('ot_in_after')) return 'ต้องทำ OT หลังเข้างานก่อน OT หลังออกงาน';
+      }
+      return null;
     }
 
-    // insert record พร้อม GPS
+    const otError = validateOT(type, records);
+    if (otError) {
+      return res.json({ success: false, message: otError });
+    }
+
+    // insert record
     const [result] = await conn.query(
       'INSERT INTO time_records (em_code, type, time, date, company_name, latitude, longitude) VALUES (?, ?, CURTIME(), CURDATE(), ?, ?, ?)',
       [empId, type, company_name, latitude, longitude]
     );
-
     const [rows] = await conn.query('SELECT time FROM time_records WHERE id = ?', [result.insertId]);
 
-    res.json({ success: true, message: 'บันทึกเวลาเรียบร้อย', time: rows[0].time });
+    res.json({ success: true, message: `บันทึกเวลา ${type} สำเร็จ`, time: rows[0].time });
   } catch (err) {
-    console.error('POST /api/time-record error:', err.message);
-    res.status(500).json({ success: false, message: err.message });
+    console.error(err);
+    res.json({ success: false, message: 'เกิดข้อผิดพลาดในระบบ' });
   } finally {
     conn.release();
   }
@@ -90,7 +102,7 @@ router.post('/', async (req, res) => {
 // --- GET ประวัติพนักงาน ---
 router.get('/', async (req, res) => {
   const { date } = req.query;
-  if (!date) return res.status(400).json({ success: false, message: 'ต้องระบุวันที่' });
+  if (!date) return res.json({ success: false, message: 'ต้องระบุวันที่' });
 
   const conn = await pool.getConnection();
   try {
@@ -104,8 +116,8 @@ router.get('/', async (req, res) => {
     );
     res.json({ success: true, records: rows });
   } catch (err) {
-    console.error('GET /api/time-record error:', err.message);
-    res.status(500).json({ success: false, message: 'Database error' });
+    console.error(err);
+    res.json({ success: false, message: 'Database error' });
   } finally {
     conn.release();
   }
@@ -113,7 +125,7 @@ router.get('/', async (req, res) => {
 
 // --- GET รายเดือน ---
 router.get('/monthly', async (req, res) => {
-  const { month, company } = req.query; // month="2025-09"
+  const { month, company } = req.query;
   const conn = await pool.getConnection();
   try {
     let sql = `
@@ -123,17 +135,15 @@ router.get('/monthly', async (req, res) => {
       WHERE DATE_FORMAT(tr.date, '%Y-%m') = ?
     `;
     const params = [month];
-
     if (company && company !== 'all') {
       sql += ' AND tr.company_name = ?';
       params.push(company);
     }
-
     const [rows] = await conn.query(sql, params);
     res.json({ success: true, records: rows });
   } catch (err) {
-    console.error('GET /api/time-record/monthly error:', err.message);
-    res.status(500).json({ success: false, message: err.message });
+    console.error(err);
+    res.json({ success: false, message: 'Database error' });
   } finally {
     conn.release();
   }
