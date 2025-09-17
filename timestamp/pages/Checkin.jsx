@@ -25,10 +25,10 @@ export default function Checkin() {
 const typeColor = {
   in: 'bg-green-500 hover:bg-green-600',
   out: 'bg-red-500 hover:bg-red-600',
-  ot_in_before: 'bg-green-500 hover:bg-green-600',
-  ot_in_after: 'bg-green-500 hover:bg-green-600',
-  ot_out_before: 'bg-red-500 hover:bg-red-600',
-  ot_out_after: 'bg-red-500 hover:bg-red-600',
+  ot_in_before: 'bg-blue-500 hover:bg-blue-600',
+  ot_in_after: 'bg-blue-500 hover:bg-blue-600',
+  ot_out_before: 'bg-yellow-500 hover:bg-yellow-600',
+  ot_out_after: 'bg-yellow-500 hover:bg-yellow-600',
 };
 
   useEffect(() => {
@@ -81,49 +81,85 @@ const typeColor = {
       navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true });
     });
 
-  const handleCheckin = async (type) => {
-    if (!empId) return alert('กรุณาใส่รหัสหรือชื่อพนักงาน');
-    if (!companyId) return alert('กรุณาเลือกบริษัท');
+const handleCheckin = async (type) => {
+  if (!empId) return alert('กรุณาใส่รหัสหรือชื่อพนักงาน');
+  if (!companyId) return alert('กรุณาเลือกบริษัท');
 
-    try {
-      const position = await getPosition();
-      const { latitude, longitude } = position.coords;
+  try {
+    const position = await getPosition();
+    const { latitude, longitude } = position.coords;
 
-      const resEmp = await fetch(`https://api-checkin-out.bpit-staff.com/api/employees?company_name=${companyId}`);
-      const data = await resEmp.json();
+    // ดึงพนักงานจากบริษัท
+    const resEmp = await fetch(`https://api-checkin-out.bpit-staff.com/api/employees?company_name=${companyId}`);
+    const data = await resEmp.json();
 
-      const matchedEmp = data.success
-        ? data.employees.find(
-            (e) => e.em_code.toString() === empId.trim() || e.name.trim() === empId.trim()
-          )
-        : null;
+    const matchedEmp = data.success
+      ? data.employees.find(
+          (e) => e.em_code.toString() === empId.trim() || e.name.trim() === empId.trim()
+        )
+      : null;
 
-      if (!matchedEmp) {
-        return alert('ไม่พบรหัสหรือชื่อพนักงานนี้ในบริษัทที่เลือก');
+    if (!matchedEmp) {
+      return alert('ไม่พบรหัสหรือชื่อพนักงานนี้ในบริษัทที่เลือก');
+    }
+
+    const today = new Date().toLocaleDateString('sv-SE');
+    const empRecords = await getTimeRecords(matchedEmp.em_code);
+
+    // เช็คบันทึกซ้ำ
+    if (empRecords.some((r) => r.date === today && r.type === type)) {
+      return alert(`คุณได้บันทึก "${typeMapTH[type]}" ไปแล้วในวันนี้`);
+    }
+
+    // OT logic
+    if (type === 'ot_in_before') {
+      // OT ก่อนเข้างาน ต้องยังไม่เคยเช็คอินปกติ
+      const hasCheckedIn = empRecords.some(r => r.date === today && r.type === 'in');
+      if (hasCheckedIn) {
+        return alert('คุณไม่สามารถบันทึก OT ก่อนเข้างานหลังจากเข้าทำงานแล้ว');
       }
+    }
 
-      const today = new Date().toLocaleDateString('sv-SE');
-      const empRecords = await getTimeRecords(matchedEmp.em_code);
-
-      if (empRecords.some((r) => r.date === today && r.type === type)) {
-        return alert(`คุณได้บันทึก "${typeMapTH[type]}" ไปแล้วในวันนี้`);
+    if (type === 'ot_in_after') {
+      // OT หลังเข้างาน ต้องเช็คอินปกติแล้ว
+      const hasCheckedIn = empRecords.some(r => r.date === today && r.type === 'in');
+      if (!hasCheckedIn) {
+        return alert('คุณยังไม่บันทึกเข้างานปกติ ไม่สามารถบันทึก OT หลังเข้างานได้');
       }
+    }
 
-      const res = await logTime({
-        empId: matchedEmp.em_code,
-        type,
-        company_name: companyId,
-        latitude,
-        longitude,
+    if (type === 'ot_out_before') {
+      // OT ก่อนออกงาน ต้องยังไม่เช็คเอาท์ปกติ
+      const hasCheckedOut = empRecords.some(r => r.date === today && r.type === 'out');
+      if (hasCheckedOut) {
+        return alert('คุณไม่สามารถบันทึก OT ก่อนออกงานหลังจากออกงานแล้ว');
+      }
+    }
+
+    if (type === 'ot_out_after') {
+      // OT หลังเลิกงาน ต้องเช็คเอาท์ปกติแล้ว
+      const hasCheckedOut = empRecords.some(r => r.date === today && r.type === 'out');
+      if (!hasCheckedOut) {
+        return alert('คุณยังไม่บันทึกออกงานปกติ ไม่สามารถบันทึก OT หลังเลิกงานได้');
+      }
+    }
+
+    // บันทึกเวลา
+    const res = await logTime({
+      empId: matchedEmp.em_code,
+      type,
+      company_name: companyId,
+      latitude,
+      longitude,
+    });
+
+    if (res.success) {
+      setMessage({
+        text: `บันทึกเวลา ${typeMapTH[type]} สำเร็จ: ${res.time}`,
+        type: 'success',
       });
-
-      if (res.success) {
-        setMessage({
-          text: `บันทึกเวลา ${typeMapTH[type]} สำเร็จ: ${res.time}`,
-          type: 'success',
-        });
-        setEmpId('');
-        setRecords(await getTimeRecords(matchedEmp.em_code));
+      setEmpId('');
+      setRecords(await getTimeRecords(matchedEmp.em_code));
 
       // ถ้าเป็น OT ให้ซ่อนปุ่ม OT 4 ปุ่มหลังบันทึกเสร็จ
       if (type.startsWith('ot')) {
