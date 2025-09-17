@@ -12,7 +12,16 @@ export default function Dashboard({ user }) {
   const [selectedCompany, setSelectedCompany] = useState("all");
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0]);
 
-  const typeMap = { in: "checkIn", out: "checkOut", ot_in: "otIn", ot_out: "otOut" };
+  const typeMap = {
+  in: "checkIn",
+  out: "checkOut",
+  ot_in: "otIn",
+  ot_out: "otOut",
+  ot_in_before: "otInBefore",
+  ot_in_after: "otInAfter",
+  ot_out_before: "otOutBefore",
+  ot_out_after: "otOutAfter"
+};
 
   // ตรวจสอบล็อกอิน
   useEffect(() => {
@@ -75,29 +84,33 @@ export default function Dashboard({ user }) {
   // สร้าง tableData สำหรับแสดงในตารางหน้าเว็บ
   const tableData = {};
   records.forEach((r) => {
-    if (!selectedCompany || selectedCompany === "all") return;
-    if (selectedCompany !== "all" && r.company_name !== selectedCompany) return;
+  if (selectedCompany && selectedCompany !== "all" && r.company_name !== selectedCompany) return;
 
-    const key = r.em_code + "_" + r.company_name;
-    if (!tableData[key]) {
-      const emp = employees.find(
+  const key = r.em_code + "_" + r.company_name;
+  if (!tableData[key]) {
+    const emp = employees.find(
       (e) =>
-      (e.em_code.toString() === r.em_code.toString() || e.name === r.em_code) &&
-      e.company_name === r.company_name
-        );
-        tableData[key] = {
-          em_code: emp ? emp.em_code : r.em_code, // เอารหัสจริงถ้ามี
-          name: emp ? emp.name : "-",
-        company: r.company_name,
-          checkIn: "",
-          checkOut: "",
-          otIn: "",
-          otOut: "",
-      };
-    }
-    const field = typeMap[r.type.toLowerCase()];
-    if (field) tableData[key][field] = r.time;
-  });
+        (e.em_code.toString() === r.em_code.toString() || e.name === r.em_code) &&
+        e.company_name === r.company_name
+    );
+    tableData[key] = {
+      em_code: emp ? emp.em_code : r.em_code,
+      name: emp ? emp.name : "-",
+      company: r.company_name,
+      checkIn: "",
+      checkOut: "",
+      otIn: "",
+      otOut: "",
+      otInBefore: "",
+      otInAfter: "",
+      otOutBefore: "",
+      otOutAfter: ""
+    };
+  }
+
+  const field = typeMap[r.type.toLowerCase()];
+  if (field) tableData[key][field] = r.time;
+});
 
   // ฟังก์ชัน export Excel
 const exportExcel = async () => {
@@ -129,27 +142,42 @@ const exportExcel = async () => {
 
   // สร้าง tableData แยกพนักงาน
   const tableData = {};
-  employees.forEach(emp => {
-    const key = `${emp.em_code}_${emp.company_name}`;
-    tableData[key] = { em_code: emp.em_code, name: emp.name, company: emp.company_name, records: {} };
-  });
+  // สร้าง tableData สำหรับทุกพนักงาน
+employees.forEach(emp => {
+  const key = `${emp.em_code}_${emp.company_name}`;
+  tableData[key] = { 
+    em_code: emp.em_code, 
+    name: emp.name, 
+    company: emp.company_name, 
+    records: {} 
+  };
+});
 
-  // ใส่ข้อมูลลง tableData
-  monthlyRecords.forEach(r => {
-   const key = `${r.em_code}_${r.company_name}`;
-    if (!tableData[key]) return;
+// ใส่ข้อมูลลง tableData
+monthlyRecords.forEach(r => {
+  const key = `${r.em_code}_${r.company_name}`;
+  if (!tableData[key]) return;
 
-    // Normalize วันที่เป็น YYYY-MM-DD
-    const d = new Date(r.date);
-    const dateKey = `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}-${d.getDate().toString().padStart(2,'0')}`;
+  // Normalize วันที่เป็น YYYY-MM-DD
+  const d = new Date(r.date);
+  const dateKey = `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}-${d.getDate().toString().padStart(2,'0')}`;
 
-    if (!tableData[key].records[dateKey]) {
-      tableData[key].records[dateKey] = { checkIn: "-", checkOut: "-", otIn: "-", otOut: "-" };
-    }
+  if (!tableData[key].records[dateKey]) {
+    tableData[key].records[dateKey] = {
+      checkIn: "-", 
+      checkOut: "-", 
+      otIn: "-", 
+      otOut: "-",
+      otInBefore: "-",
+      otInAfter: "-",
+      otOutBefore: "-",
+      otOutAfter: "-"
+    };
+  }
 
-    const field = typeMap[r.type.toLowerCase()];
-    if (field) tableData[key].records[dateKey][field] = r.time;
-  });
+  const field = typeMap[r.type.toLowerCase()];
+  if (field) tableData[key].records[dateKey][field] = r.time;
+});
 
   // สร้าง sheet สำหรับแต่ละพนักงาน
   Object.values(tableData).forEach(empData => {
@@ -169,8 +197,12 @@ const exportExcel = async () => {
     sheet.getCell("D4").value = `${monthNames[parseInt(month)-1]} ${year}`;
     sheet.getCell("B7").value = "NO.";
     sheet.getCell("C7").value = empData.em_code;
-    sheet.getCell("B8").value = "NAME:";
+    sheet.getCell("B8").value = "ชื่อ-นามสกุล:";
     sheet.getCell("C8").value = empData.name;
+    sheet.getCell("E8").value = "ตำแหน่ง : ";
+    sheet.getCell("F8").value = note;
+    sheet.getCell("H8").value = "บริษัท :";
+    sheet.getCell("B36").value = ""
 
     sheet.addRow([]);
     const headerRow = sheet.addRow(["วัน", "TIME IN", "TIME OUT", "OT IN", "OT OUT", "ชม.ทำงาน", "ชม. OT"]);
@@ -178,22 +210,29 @@ const exportExcel = async () => {
 
     // Loop วันทำงาน
     for (let d = 1; d <= daysInMonth; d++) {
-      const dateStr = `${year}-${month}-${d.toString().padStart(2,"0")}`;
-      const dayName = dayNames[new Date(dateStr).getDay()];
-      if (dayName === "เสาร์" || dayName === "อาทิตย์") continue;
+  const dateStr = `${year}-${month}-${d.toString().padStart(2,"0")}`;
+  const dayName = dayNames[new Date(dateStr).getDay()];
+  if (dayName === "เสาร์" || dayName === "อาทิตย์") continue;
 
-      const r = empData.records[dateStr] || { checkIn: "-", checkOut: "-", otIn: "-", otOut: "-" };
+  const r = empData.records[dateStr] || { 
+    checkIn: "-", checkOut: "-", 
+    otIn: "-", otOut: "-", 
+    otInBefore: "-", otInAfter: "-", 
+    otOutBefore: "-", otOutAfter: "-" 
+  };
 
-      sheet.addRow([
-        `${dayName} ${d}/${month}`,
-        r.checkIn,
-        r.checkOut,
-        r.otIn,
-        r.otOut,
-        calcDuration(r.checkIn, r.checkOut),
-        calcDuration(r.otIn, r.otOut),
-      ]);
-    }
+  sheet.addRow([
+    `${dayName} ${d}/${month}`,
+    r.checkIn,
+    r.checkOut,
+    r.otIn,
+    r.otOut,
+    `${r.otInBefore || "-"} / ${r.otInAfter || "-"}`,
+    `${r.otOutBefore || "-"} / ${r.otOutAfter || "-"}`,
+    calcDuration(r.checkIn, r.checkOut),
+    calcDuration(r.otIn, r.otOut),
+  ]);
+}
 
     // Set width
     sheet.columns.forEach(col => { col.width = 15; });
@@ -234,46 +273,38 @@ const exportExcel = async () => {
 
       <div className="bg-white shadow-md rounded-lg overflow-auto">
         <table className="min-w-full border-collapse">
-          <thead className="bg-blue-50">
-            <tr>
-              <th className="px-4 py-2 border-b text-left">รหัสพนักงาน</th>
-              <th className="px-4 py-2 border-b text-left">ชื่อ</th>
-              <th className="px-4 py-2 border-b text-left">TIME IN</th>
-              <th className="px-4 py-2 border-b text-left">TIME OUT</th>
-              <th className="px-4 py-2 border-b text-left">OT IN</th>
-              <th className="px-4 py-2 border-b text-left">OT OUT</th>
-              <th className="px-4 py-2 border-b text-left">ระยะเวลาทำงาน</th>
-              <th className="px-4 py-2 border-b text-left">ระยะเวลา OT</th>
-            </tr>
-          </thead>
-          <tbody>
-            {!selectedCompany || selectedCompany === "all" ? (
-              <tr>
-                <td colSpan={9} className="px-4 py-2 text-center text-gray-500">
-                  กรุณาเลือกบริษัท
-                </td>
-              </tr>
-            ) : Object.values(tableData).length === 0 ? (
-              <tr>
-                <td colSpan={9} className="px-4 py-2 text-center text-gray-500">
-                  ไม่มีข้อมูล
-                </td>
-              </tr>
-            ) : (
-              Object.values(tableData).map((d, i) => (
-                <tr key={i} className={i % 2 === 0 ? "bg-gray-50" : "bg-white"}>
-                  <td className="px-4 py-2 border-r">{d.em_code}</td>
-                  <td className="px-4 py-2 border-r">{d.name}</td>
-                  <td className="px-4 py-2 border-r">{d.checkIn || "-"}</td>
-                  <td className="px-4 py-2 border-r">{d.checkOut || "-"}</td>
-                  <td className="px-4 py-2 border-r">{d.otIn || "-"}</td>
-                  <td className="px-4 py-2 border-r">{d.otOut || "-"}</td>
-                  <td className="px-4 py-2 border-r">{calcDuration(d.checkIn, d.checkOut)}</td>
-                  <td className="px-4 py-2 border-r">{calcDuration(d.otIn, d.otOut)}</td>
-                </tr>
-              ))
-            )}
-          </tbody>
+         <thead className="bg-blue-50">
+  <tr>
+    <th>รหัสพนักงาน</th>
+    <th>ชื่อ</th>
+    <th>TIME IN</th>
+    <th>TIME OUT</th>
+    <th>OT IN (ปกติ)</th>
+    <th>OT OUT (ปกติ)</th>
+    <th>OT IN ก่อน/หลัง</th>
+    <th>OT OUT ก่อน/หลัง</th>
+    <th>ระยะเวลาทำงาน</th>
+    <th>ระยะเวลา OT</th>
+  </tr>
+</thead>
+
+<tbody>
+  {Object.values(tableData).map((d, i) => (
+    <tr key={i} className={i % 2 === 0 ? "bg-gray-50" : "bg-white"}>
+      <td>{d.em_code}</td>
+      <td>{d.name}</td>
+      <td>{d.checkIn || "-"}</td>
+      <td>{d.checkOut || "-"}</td>
+      <td>{d.otIn || "-"}</td>
+      <td>{d.otOut || "-"}</td>
+      <td>{d.otInBefore || "-"} / {d.otInAfter || "-"}</td>
+      <td>{d.otOutBefore || "-"} / {d.otOutAfter || "-"}</td>
+      <td>{calcDuration(d.checkIn, d.checkOut)}</td>
+      <td>{calcDuration(d.otIn, d.otOut)}</td>
+    </tr>
+  ))}
+</tbody>
+
         </table>
       </div>
     </div>

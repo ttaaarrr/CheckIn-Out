@@ -6,7 +6,7 @@ export default function Navbar() {
 
   return (
     <div className="flex justify-center mb-8">
-      <NavLink to="/" className={({ isActive }) => isActive ? activeClass : normalClass}>ลงเวลา</NavLink>
+      <NavLink to="/" className={({ isActive }) => isActive ? activeClass : normalClass}>บันทึกเวลา</NavLink>
       <NavLink to="/employees" className={({ isActive }) => isActive ? activeClass : normalClass}>จัดการ</NavLink>
       <NavLink to="/dashboard" className={({ isActive }) => isActive ? activeClass : normalClass}>แดชบอร์ด</NavLink>
       {/* <NavLink to="/summary" className={({ isActive }) => isActive ? activeClass : normalClass}>สรุปรายเดือน</NavLink> */}

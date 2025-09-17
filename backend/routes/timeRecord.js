@@ -10,7 +10,9 @@ router.post('/', async (req, res) => {
   try {
     const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
 
-    if (!['in','out','ot_in','ot_out'].includes(type)) {
+    // ตรวจสอบ type
+    const validTypes = ['in','out','ot_in','ot_out','ot_in_before','ot_in_after','ot_out_before','ot_out_after'];
+    if (!validTypes.includes(type)) {
       return res.status(400).json({ success: false, message: `Type ไม่ถูกต้อง: ${type}` });
     }
 
@@ -59,11 +61,12 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ success: false, message: `คุณได้บันทึก "${type}" ไปแล้ววันนี้` });
     }
 
-    if ((type === 'out' || type === 'ot_in' || type === 'ot_out') &&
-        !records.some(r => r.type === 'in')) {
+    // OT หลังและ out ต้องมี in ก่อน
+    const requiresIn = ['out','ot_in','ot_out','ot_in_after','ot_out_after'];
+    if (requiresIn.includes(type) && !records.some(r => r.type === 'in')) {
       return res.status(400).json({
         success: false,
-        message: 'ต้องลงเวลาเข้า ("in") ก่อนจึงจะลงเวลาออกหรือ OT ได้'
+        message: 'ต้องลงเวลาเข้า ("in") ก่อนจึงจะลงเวลาออกหรือ OT หลังได้'
       });
     }
 
@@ -107,7 +110,8 @@ router.get('/', async (req, res) => {
     conn.release();
   }
 });
-//รายเดือน
+
+// --- GET รายเดือน ---
 router.get('/monthly', async (req, res) => {
   const { month, company } = req.query; // month="2025-09"
   const conn = await pool.getConnection();
