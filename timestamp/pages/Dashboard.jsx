@@ -116,7 +116,7 @@ export default function Dashboard({ user }) {
   if (field) tableData[key][field] = r.time;
 });
 
-  // ฟังก์ชัน export Excel
+// ฟังก์ชัน export Excel
 const exportExcel = async () => {
   if (!selectedCompany || selectedCompany === "all" || !startDate || !endDate) {
     alert("กรุณาเลือกบริษัทและช่วงวันที่ก่อน export Excel");
@@ -134,17 +134,51 @@ const exportExcel = async () => {
     return;
   }
 
+  // แปลงข้อมูลจาก API ให้เป็น format สำหรับ Excel
+  const typeMap = {
+    in: "checkIn",
+    out: "checkOut",
+    ot_in: "otIn",
+    ot_out: "otOut",
+    ot_in_before: "otInBefore",
+    ot_in_after: "otInAfter",
+    ot_out_before: "otOutBefore",
+    ot_out_after: "otOutAfter"
+  };
+
+  const groupedRecords = {};
+  rangeRecords.forEach(r => {
+    const key = `${r.em_code}_${r.date}`;
+    if (!groupedRecords[key]) {
+      groupedRecords[key] = {
+        em_code: r.em_code,
+        date: r.date,
+        checkIn: "-",
+        checkOut: "-",
+        otInBefore: "-",
+        otOutBefore: "-",
+        otInAfter: "-",
+        otOutAfter: "-",
+        otIn: "-",
+        otOut: "-"
+      };
+    }
+    const field = typeMap[r.type.toLowerCase()];
+    if (field) groupedRecords[key][field] = r.time;
+  });
+
   const workbook = new ExcelJS.Workbook();
   const dayNames = ["อาทิตย์","จันทร์","อังคาร","พุธ","พฤหัสบดี","ศุกร์","เสาร์"];
 
-  //  Loopพนักงาน
+  // Loop พนักงาน
   employees.forEach(emp => {
     const sheet = workbook.addWorksheet(emp.name || emp.em_code);
 
-    //Header
-    const logo1 = workbook.addImage({ base64: "headerLogoBase64", extension: "png" });
-    sheet.addImage(logo1, "B2:D5");
-
+      // ใส่โลโก้
+  const headerLogoBase64 = "data:image/png;base64,...."; 
+    const logoId = workbook.addImage({ base64: headerLogoBase64, extension: "png" });
+    sheet.addImage(logoId, "B2:D5");
+    // Header
     sheet.mergeCells("E2:H2");
     sheet.getCell("E2").value = "BPIT holdings CO.,LTD.";
     sheet.getCell("E2").font = { bold: true, size: 16 };
@@ -159,39 +193,50 @@ const exportExcel = async () => {
     sheet.getCell("E4").value = `ช่วงเวลา: ${startDate} ถึง ${endDate}`;
     sheet.getCell("E4").alignment = { horizontal: "center" };
 
-    //  Table Header 
+    sheet.mergeCells("B6:C6");
+    sheet.getCell("B6").value = `ชื่อ: ${emp.name || "-"} ตำแหน่ง: ${emp.position || "-"}`;
+    sheet.getCell("B8").value = `รหัส: ${emp.em_code}`;
+    sheet.getCell("B10").value = `บริษัท: ${emp.company_name || selectedCompany}`;
+
+    // Table Header 
     const header = ["วัน","วัน/เดือน/ปี", "เข้างาน", "เลิกงาน",
       "เริ่ม OT (ก่อนเข้างาน)", "เลิก OT (ก่อนเข้างาน)", "เริ่ม OT  (หลังเลิกงาน)", "เลิก OT (หลังเลิกงาน)", 
       "ชม.ทำงาน", "ชม. OT"];
     const headerRow = sheet.addRow(header);
-
     headerRow.eachCell(cell => {
       cell.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 12 };
       cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F4E78' } };
       cell.alignment = { vertical: 'middle', horizontal: 'center' };
       cell.border = { top:{style:'thin'}, left:{style:'thin'}, bottom:{style:'thin'}, right:{style:'thin'} };
     });
- //  Set column width
-  sheet.columns = [
-    { width: 12 },
-    { width: 15 },
-    { width: 12 },
-    { width: 12 },
-    { width: 18 },
-    { width: 18 },
-    { width: 18 },
-    { width: 18 },
-    { width: 12 },
-    { width: 12 }
-  ];
+
+    // Set column width
+    sheet.columns = [
+      { width: 12 },
+      { width: 15 },
+      { width: 12 },
+      { width: 12 },
+      { width: 18 },
+      { width: 18 },
+      { width: 18 },
+      { width: 18 },
+      { width: 12 },
+      { width: 12 }
+    ];
+
     // Loop วัน
     let rowIndex = 5;
     for (let d = new Date(startDate); d <= new Date(endDate); d.setDate(d.getDate()+1)) {
       const dateStr = d.toISOString().slice(0,10);
       const dayName = dayNames[d.getDay()];
 
-      const r = rangeRecords.find(rec => rec.em_code === emp.em_code && rec.date === dateStr) || 
-                { checkIn: "-", checkOut: "-", otInBefore: "-", otInAfter: "-", otOutBefore: "-", otOutAfter: "-", otIn: "-", otOut: "-" };
+      const key = `${emp.em_code}_${dateStr}`;
+      const r = groupedRecords[key] || { 
+        checkIn: "-", checkOut: "-", 
+        otInBefore: "-", otOutBefore: "-", 
+        otInAfter: "-", otOutAfter: "-", 
+        otIn: "-", otOut: "-" 
+      };
 
       const row = sheet.addRow([
         `${dayName}`, 
@@ -217,44 +262,13 @@ const exportExcel = async () => {
       }
       rowIndex++;
     }
-
-    //Footer ลายเซ็น
-   const footerStartRow = sheet.lastRow.number + 2;
-sheet.getRow(footerStartRow).height = 20;
-sheet.getRow(footerStartRow+1).height = 15;
-sheet.getRow(footerStartRow+2).height = 15;
-
-// แถว พนักงานลงชื่อ
-sheet.mergeCells(`B${footerStartRow}:D${footerStartRow}`);
-sheet.getCell(`B${footerStartRow}`).value = "พนักงานลงชื่อ:";
-sheet.getCell(`B${footerStartRow}`).alignment = { vertical:'middle', horizontal:'center' };
-
-// แถว ผู้อนุมัติ
-sheet.mergeCells(`E${footerStartRow}:G${footerStartRow}`);
-sheet.getCell(`E${footerStartRow}`).value = "ผู้อนุมัติ:";
-sheet.getCell(`E${footerStartRow}`).alignment = { vertical:'middle', horizontal:'center' };
-
-// --- แถวถัดมา ใส่วงเล็บสำหรับเซ็นชื่อ ---
-sheet.mergeCells(`B${footerStartRow+1}:D${footerStartRow+1}`);
-sheet.getCell(`B${footerStartRow+1}`).value = "(...........................................)";
-sheet.getCell(`B${footerStartRow+1}`).alignment = { vertical:'middle', horizontal:'center' };
-
-sheet.mergeCells(`E${footerStartRow+1}:G${footerStartRow+1}`);
-sheet.getCell(`E${footerStartRow+1}`).value = "(...........................................)";
-sheet.getCell(`E${footerStartRow+1}`).alignment = { vertical:'middle', horizontal:'center' };
-
-// ถ้าต้องการเผื่อบรรทัดว่างอีก
-sheet.mergeCells(`B${footerStartRow+2}:D${footerStartRow+2}`);
-sheet.mergeCells(`E${footerStartRow+2}:G${footerStartRow+2}`);
-
-    //Set column width 
-    sheet.columns.forEach(col => col.width = 18);
   });
 
-  //Save file
+  // Save file
   const buf = await workbook.xlsx.writeBuffer();
   saveAs(new Blob([buf]), `TimeRecords_${startDate}_to_${endDate}.xlsx`);
 };
+
 
  if (!user) return null;
 
