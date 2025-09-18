@@ -56,10 +56,7 @@ export default function Dashboard({ user }) {
         const compRes = await axios.get("https://api-checkin-out.bpit-staff.com/api/company");
         if (compRes.data.success) {
           setCompanies(
-            compRes.data.companies.map((c, index) => ({
-              id: index,
-              name: c.name,
-            }))
+            compRes.data.companies.map((c, index) => ({ id: index, name: c.name }))
           );
         }
 
@@ -119,8 +116,17 @@ export default function Dashboard({ user }) {
     if (field) tableData[key][field] = r.time;
   });
 
-  // ฟังก์ชัน export Excel
-const exportExcel = async () => {
+  // ฟังก์ชันแปลงเป็น local date string YYYY-MM-DD
+  const getLocalDateStr = (dateStr) => {
+    const d = new Date(dateStr);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
+  // ฟังก์ชัน export Excel (หลาย Sheet)
+  const exportExcel = async () => {
     if (!selectedCompany || selectedCompany === "all" || !startDate || !endDate) {
       alert("กรุณาเลือกบริษัทและช่วงวันที่ก่อน export Excel");
       return;
@@ -137,8 +143,6 @@ const exportExcel = async () => {
         `https://api-checkin-out.bpit-staff.com/api/time-record/range?start=${startDate}&end=${endDate}&company=${selectedCompany}`
       );
       if (res.data.success) rangeRecords = res.data.records;
-       console.log("rangeRecords:", rangeRecords);
-
     } catch (err) {
       console.error(err);
       return;
@@ -147,18 +151,14 @@ const exportExcel = async () => {
     // สร้าง dayList
     const dayList = [];
     for (let d = new Date(startDate); d <= new Date(endDate); d.setDate(d.getDate() + 1)) {
-      dayList.push(d.toISOString().slice(0, 10));
+      dayList.push(getLocalDateStr(d));
     }
 
-    // ฟังก์ชัน normalize
-    const normalize = (val) => val.toString().trim();
-console.log("rangeRecords", rangeRecords);
-console.log("employees", employees);
     // สร้าง groupedRecords
     const groupedRecords = {};
     employees.forEach((emp) => {
       dayList.forEach((dateStr) => {
-        const key = `${normalize(emp.em_code)}_${dateStr}`;
+        const key = `${emp.em_code}_${dateStr}`;
         groupedRecords[key] = {
           em_code: emp.em_code,
           name: emp.name,
@@ -178,24 +178,27 @@ console.log("employees", employees);
 
     // เติมข้อมูลจริงจาก API
     rangeRecords.forEach((r) => {
-      const dateStr = r.date.slice(0, 10); // YYYY-MM-DD
-      const key = `${normalize(r.em_code)}_${dateStr}`;
+      const dateStr = getLocalDateStr(r.date);
+      const key = `${r.em_code}_${dateStr}`;
       if (groupedRecords[key] && groupedRecords[key].company_name === r.company_name) {
         const field = typeMap[r.type.toLowerCase()];
         if (field) groupedRecords[key][field] = r.time;
       }
     });
-    // สร้าง workbook
+
     const workbook = new ExcelJS.Workbook();
     const dayNames = ["อาทิตย์", "จันทร์", "อังคาร", "พุธ", "พฤหัสบดี", "ศุกร์", "เสาร์"];
 
+    // สร้าง Sheet สำหรับแต่ละพนักงาน
     employees.forEach((emp) => {
       const sheet = workbook.addWorksheet(emp.name || emp.em_code);
 
-    const headerLogoBase64 = "data:image/png;base64,...."; // แทนด้วย Base64 จริง
-    const logoId = workbook.addImage({ base64: headerLogoBase64, extension: "png" });
-    sheet.addImage(logoId, "B1:D5");
-      // Header
+      // --- Logo Header ---
+      const headerLogoBase64 = "data:image/png;base64,..."; // ใส่ Base64 ของ logo
+      const logoId = workbook.addImage({ base64: headerLogoBase64, extension: "png" });
+      sheet.addImage(logoId, "B1:D5");
+
+      // Header ข้อความ
       sheet.mergeCells("E2:H2");
       sheet.getCell("E2").value = "BPIT holdings CO.,LTD.";
       sheet.getCell("E2").font = { bold: true, size: 16 };
@@ -212,25 +215,19 @@ console.log("employees", employees);
 
       sheet.mergeCells("B7:C7");
       sheet.getCell("B7").value = `ชื่อ: ${emp.name}`;
-       sheet.mergeCells("B8:C8");
+      sheet.mergeCells("B8:C8");
       sheet.getCell("B8").value = `ตำแหน่ง: ${emp.position || "-"}`;
-       sheet.mergeCells("B9:C9");
+      sheet.mergeCells("B9:C9");
       sheet.getCell("B9").value = `รหัส: ${emp.em_code}`;
-       sheet.mergeCells("B10:C10");
+      sheet.mergeCells("B10:C10");
       sheet.getCell("B10").value = `บริษัท: ${emp.company_name || selectedCompany}`;
-      sheet.getCell("B11").value = ` `;
+
       // Table Header
       const header = [
-        "วัน",
-        "วัน/เดือน/ปี",
-        "เข้างาน",
-        "เลิกงาน",
-        "เริ่ม OT (ก่อนเข้างาน)",
-        "เลิก OT (ก่อนเข้างาน)",
-        "เริ่ม OT (หลังเลิกงาน)",
-        "เลิก OT (หลังเลิกงาน)",
-        "ชม.ทำงาน",
-        "ชม. OT",
+        "วัน", "วัน/เดือน/ปี", "เวลาเข้า", "เวลาออก",
+        "OT IN (ก่อนเข้างาน)", "OT OUT (ก่อนเข้างาน)",
+        "OT IN (หลังเลิกงาน)", "OT OUT (หลังเลิกงาน)",
+        "ชม.ทำงาน", "ชม. OT"
       ];
       const headerRow = sheet.addRow(header);
       headerRow.eachCell((cell) => {
@@ -241,25 +238,18 @@ console.log("employees", employees);
       });
 
       sheet.columns = [
-        { width: 12 },
-        { width: 15 },
-        { width: 12 },
-        { width: 12 },
-        { width: 18 },
-        { width: 18 },
-        { width: 18 },
-        { width: 18 },
-        { width: 12 },
-        { width: 12 },
+        { width: 12 }, { width: 15 }, { width: 12 }, { width: 12 },
+        { width: 18 }, { width: 18 }, { width: 18 }, { width: 18 },
+        { width: 12 }, { width: 12 }
       ];
 
       // Loop วัน
       dayList.forEach((dateStr, idx) => {
-        const key = `${emp.em_code.toString()}_${dateStr}`;
+        const key = `${emp.em_code}_${dateStr}`;
         const r = groupedRecords[key];
 
-        const otStart = r.otInBefore && r.otInBefore !== "-" ? r.otInBefore : (r.otInAfter && r.otInAfter !== "-" ? r.otInAfter : "");
-        const otEnd = r.otOutBefore && r.otOutBefore !== "-" ? r.otOutBefore : (r.otOutAfter && r.otOutAfter !== "-" ? r.otOutAfter : "");
+        const otStart = r.otInBefore !== "-" ? r.otInBefore : (r.otInAfter !== "-" ? r.otInAfter : "");
+        const otEnd = r.otOutBefore !== "-" ? r.otOutBefore : (r.otOutAfter !== "-" ? r.otOutAfter : "");
 
         const row = sheet.addRow([
           dayNames[new Date(dateStr).getDay()],
@@ -284,36 +274,31 @@ console.log("employees", employees);
           });
         }
       });
+
+      // Footer สำหรับเซ็นชื่อ
       const footerStartRow = sheet.lastRow.number + 2;
       sheet.getRow(footerStartRow).height = 20;
-      sheet.getRow(footerStartRow+1).height = 15;
-      sheet.getRow(footerStartRow+2).height = 15;
-      
-      // แถว พนักงานลงชื่อ
+      sheet.getRow(footerStartRow + 1).height = 15;
+
       sheet.mergeCells(`B${footerStartRow}:D${footerStartRow}`);
       sheet.getCell(`B${footerStartRow}`).value = "พนักงานลงชื่อ:";
       sheet.getCell(`B${footerStartRow}`).alignment = { vertical:'middle', horizontal:'right' };
-      
-      // แถว ผู้อนุมัติ
+
       sheet.mergeCells(`E${footerStartRow}:G${footerStartRow}`);
       sheet.getCell(`E${footerStartRow}`).value = "ผู้อนุมัติ:";
       sheet.getCell(`E${footerStartRow}`).alignment = { vertical:'middle', horizontal:'right' };
-      
-      // --- แถวถัดมา ใส่วงเล็บสำหรับเซ็นชื่อ ---
-      sheet.mergeCells(`B${footerStartRow+1}:D${footerStartRow+1}`);
-      sheet.getCell(`B${footerStartRow+1}`).value = "(...........................................)";
-      sheet.getCell(`B${footerStartRow+1}`).alignment = { vertical:'middle', horizontal:'center' };
-      
-      sheet.mergeCells(`E${footerStartRow+1}:G${footerStartRow+1}`);
-      sheet.getCell(`E${footerStartRow+1}`).value = "(...........................................)";
-      sheet.getCell(`E${footerStartRow+1}`).alignment = { vertical:'middle', horizontal:'center' };
-      
-      // ถ้าต้องการเผื่อบรรทัดว่างอีก
-      sheet.mergeCells(`B${footerStartRow+2}:D${footerStartRow+2}`);
-      sheet.mergeCells(`E${footerStartRow+2}:G${footerStartRow+2}`);
+
+      sheet.mergeCells(`B${footerStartRow + 1}:D${footerStartRow + 1}`);
+      sheet.getCell(`B${footerStartRow + 1}`).value = "(...........................................)";
+      sheet.getCell(`B${footerStartRow + 1}`).alignment = { vertical:'middle', horizontal:'center' };
+
+      sheet.mergeCells(`E${footerStartRow + 1}:G${footerStartRow + 1}`);
+      sheet.getCell(`E${footerStartRow + 1}`).value = "(...........................................)";
+      sheet.getCell(`E${footerStartRow + 1}`).alignment = { vertical:'middle', horizontal:'center' };
     });
-      const buf = await workbook.xlsx.writeBuffer();
-      saveAs(new Blob([buf]), `TimeRecords_${startDate}_to_${endDate}.xlsx`);
+
+    const buf = await workbook.xlsx.writeBuffer();
+    saveAs(new Blob([buf]), `TimeRecords_${startDate}_to_${endDate}.xlsx`);
   };
 
   if (!user) return null;
@@ -354,7 +339,6 @@ console.log("employees", employees);
             onChange={(e) => setEndDate(e.target.value)}
             className="px-4 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 focus:outline-none"
           />
-
           <button
             onClick={exportExcel}
             className="px-4 py-2 bg-blue-500 text-white rounded-lg shadow hover:bg-blue-600 transition"
@@ -371,27 +355,13 @@ console.log("employees", employees);
           <table className="min-w-full border border-gray-300 border-collapse">
             <thead className="bg-blue-50">
               <tr>
-                <th rowSpan={2} className="border border-gray-300 px-2 py-1">
-                  รหัสพนักงาน
-                </th>
-                <th rowSpan={2} className="border border-gray-300 px-2 py-1">
-                  ชื่อ
-                </th>
-                <th rowSpan={2} className="border border-gray-300 px-2 py-1">
-                  เวลาเข้า
-                </th>
-                <th rowSpan={2} className="border border-gray-300 px-2 py-1">
-                  เวลาออก
-                </th>
-                <th colSpan={4} className="border border-gray-300 px-2 py-1 text-center">
-                  OT
-                </th>
-                <th rowSpan={2} className="border border-gray-300 px-2 py-1">
-                  ชั่วโมงทำงาน
-                </th>
-                <th rowSpan={2} className="border border-gray-300 px-2 py-1">
-                  ชั่วโมง OT
-                </th>
+                <th rowSpan={2} className="border border-gray-300 px-2 py-1">รหัสพนักงาน</th>
+                <th rowSpan={2} className="border border-gray-300 px-2 py-1">ชื่อ</th>
+                <th rowSpan={2} className="border border-gray-300 px-2 py-1">เวลาเข้า</th>
+                <th rowSpan={2} className="border border-gray-300 px-2 py-1">เวลาออก</th>
+                <th colSpan={4} className="border border-gray-300 px-2 py-1 text-center">OT</th>
+                <th rowSpan={2} className="border border-gray-300 px-2 py-1">ชั่วโมงทำงาน</th>
+                <th rowSpan={2} className="border border-gray-300 px-2 py-1">ชั่วโมง OT</th>
               </tr>
               <tr>
                 <th className="border border-gray-300 px-2 py-1">OT IN (ก่อนเข้างาน)</th>
@@ -401,20 +371,18 @@ console.log("employees", employees);
               </tr>
             </thead>
             <tbody>
-              {Object.values(tableData).map((d, i) => (
-                <tr key={i} className={i % 2 === 0 ? "bg-gray-50" : "bg-white"}>
-                  <td className="border border-gray-300 px-2 py-1">{d.em_code}</td>
-                  <td className="border border-gray-300 px-2 py-1">{d.name}</td>
-                  <td className="border border-gray-300 px-2 py-1">{d.checkIn || "-"}</td>
-                  <td className="border border-gray-300 px-2 py-1">{d.checkOut || "-"}</td>
-                  <td className="border border-gray-300 px-2 py-1">{d.otInBefore || "-"}</td>
-                  <td className="border border-gray-300 px-2 py-1">{d.otOutBefore || "-"}</td>
-                  <td className="border border-gray-300 px-2 py-1">{d.otInAfter || "-"}</td>
-                  <td className="border border-gray-300 px-2 py-1">{d.otOutAfter || "-"}</td>
-                  <td className="border border-gray-300 px-2 py-1">{calcDuration(d.checkIn, d.checkOut)}</td>
-                  <td className="border border-gray-300 px-2 py-1">
-                    {calcDuration(d.otInBefore !== "-" ? d.otInBefore : d.otInAfter, d.otOutBefore !== "-" ? d.otOutBefore : d.otOutAfter)}
-                  </td>
+              {Object.values(tableData).map((r, idx) => (
+                <tr key={idx} className={idx % 2 === 0 ? "bg-gray-50" : ""}>
+                  <td className="border px-2 py-1">{r.em_code}</td>
+                  <td className="border px-2 py-1">{r.name}</td>
+                  <td className="border px-2 py-1">{r.checkIn}</td>
+                  <td className="border px-2 py-1">{r.checkOut}</td>
+                  <td className="border px-2 py-1">{r.otInBefore}</td>
+                  <td className="border px-2 py-1">{r.otOutBefore}</td>
+                  <td className="border px-2 py-1">{r.otInAfter}</td>
+                  <td className="border px-2 py-1">{r.otOutAfter}</td>
+                  <td className="border px-2 py-1">{calcDuration(r.checkIn, r.checkOut)}</td>
+                  <td className="border px-2 py-1">{calcDuration(r.otInBefore || r.otInAfter, r.otOutBefore || r.otOutAfter)}</td>
                 </tr>
               ))}
             </tbody>
