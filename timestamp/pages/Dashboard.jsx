@@ -183,108 +183,131 @@ export default function Dashboard({ user }) {
     const dayNames = ["อาทิตย์", "จันทร์", "อังคาร", "พุธ", "พฤหัสบดี", "ศุกร์", "เสาร์"];
 
     employees.forEach((emp) => {
-  const sheet = workbook.addWorksheet(emp.name || emp.em_code);
+      const sheet = workbook.addWorksheet(emp.name || emp.em_code);
 
-  // --- Header + Logo ---
-  const headerLogoBase64 = "data:image/png;base64,..."; // แทนด้วย Base64 จริง
-  const logoId = workbook.addImage({ base64: headerLogoBase64, extension: "png" });
-  sheet.addImage(logoId, "B1:D5");
-  
-  // Header (BPIT, TIME RECORD REPORT, ช่วงเวลา)
-  sheet.mergeCells("E2:H2");
-  sheet.getCell("E2").value = "BPIT holdings CO.,LTD.";
-  sheet.getCell("E2").font = { bold: true, size: 16 };
-  sheet.getCell("E2").alignment = { horizontal: "center", vertical: "middle" };
+    const headerLogoBase64 = "data:image/png;base64,...."; // แทนด้วย Base64 จริง
+    const logoId = workbook.addImage({ base64: headerLogoBase64, extension: "png" });
+    sheet.addImage(logoId, "B1:D5");
+      // Header
+      sheet.mergeCells("E2:H2");
+      sheet.getCell("E2").value = "BPIT holdings CO.,LTD.";
+      sheet.getCell("E2").font = { bold: true, size: 16 };
+      sheet.getCell("E2").alignment = { horizontal: "center", vertical: "middle" };
 
-  sheet.mergeCells("E3:H3");
-  sheet.getCell("E3").value = "TIME RECORD REPORT";
-  sheet.getCell("E3").font = { bold: true, size: 14 };
-  sheet.getCell("E3").alignment = { horizontal: "center", vertical: "middle" };
+      sheet.mergeCells("E3:H3");
+      sheet.getCell("E3").value = "TIME RECORD REPORT";
+      sheet.getCell("E3").font = { bold: true, size: 14 };
+      sheet.getCell("E3").alignment = { horizontal: "center", vertical: "middle" };
 
-  sheet.mergeCells("E4:H4");
-  sheet.getCell("E4").value = `ช่วงเวลา: ${startDate} ถึง ${endDate}`;
-  sheet.getCell("E4").alignment = { horizontal: "center" };
+      sheet.mergeCells("E4:H4");
+      sheet.getCell("E4").value = `ช่วงเวลา: ${startDate} ถึง ${endDate}`;
+      sheet.getCell("E4").alignment = { horizontal: "center" };
 
-  // Employee Info
-  sheet.mergeCells("B7:C7"); sheet.getCell("B7").value = `ชื่อ: ${emp.name}`;
-  sheet.mergeCells("B8:C8"); sheet.getCell("B8").value = `ตำแหน่ง: ${emp.position || "-"}`;
-  sheet.mergeCells("B9:C9"); sheet.getCell("B9").value = `รหัส: ${emp.em_code}`;
-  sheet.mergeCells("B10:C10"); sheet.getCell("B10").value = `บริษัท: ${emp.company_name || selectedCompany}`;
-  sheet.getCell("B11").value = " ";
-
-  // Table Header
-  const header = ["วัน","วัน/เดือน/ปี","เข้างาน","เลิกงาน","เริ่ม OT (ก่อนงาน)","เลิก OT (ก่อนงาน)","เริ่ม OT (หลังงาน)","เลิก OT (หลังงาน)","ชม.ทำงาน","ชม. OT"];
-  const headerRow = sheet.addRow(header);
-  headerRow.eachCell((cell) => {
-    cell.font = { bold: true, color: { argb: "FFFFFFFF" }, size: 12 };
-    cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1F4E78" } };
-    cell.alignment = { vertical: "middle", horizontal: "center" };
-    cell.border = { top: { style: "thin" }, left: { style: "thin" }, bottom: { style: "thin" }, right: { style: "thin" } };
-  });
-
-  sheet.columns = [
-    { width: 12 },{ width: 15 },{ width: 12 },{ width: 12 },{ width: 18 },
-    { width: 18 },{ width: 18 },{ width: 18 },{ width: 12 },{ width: 12 }
-  ];
-
-  // Loop วัน
-  dayList.forEach((dateStr, idx) => {
-    const key = `${emp.em_code}_${dateStr}`;
-    const r = groupedRecords[key];
-
-    const otStart = r.otInBefore !== "-" ? r.otInBefore : r.otInAfter;
-    const otEnd = r.otOutBefore !== "-" ? r.otOutBefore : r.otOutAfter;
-
-    const row = sheet.addRow([
-      dayNames[new Date(dateStr).getDay()],
-      dateStr,
-      r.checkIn,
-      r.checkOut,
-      r.otInBefore,
-      r.otOutBefore,
-      r.otInAfter,
-      r.otOutAfter,
-      calcDuration(r.checkIn, r.checkOut),
-      calcDuration(otStart, otEnd),
-    ]);
-
-    row.eachCell((cell) => {
-      cell.border = { top: { style: "thin" }, left: { style: "thin" }, bottom: { style: "thin" }, right: { style: "thin" } };
-    });
-
-    if (idx % 2 === 0) {
-      row.eachCell((cell) => {
-        cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFD9E1F2" } };
+      sheet.mergeCells("B7:C7");
+      sheet.getCell("B7").value = `ชื่อ: ${emp.name}`;
+       sheet.mergeCells("B8:C8");
+      sheet.getCell("B8").value = `ตำแหน่ง: ${emp.position || "-"}`;
+       sheet.mergeCells("B9:C9");
+      sheet.getCell("B9").value = `รหัส: ${emp.em_code}`;
+       sheet.mergeCells("B10:C10");
+      sheet.getCell("B10").value = `บริษัท: ${emp.company_name || selectedCompany}`;
+      sheet.getCell("B11").value = ` `;
+      // Table Header
+      const header = [
+        "วัน",
+        "วัน/เดือน/ปี",
+        "เข้างาน",
+        "เลิกงาน",
+        "เริ่ม OT (ก่อนงาน)",
+        "เลิก OT (ก่อนงาน)",
+        "เริ่ม OT (หลังงาน)",
+        "เลิก OT (หลังงาน)",
+        "ชม.ทำงาน",
+        "ชม. OT",
+      ];
+      const headerRow = sheet.addRow(header);
+      headerRow.eachCell((cell) => {
+        cell.font = { bold: true, color: { argb: "FFFFFFFF" }, size: 12 };
+        cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1F4E78" } };
+        cell.alignment = { vertical: "middle", horizontal: "center" };
+        cell.border = { top: { style: "thin" }, left: { style: "thin" }, bottom: { style: "thin" }, right: { style: "thin" } };
       });
-    }
-  });
 
-  // --- Footer (อยู่ใน loop) ---
-  const footerStartRow = sheet.lastRow.number + 2;
-  sheet.getRow(footerStartRow).height = 20;
-  sheet.mergeCells(`B${footerStartRow}:D${footerStartRow}`);
-  sheet.getCell(`B${footerStartRow}`).value = "พนักงานลงชื่อ:";
-  sheet.getCell(`B${footerStartRow}`).alignment = { vertical:'middle', horizontal:'center' };
+      sheet.columns = [
+        { width: 12 },
+        { width: 15 },
+        { width: 12 },
+        { width: 12 },
+        { width: 18 },
+        { width: 18 },
+        { width: 18 },
+        { width: 18 },
+        { width: 12 },
+        { width: 12 },
+      ];
 
-  sheet.mergeCells(`E${footerStartRow}:G${footerStartRow}`);
-  sheet.getCell(`E${footerStartRow}`).value = "ผู้อนุมัติ:";
-  sheet.getCell(`E${footerStartRow}`).alignment = { vertical:'middle', horizontal:'center' };
+      // Loop วัน
+      dayList.forEach((dateStr, idx) => {
+        const key = `${emp.em_code.toString()}_${dateStr}`;
+        const r = groupedRecords[key];
 
-  sheet.mergeCells(`B${footerStartRow+1}:D${footerStartRow+1}`);
-  sheet.getCell(`B${footerStartRow+1}`).value = "(...........................................)";
-  sheet.getCell(`B${footerStartRow+1}`).alignment = { vertical:'middle', horizontal:'center' };
+        const otStart = r.otInBefore !== "-" ? r.otInBefore : r.otInAfter;
+        const otEnd = r.otOutBefore !== "-" ? r.otOutBefore : r.otOutAfter;
 
-  sheet.mergeCells(`E${footerStartRow+1}:G${footerStartRow+1}`);
-  sheet.getCell(`E${footerStartRow+1}`).value = "(...........................................)";
-  sheet.getCell(`E${footerStartRow+1}`).alignment = { vertical:'middle', horizontal:'center' };
+        const row = sheet.addRow([
+          dayNames[new Date(dateStr).getDay()],
+          dateStr,
+          r.checkIn,
+          r.checkOut,
+          r.otInBefore,
+          r.otOutBefore,
+          r.otInAfter,
+          r.otOutAfter,
+          calcDuration(r.checkIn, r.checkOut),
+          calcDuration(otStart, otEnd),
+        ]);
 
-  sheet.mergeCells(`B${footerStartRow+2}:D${footerStartRow+2}`);
-  sheet.mergeCells(`E${footerStartRow+2}:G${footerStartRow+2}`);
-});
+        row.eachCell((cell) => {
+          cell.border = { top: { style: "thin" }, left: { style: "thin" }, bottom: { style: "thin" }, right: { style: "thin" } };
+        });
 
-// --- สร้างไฟล์ Excel ---
-const buf = await workbook.xlsx.writeBuffer();
-saveAs(new Blob([buf]), `TimeRecords_${startDate}_to_${endDate}.xlsx`);
+        if (idx % 2 === 0) {
+          row.eachCell((cell) => {
+            cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFD9E1F2" } };
+          });
+        }
+      });
+    });
+const footerStartRow = sheet.lastRow.number + 2;
+sheet.getRow(footerStartRow).height = 20;
+sheet.getRow(footerStartRow+1).height = 15;
+sheet.getRow(footerStartRow+2).height = 15;
+
+// แถว พนักงานลงชื่อ
+sheet.mergeCells(`B${footerStartRow}:D${footerStartRow}`);
+sheet.getCell(`B${footerStartRow}`).value = "พนักงานลงชื่อ:";
+sheet.getCell(`B${footerStartRow}`).alignment = { vertical:'middle', horizontal:'center' };
+
+// แถว ผู้อนุมัติ
+sheet.mergeCells(`E${footerStartRow}:G${footerStartRow}`);
+sheet.getCell(`E${footerStartRow}`).value = "ผู้อนุมัติ:";
+sheet.getCell(`E${footerStartRow}`).alignment = { vertical:'middle', horizontal:'center' };
+
+// --- แถวถัดมา ใส่วงเล็บสำหรับเซ็นชื่อ ---
+sheet.mergeCells(`B${footerStartRow+1}:D${footerStartRow+1}`);
+sheet.getCell(`B${footerStartRow+1}`).value = "(...........................................)";
+sheet.getCell(`B${footerStartRow+1}`).alignment = { vertical:'middle', horizontal:'center' };
+
+sheet.mergeCells(`E${footerStartRow+1}:G${footerStartRow+1}`);
+sheet.getCell(`E${footerStartRow+1}`).value = "(...........................................)";
+sheet.getCell(`E${footerStartRow+1}`).alignment = { vertical:'middle', horizontal:'center' };
+
+// ถ้าต้องการเผื่อบรรทัดว่างอีก
+sheet.mergeCells(`B${footerStartRow+2}:D${footerStartRow+2}`);
+sheet.mergeCells(`E${footerStartRow+2}:G${footerStartRow+2}`);
+    const buf = await workbook.xlsx.writeBuffer();
+    saveAs(new Blob([buf]), `TimeRecords_${startDate}_to_${endDate}.xlsx`);
+  };
 
   if (!user) return null;
 
@@ -393,5 +416,4 @@ saveAs(new Blob([buf]), `TimeRecords_${startDate}_to_${endDate}.xlsx`);
       )}
     </div>
   );
-}
 }
