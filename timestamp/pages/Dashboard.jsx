@@ -171,13 +171,13 @@ const exportExcel = async () => {
 
     // เติมข้อมูลจริงจาก API
     rangeRecords.forEach((r) => {
-      const key = `${r.em_code.toString()}_${r.date.toString()}`;
-      if (groupedRecords[key]) {
+      const dateStr = r.date.slice(0, 10); // YYYY-MM-DD
+      const key = `${r.em_code.toString()}_${dateStr}`;
+        if (groupedRecords[key]) {
         const field = typeMap[r.type.toLowerCase()];
         if (field) groupedRecords[key][field] = r.time;
       }
     });
-
     // สร้าง workbook
     const workbook = new ExcelJS.Workbook();
     const dayNames = ["อาทิตย์", "จันทร์", "อังคาร", "พุธ", "พฤหัสบดี", "ศุกร์", "เสาร์"];
@@ -218,10 +218,10 @@ const exportExcel = async () => {
         "วัน/เดือน/ปี",
         "เข้างาน",
         "เลิกงาน",
-        "เริ่ม OT (ก่อนงาน)",
-        "เลิก OT (ก่อนงาน)",
-        "เริ่ม OT (หลังงาน)",
-        "เลิก OT (หลังงาน)",
+        "เริ่ม OT (ก่อนเข้างาน)",
+        "เลิก OT (ก่อนเข้างาน)",
+        "เริ่ม OT (หลังเลิกงาน)",
+        "เลิก OT (หลังเลิกงาน)",
         "ชม.ทำงาน",
         "ชม. OT",
       ];
@@ -285,12 +285,12 @@ const exportExcel = async () => {
       // แถว พนักงานลงชื่อ
       sheet.mergeCells(`B${footerStartRow}:D${footerStartRow}`);
       sheet.getCell(`B${footerStartRow}`).value = "พนักงานลงชื่อ:";
-      sheet.getCell(`B${footerStartRow}`).alignment = { vertical:'middle', horizontal:'center' };
+      sheet.getCell(`B${footerStartRow}`).alignment = { vertical:'middle', horizontal:'right' };
       
       // แถว ผู้อนุมัติ
       sheet.mergeCells(`E${footerStartRow}:G${footerStartRow}`);
       sheet.getCell(`E${footerStartRow}`).value = "ผู้อนุมัติ:";
-      sheet.getCell(`E${footerStartRow}`).alignment = { vertical:'middle', horizontal:'center' };
+      sheet.getCell(`E${footerStartRow}`).alignment = { vertical:'middle', horizontal:'right' };
       
       // --- แถวถัดมา ใส่วงเล็บสำหรับเซ็นชื่อ ---
       sheet.mergeCells(`B${footerStartRow+1}:D${footerStartRow+1}`);
@@ -358,7 +358,7 @@ const exportExcel = async () => {
       </div>
 
       {selectedCompany === "all" ? (
-        <div className="text-red-500 font-semibold text-lg">กรุณาเลือกบริษัทก่อนแสดงข้อมูล</div>
+        <div className="text-red-500 font-semibold text-lg flex justify-center items-center">กรุณาเลือกบริษัทก่อนแสดงข้อมูล</div>
       ) : (
         <div className="bg-white shadow-md rounded-lg overflow-auto">
           <table className="min-w-full border border-gray-300 border-collapse">
@@ -387,10 +387,10 @@ const exportExcel = async () => {
                 </th>
               </tr>
               <tr>
-                <th className="border border-gray-300 px-2 py-1">OT IN (ก่อนงาน)</th>
-                <th className="border border-gray-300 px-2 py-1">OT OUT (ก่อนงาน)</th>
-                <th className="border border-gray-300 px-2 py-1">OT IN (หลังงาน)</th>
-                <th className="border border-gray-300 px-2 py-1">OT OUT (หลังงาน)</th>
+                <th className="border border-gray-300 px-2 py-1">OT IN (ก่อนเข้างาน)</th>
+                <th className="border border-gray-300 px-2 py-1">OT OUT (ก่อนเข้างาน)</th>
+                <th className="border border-gray-300 px-2 py-1">OT IN (หลังเลิกงาน)</th>
+                <th className="border border-gray-300 px-2 py-1">OT OUT (หลังเลิกงาน)</th>
               </tr>
             </thead>
             <tbody>
