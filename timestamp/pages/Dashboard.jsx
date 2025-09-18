@@ -251,8 +251,8 @@ const exportExcel = async () => {
         const key = `${emp.em_code.toString()}_${dateStr}`;
         const r = groupedRecords[key];
 
-        const otStart = r.otInBefore !== "-" ? r.otInBefore : r.otInAfter;
-        const otEnd = r.otOutBefore !== "-" ? r.otOutBefore : r.otOutAfter;
+        const otStart = r.otInBefore && r.otInBefore !== "-" ? r.otInBefore : (r.otInAfter && r.otInAfter !== "-" ? r.otInAfter : "");
+        const otEnd = r.otOutBefore && r.otOutBefore !== "-" ? r.otOutBefore : (r.otOutAfter && r.otOutAfter !== "-" ? r.otOutAfter : "");
 
         const row = sheet.addRow([
           dayNames[new Date(dateStr).getDay()],
