@@ -60,11 +60,11 @@ router.post('/', async (req, res) => {
       //  เช็คการเข้า/ออกงานปกติ
   if (type === 'in') {
     if (types.includes('ot_in_before') && !types.includes('ot_out_before')) {
-      return 'คุณต้องบันทึกเวลาออก OT ก่อนเข้างาน ก่อนเข้าทำงานปกติ';
+      return 'คุณต้องบันทึกเวลาออก OT ก่อนเข้างานก่อนถึงจะลงเวลาเข้าทำงานปกติได้';
     }
   }
     if (type === 'out' && !records.some(r => r.type === 'in')) {
-  return res.json({ success: false, message: 'คุณยังไม่ได้ลงเวลาเข้างาน ไม่สามารถลงเวลาออกได้' });
+  return res.json({ success: false, message: 'คุณยังไม่ได้ลงเวลาเข้างาน ไม่สามารถลงเวลาออกงานได้' });
 }
     if (records.some(r => r.type === type)) {
       return res.json({ success: false, message: `คุณได้บันทึก "${type}" ไปแล้ววันนี้` });
