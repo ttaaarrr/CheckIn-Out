@@ -148,6 +148,9 @@ const exportExcel = async () => {
       dayList.push(d.toISOString().slice(0, 10));
     }
 
+    // ฟังก์ชัน normalize
+    const normalize = (val) => val.toString().trim();
+    
     // สร้าง groupedRecords
     const groupedRecords = {};
     employees.forEach((emp) => {
