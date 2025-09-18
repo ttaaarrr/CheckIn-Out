@@ -150,7 +150,8 @@ const exportExcel = async () => {
 
     // ฟังก์ชัน normalize
     const normalize = (val) => val.toString().trim();
-
+console.log("rangeRecords", rangeRecords);
+console.log("employees", employees);
     // สร้าง groupedRecords
     const groupedRecords = {};
     employees.forEach((emp) => {
