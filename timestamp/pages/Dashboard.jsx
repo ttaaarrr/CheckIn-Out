@@ -150,12 +150,12 @@ const exportExcel = async () => {
 
     // ฟังก์ชัน normalize
     const normalize = (val) => val.toString().trim();
-    
+
     // สร้าง groupedRecords
     const groupedRecords = {};
     employees.forEach((emp) => {
       dayList.forEach((dateStr) => {
-        const key = `${emp.em_code.toString()}_${dateStr}`;
+        const key = `${normalize(emp.em_code)}_${dateStr}`;
         groupedRecords[key] = {
           em_code: emp.em_code,
           name: emp.name,
@@ -168,6 +168,7 @@ const exportExcel = async () => {
           otOutAfter: "-",
           otIn: "-",
           otOut: "-",
+          company_name: emp.company_name || selectedCompany,
         };
       });
     });
@@ -175,8 +176,8 @@ const exportExcel = async () => {
     // เติมข้อมูลจริงจาก API
     rangeRecords.forEach((r) => {
       const dateStr = r.date.slice(0, 10); // YYYY-MM-DD
-      const key = `${r.em_code.toString()}_${dateStr}`;
-        if (groupedRecords[key]) {
+      const key = `${normalize(r.em_code)}_${dateStr}`;
+      if (groupedRecords[key] && groupedRecords[key].company_name === r.company_name) {
         const field = typeMap[r.type.toLowerCase()];
         if (field) groupedRecords[key][field] = r.time;
       }
