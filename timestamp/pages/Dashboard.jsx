@@ -185,6 +185,9 @@ export default function Dashboard({ user }) {
     employees.forEach((emp) => {
       const sheet = workbook.addWorksheet(emp.name || emp.em_code);
 
+    const headerLogoBase64 = "data:image/png;base64,...."; // แทนด้วย Base64 จริง
+    const logoId = workbook.addImage({ base64: headerLogoBase64, extension: "png" });
+    sheet.addImage(logoId, "B1:D5");
       // Header
       sheet.mergeCells("E2:H2");
       sheet.getCell("E2").value = "BPIT holdings CO.,LTD.";
@@ -200,12 +203,15 @@ export default function Dashboard({ user }) {
       sheet.getCell("E4").value = `ช่วงเวลา: ${startDate} ถึง ${endDate}`;
       sheet.getCell("E4").alignment = { horizontal: "center" };
 
-      sheet.mergeCells("B6:C6");
-      sheet.getCell("B6").value = `ชื่อ: ${emp.name}`;
-      sheet.getCell("B7").value = `ตำแหน่ง: ${emp.position || "-"}`;
-      sheet.getCell("B8").value = `รหัส: ${emp.em_code}`;
+      sheet.mergeCells("B7:C7");
+      sheet.getCell("B7").value = `ชื่อ: ${emp.name}`;
+       sheet.mergeCells("B8:C8");
+      sheet.getCell("B8").value = `ตำแหน่ง: ${emp.position || "-"}`;
+       sheet.mergeCells("B9:C9");
+      sheet.getCell("B9").value = `รหัส: ${emp.em_code}`;
+       sheet.mergeCells("B10:C10");
       sheet.getCell("B10").value = `บริษัท: ${emp.company_name || selectedCompany}`;
-
+      sheet.getCell("B11").value = ` `;
       // Table Header
       const header = [
         "วัน",
@@ -272,10 +278,36 @@ export default function Dashboard({ user }) {
         }
       });
     });
+    const footerStartRow = sheet.lastRow.number + 2;
+    sheet.getRow(footerStartRow).height = 20;
+    sheet.getRow(footerStartRow+1).height = 15;
+    sheet.getRow(footerStartRow+2).height = 15;
 
-    const buf = await workbook.xlsx.writeBuffer();
-    saveAs(new Blob([buf]), `TimeRecords_${startDate}_to_${endDate}.xlsx`);
-  };
+    // แถว พนักงานลงชื่อ
+    sheet.mergeCells(`B${footerStartRow}:D${footerStartRow}`);
+    sheet.getCell(`B${footerStartRow}`).value = "พนักงานลงชื่อ:";
+    sheet.getCell(`B${footerStartRow}`).alignment = { vertical:'middle', horizontal:'center' };
+
+    // แถว ผู้อนุมัติ
+    sheet.mergeCells(`E${footerStartRow}:G${footerStartRow}`);
+    sheet.getCell(`E${footerStartRow}`).value = "ผู้อนุมัติ:";
+    sheet.getCell(`E${footerStartRow}`).alignment = { vertical:'middle', horizontal:'center' };
+
+    // --- แถวถัดมา ใส่วงเล็บสำหรับเซ็นชื่อ ---
+    sheet.mergeCells(`B${footerStartRow+1}:D${footerStartRow+1}`);
+    sheet.getCell(`B${footerStartRow+1}`).value = "(...........................................)";
+    sheet.getCell(`B${footerStartRow+1}`).alignment = { vertical:'middle', horizontal:'center' };
+
+    sheet.mergeCells(`E${footerStartRow+1}:G${footerStartRow+1}`);
+    sheet.getCell(`E${footerStartRow+1}`).value = "(...........................................)";
+    sheet.getCell(`E${footerStartRow+1}`).alignment = { vertical:'middle', horizontal:'center' };
+
+    // ถ้าต้องการเผื่อบรรทัดว่างอีก
+    sheet.mergeCells(`B${footerStartRow+2}:D${footerStartRow+2}`);
+    sheet.mergeCells(`E${footerStartRow+2}:G${footerStartRow+2}`);
+        const buf = await workbook.xlsx.writeBuffer();
+        saveAs(new Blob([buf]), `TimeRecords_${startDate}_to_${endDate}.xlsx`);
+      };
 
   if (!user) return null;
 
