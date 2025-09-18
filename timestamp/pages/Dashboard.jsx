@@ -219,22 +219,31 @@ const exportExcel = async () => {
     }
 
     //Footer ลายเซ็น
-     const footerStartRow = sheet.lastRow.number + 2;
-  sheet.getRow(footerStartRow).height = 20;
-  sheet.getRow(footerStartRow+1).height = 15;
-  sheet.getRow(footerStartRow+2).height = 15;
-    sheet.mergeCells(`B${footerStartRow}:D${footerStartRow}`);
+   const footerStartRow = sheet.lastRow.number + 2;
+sheet.getRow(footerStartRow).height = 20;
+sheet.getRow(footerStartRow+1).height = 15;
+sheet.getRow(footerStartRow+2).height = 15;
+
+// แถว พนักงานลงชื่อ
+sheet.mergeCells(`B${footerStartRow}:D${footerStartRow}`);
 sheet.getCell(`B${footerStartRow}`).value = "พนักงานลงชื่อ:";
-sheet.getCell(`B${footerStartRow}`).value = "(..........................):";
 sheet.getCell(`B${footerStartRow}`).alignment = { vertical:'middle', horizontal:'center' };
 
+// แถว ผู้อนุมัติ
 sheet.mergeCells(`E${footerStartRow}:G${footerStartRow}`);
 sheet.getCell(`E${footerStartRow}`).value = "ผู้อนุมัติ:";
-sheet.getCell(`B${footerStartRow}`).value = "(..........................):";
 sheet.getCell(`E${footerStartRow}`).alignment = { vertical:'middle', horizontal:'center' };
 
+// --- แถวถัดมา ใส่วงเล็บสำหรับเซ็นชื่อ ---
 sheet.mergeCells(`B${footerStartRow+1}:D${footerStartRow+1}`);
+sheet.getCell(`B${footerStartRow+1}`).value = "(...........................................)";
+sheet.getCell(`B${footerStartRow+1}`).alignment = { vertical:'middle', horizontal:'center' };
+
 sheet.mergeCells(`E${footerStartRow+1}:G${footerStartRow+1}`);
+sheet.getCell(`E${footerStartRow+1}`).value = "(...........................................)";
+sheet.getCell(`E${footerStartRow+1}`).alignment = { vertical:'middle', horizontal:'center' };
+
+// ถ้าต้องการเผื่อบรรทัดว่างอีก
 sheet.mergeCells(`B${footerStartRow+2}:D${footerStartRow+2}`);
 sheet.mergeCells(`E${footerStartRow+2}:G${footerStartRow+2}`);
 
