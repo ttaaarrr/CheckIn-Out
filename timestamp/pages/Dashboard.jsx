@@ -138,19 +138,32 @@ export default function Dashboard({ user }) {
     return;
   }
 
-  // ดึงข้อมูลจาก API range
-  let rangeRecords = [];
+  // เตรียมรายการวันในช่วง
+  const dayList = [];
+  for (let d = new Date(startDate); d <= new Date(endDate); d.setDate(d.getDate() + 1)) {
+    dayList.push(d.toISOString().split("T")[0]);
+  }
+
+  // ดึงข้อมูลรายวันทั้งหมดแบบขนาน แล้วรวมเป็นแถวที่มี date
+  let dailyRows = [];
   try {
-    const res = await axios.get(
-      `https://api-checkin-out.bpit-staff.com/api/time-record/range?start=${startDate}&end=${endDate}&company=${selectedCompany}`
+    const requests = dayList.map(dateStr =>
+      axios.get(
+        `https://api-checkin-out.bpit-staff.com/api/time-record?date=${dateStr}&company=${selectedCompany}`
+      ).then(res => ({ dateStr, data: res.data }))
     );
-    if (res.data.success) rangeRecords = res.data.records;
+    const responses = await Promise.all(requests);
+    responses.forEach(({ dateStr, data }) => {
+      if (data && data.success && Array.isArray(data.records)) {
+        data.records.forEach(r => {
+          dailyRows.push({ ...r, date: dateStr });
+        });
+      }
+    });
 
-      console.log("rangeRecords:", rangeRecords);
-      console.log("employees:", employees);
-
-      rangeRecords.forEach(r => { if (r.empId !== undefined && r.empId !== null) r.empId = r.empId.toString(); });
-      employees.forEach(e => { if (e.em_code !== undefined && e.em_code !== null) e.em_code = e.em_code.toString(); });
+    // ให้ชนิดข้อมูลของรหัสพนักงานเป็นสตริงทั้งหมดเพื่อให้จับคู่คีย์ได้
+    dailyRows.forEach(r => { if (r.em_code !== undefined && r.em_code !== null) r.em_code = r.em_code.toString(); });
+    employees.forEach(e => { if (e.em_code !== undefined && e.em_code !== null) e.em_code = e.em_code.toString(); });
   } catch (err) {
     console.error(err);
     return;
@@ -170,16 +183,10 @@ if (!empList.length) {
   }
 }
 
-// ทำให้ em_code เป็นสตริง เพื่อให้ key ตรงกับ empId ที่แปลงเป็นสตริงแล้ว
+// ทำให้ em_code เป็นสตริง เพื่อให้ key ตรงกัน
 empList.forEach(e => { if (e && e.em_code !== undefined && e.em_code !== null) e.em_code = e.em_code.toString(); });
 
 console.log("employees for export:", empList); // ต้องมีข้อมูลตอนนี้
-  // สร้าง list วัน
-  const dayList = [];
-  for (let d = new Date(startDate); d <= new Date(endDate); d.setDate(d.getDate() + 1)) {
-    dayList.push(d.toISOString().split("T")[0]);
-  }
-
   // สร้าง groupedRecords: emp+date
   const groupedRecords = {};
   empList.forEach((emp) => {
@@ -200,19 +207,19 @@ console.log("employees for export:", empList); // ต้องมีข้อม
     });
   });
 
-  // เติมข้อมูลจริงจาก API
-  rangeRecords.forEach((r) => {
-    if (!r.date) return;
-    const dateStr = r.date.split("T")[0];
-    const key = `${r.empId}_${dateStr}`;
-    if (groupedRecords[key]) {
-      groupedRecords[key].checkIn = r.inTime || "-";
-      groupedRecords[key].checkOut = r.outTime || "-";
-      groupedRecords[key].otInBefore = r.otInBefore || "-";
-      groupedRecords[key].otOutBefore = r.otOutBefore || "-";
-      groupedRecords[key].otInAfter = r.otInAfter || "-";
-      groupedRecords[key].otOutAfter = r.otOutAfter || "-";
-    }
+  // เติมข้อมูลจริงจากแถวรายวัน
+  dailyRows.forEach((r) => {
+    const dateStr = r.date;
+    const key = `${r.em_code}_${dateStr}`;
+    if (!groupedRecords[key]) return;
+
+    const type = (r.type || '').toLowerCase();
+    if (type === 'in') groupedRecords[key].checkIn = r.time || '-';
+    else if (type === 'out') groupedRecords[key].checkOut = r.time || '-';
+    else if (type === 'ot_in_before') groupedRecords[key].otInBefore = r.time || '-';
+    else if (type === 'ot_out_before') groupedRecords[key].otOutBefore = r.time || '-';
+    else if (type === 'ot_in_after') groupedRecords[key].otInAfter = r.time || '-';
+    else if (type === 'ot_out_after') groupedRecords[key].otOutAfter = r.time || '-';
   });
 
   // สร้าง Excel
