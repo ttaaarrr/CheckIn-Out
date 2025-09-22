@@ -149,6 +149,8 @@ export default function Dashboard({ user }) {
       `https://api-checkin-out.bpit-staff.com/api/time-record/range?start=${startDate}&end=${endDate}&company=${selectedCompany}`
     );
     if (res.data.success) rangeRecords = res.data.records;
+      console.log("rangeRecords:", rangeRecords);
+  console.log("employees:", employees);
   } catch (err) {
     console.error(err);
     return;
