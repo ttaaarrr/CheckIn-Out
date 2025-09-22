@@ -220,8 +220,8 @@ console.log("employees for export:", empList); // ต้องมีข้อม
   const workbook = new ExcelJS.Workbook();
   const dayNames = ["อาทิตย์","จันทร์","อังคาร","พุธ","พฤหัสบดี","ศุกร์","เสาร์"];
 
-  employees.forEach((emp) => {
-    const sheet = workbook.addWorksheet(emp.name || emp.em_code);
+  empList.forEach((emp) => {
+  const sheet = workbook.addWorksheet(emp.name || emp.em_code);
 
     // Header
     sheet.mergeCells("E2:G2");
@@ -268,34 +268,35 @@ console.log("employees for export:", empList); // ต้องมีข้อม
     ];
 
     // เติมข้อมูล
-    dayList.forEach((dateStr, idx) => {
-      const key = `${emp.em_code}_${dateStr}`;
-      const r = groupedRecords[key];
+   dayList.forEach((dateStr, idx) => {
+  const key = `${emp.em_code}_${dateStr}`;
+  const r = groupedRecords[key];
+  if (!r) return; // <-- ใส่ตรงนี้เลย
 
-      const otStart = r.otInBefore !== "-" ? r.otInBefore : (r.otInAfter !== "-" ? r.otInAfter : "");
-      const otEnd = r.otOutBefore !== "-" ? r.otOutBefore : (r.otOutAfter !== "-" ? r.otOutAfter : "");
+  const otStart = r.otInBefore !== "-" ? r.otInBefore : (r.otInAfter !== "-" ? r.otInAfter : "");
+  const otEnd = r.otOutBefore !== "-" ? r.otOutBefore : (r.otOutAfter !== "-" ? r.otOutAfter : "");
 
-      const row = sheet.addRow([
-        dayNames[new Date(dateStr).getDay()],
-        dateStr,
-        r.checkIn,
-        r.checkOut,
-        r.otInBefore,
-        r.otOutBefore,
-        r.otInAfter,
-        r.otOutAfter,
-        calcDuration(r.checkIn, r.checkOut),
-        calcDuration(otStart, otEnd)
-      ]);
+  const row = sheet.addRow([
+    dayNames[new Date(dateStr).getDay()],
+    dateStr,
+    r.checkIn,
+    r.checkOut,
+    r.otInBefore,
+    r.otOutBefore,
+    r.otInAfter,
+    r.otOutAfter,
+    calcDuration(r.checkIn, r.checkOut),
+    calcDuration(otStart, otEnd)
+  ]);
 
-      row.eachCell(cell => {
-        cell.border = { top:{style:"thin"}, left:{style:"thin"}, bottom:{style:"thin"}, right:{style:"thin"} };
-      });
+  row.eachCell(cell => {
+    cell.border = { top:{style:"thin"}, left:{style:"thin"}, bottom:{style:"thin"}, right:{style:"thin"} };
+  });
 
-      if (idx % 2 === 0) {
-        row.eachCell(cell => { cell.fill = { type:"pattern", pattern:"solid", fgColor:{argb:"FFD9E1F2"} }; });
-      }
-    });
+  if (idx % 2 === 0) {
+    row.eachCell(cell => { cell.fill = { type:"pattern", pattern:"solid", fgColor:{argb:"FFD9E1F2"} }; });
+  }
+});
     
  // Footer
       const footerStartRow = sheet.lastRow.number + 3;
