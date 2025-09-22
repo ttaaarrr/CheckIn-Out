@@ -281,7 +281,7 @@ export default function Dashboard({ user }) {
       });
 
       // Footer สำหรับเซ็นชื่อ
-      const footerStartRow = sheet.lastRow.number + 2;
+      const footerStartRow = sheet.lastRow.number + 3;
       sheet.getRow(footerStartRow).height = 20;
       sheet.getRow(footerStartRow + 1).height = 15;
 
