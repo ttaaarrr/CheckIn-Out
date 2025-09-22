@@ -282,6 +282,22 @@ console.log("employees for export:", empList); // ต้องมีข้อม
       {width:12},{width:12}
     ];
 
+    // Freeze header and enable auto filter
+    sheet.views = [{ state: 'frozen', ySplit: headerRow.number }];
+    sheet.autoFilter = {
+      from: { row: headerRow.number, column: 1 },
+      to: { row: headerRow.number, column: 10 }
+    };
+
+    // Page setup for nicer print/export
+    sheet.pageSetup = {
+      orientation: 'landscape',
+      fitToPage: true,
+      fitToWidth: 1,
+      fitToHeight: 0,
+      margins: { left: 0.3, right: 0.3, top: 0.5, bottom: 0.5, header: 0.2, footer: 0.2 }
+    };
+
     // เติมข้อมูล
    dayList.forEach((dateStr, idx) => {
   const key = `${emp.em_code}_${dateStr}`;
