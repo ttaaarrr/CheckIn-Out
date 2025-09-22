@@ -155,7 +155,21 @@ export default function Dashboard({ user }) {
     console.error(err);
     return;
   }
-
+  // ดึง employees
+  let empList = employees;
+  if (!empList.length) {
+    try {
+      const empRes = await axios.get(
+        `https://api-checkin-out.bpit-staff.com/api/employees?company_name=${selectedCompany}`
+      );
+      if (empRes.data.success) empList = empRes.data.employees;
+    } catch (err) {
+      console.error(err);
+      alert("ไม่สามารถดึงข้อมูลพนักงานได้");
+      return;
+    }
+  }
+  console.log("employees for export:", empList);
   // สร้าง list วัน
   const dayList = [];
   for (let d = new Date(startDate); d <= new Date(endDate); d.setDate(d.getDate() + 1)) {
