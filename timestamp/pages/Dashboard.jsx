@@ -113,8 +113,7 @@ export default function Dashboard({ user }) {
   const tableData = {};
   records.forEach((r) => {
     if (!r.type || !r.em_code) return;
-    const dateStr = r.date.split("T")[0];   // เอาวันจริงจาก record
-const key = `${r.em_code}_${dateStr}`;
+    const key = `${r.em_code}_${getLocalDateStr(selectedDate)}`;
     if (!tableData[key]) {
       const emp = employees.find(e => e.em_code.toString() === r.em_code.toString());
       tableData[key] = {
@@ -194,7 +193,7 @@ const key = `${r.em_code}_${dateStr}`;
     const dayNames = ["อาทิตย์", "จันทร์", "อังคาร", "พุธ", "พฤหัสบดี", "ศุกร์", "เสาร์"];
 
     employees.forEach((emp) => {
-      const sheet = workbook.addWorksheet(emp.name || emp.em_code);
+        const sheet = workbook.addWorksheet(emp.name || emp.em_code); 
 
       // Header
       sheet.mergeCells("E2:G2");
