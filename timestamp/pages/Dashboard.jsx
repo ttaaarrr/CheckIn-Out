@@ -137,10 +137,6 @@ export default function Dashboard({ user }) {
     alert("กรุณาเลือกบริษัทและช่วงวันที่ก่อน export Excel");
     return;
   }
-  if (!employees.length) {
-    alert("ยังไม่มีข้อมูลพนักงาน");
-    return;
-  }
 
   // ดึงข้อมูลจาก API range
   let rangeRecords = [];
@@ -153,8 +149,8 @@ export default function Dashboard({ user }) {
       console.log("rangeRecords:", rangeRecords);
       console.log("employees:", employees);
 
-      rangeRecords.forEach(r => r.empId = r.empId.toString());
-      employees.forEach(e => e.em_code = e.em_code.toString());
+      rangeRecords.forEach(r => { if (r.empId !== undefined && r.empId !== null) r.empId = r.empId.toString(); });
+      employees.forEach(e => { if (e.em_code !== undefined && e.em_code !== null) e.em_code = e.em_code.toString(); });
   } catch (err) {
     console.error(err);
     return;
@@ -166,13 +162,16 @@ if (!empList.length) {
     const empRes = await axios.get(
       `https://api-checkin-out.bpit-staff.com/api/employees?company_name=${selectedCompany}`
     );
-    if (empRes.data.success) empList = empRes.data.employees;
+    if (empRes.data.success) empList = empRes.data.employees || [];
   } catch (err) {
     console.error(err);
     alert("ไม่สามารถดึงข้อมูลพนักงานได้");
     return;
   }
 }
+
+// ทำให้ em_code เป็นสตริง เพื่อให้ key ตรงกับ empId ที่แปลงเป็นสตริงแล้ว
+empList.forEach(e => { if (e && e.em_code !== undefined && e.em_code !== null) e.em_code = e.em_code.toString(); });
 
 console.log("employees for export:", empList); // ต้องมีข้อมูลตอนนี้
   // สร้าง list วัน
