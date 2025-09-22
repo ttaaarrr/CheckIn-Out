@@ -126,8 +126,8 @@ tableData[key] = {
     }
 
     const field = typeMap[r.type.toLowerCase()];
-if (field && groupedRecords[key]) {
-  groupedRecords[key][field] = r.time || "-";
+if (field) {
+  tableData[key][field] = r.time || "-";
 }
   });
 
