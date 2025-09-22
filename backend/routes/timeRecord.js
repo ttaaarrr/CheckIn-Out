@@ -2,6 +2,28 @@ const express = require('express');
 const pool = require('../db');
 const router = express.Router();
 
+function calculateOT(records) {
+  let otBefore = 0, otAfter = 0;
+  const otInBefore = records.find(r => r.type === 'ot_in_before')?.time;
+  const otOutBefore = records.find(r => r.type === 'ot_out_before')?.time;
+  const otInAfter = records.find(r => r.type === 'ot_in_after')?.time;
+  const otOutAfter = records.find(r => r.type === 'ot_out_after')?.time;
+
+  function timeDiff(start, end) {
+    const s = new Date(`1970-01-01T${start}Z`);
+    const e = new Date(`1970-01-01T${end}Z`);
+    return (e - s) / 1000 / 3600; // ชั่วโมง
+  }
+
+  if (otInBefore && otOutBefore) otBefore = timeDiff(otInBefore, otOutBefore);
+  if (otInAfter && otOutAfter) otAfter = timeDiff(otInAfter, otOutAfter);
+
+  return {
+    otBefore,
+    otAfter,
+    otTotal: otBefore + otAfter
+  };
+}
 //  บันทึกเวลา พร้อม GPS
 router.post('/', async (req, res) => {
   const { empId, type, company_name, latitude, longitude } = req.body;
@@ -165,15 +187,37 @@ router.get('/range', async (req, res) => {
   const conn = await pool.getConnection();
   try {
     const [rows] = await conn.query(
-      `SELECT tr.em_code, tr.company_name, tr.date, tr.type, tr.time, e.name
-       FROM time_records tr
-       LEFT JOIN employees e ON tr.em_code = e.em_code
-       WHERE tr.company_name = ? AND tr.date BETWEEN ? AND ?
-       ORDER BY tr.em_code, tr.date, tr.type`,
-      [company, start, end]
-    );
+  `SELECT tr.em_code, tr.company_name, tr.date, tr.type, tr.time, e.name
+   FROM time_records tr
+   LEFT JOIN employees e ON tr.em_code = e.em_code
+   WHERE tr.company_name = ? AND tr.date BETWEEN ? AND ?`,
+  [company, start, end]
+);
 
-    res.json({ success: true, records: rows });
+// แปลงข้อมูลเป็น structured object ต่อคนต่อวัน
+const recordsByEmp = {};
+rows.forEach(r => {
+  if (!recordsByEmp[r.em_code]) recordsByEmp[r.em_code] = { records: [] };
+  recordsByEmp[r.em_code].records.push(r);
+});
+
+const result = Object.entries(recordsByEmp).map(([empId, data]) => {
+  const { otBefore, otAfter, otTotal } = calculateOT(data.records);
+  const inTime = data.records.find(r => r.type === 'in')?.time || null;
+  const outTime = data.records.find(r => r.type === 'out')?.time || null;
+
+  return {
+    empId,
+    name: data.records[0].name,
+    inTime,
+    outTime,
+    otBefore,
+    otAfter,
+    otTotal
+  };
+});
+
+    res.json({ success: true, records: result });
   } catch (err) {
     console.error(err);
     res.status(500).json({ success: false, message: 'Database error' });
