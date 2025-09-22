@@ -15,15 +15,13 @@ export default function Dashboard({ user }) {
   const [endDate, setEndDate] = useState(new Date().toISOString().split("T")[0]);
 
   const typeMap = {
-    in: "checkIn",
-    out: "checkOut",
-    ot_in: "otIn",
-    ot_out: "otOut",
-    ot_in_before: "otInBefore",
-    ot_in_after: "otInAfter",
-    ot_out_before: "otOutBefore",
-    ot_out_after: "otOutAfter",
-  };
+  in: "checkIn",
+  out: "checkOut",
+  ot_in_before: "otInBefore",
+  ot_out_before: "otOutBefore",
+  ot_in_after: "otInAfter",
+  ot_out_after: "otOutAfter",
+};
 
   // ตรวจสอบล็อกอิน
   useEffect(() => {
@@ -75,7 +73,7 @@ export default function Dashboard({ user }) {
 
   // ฟังก์ชันคำนวณเวลา
   const calcDuration = (start, end) => {
-    if (!start || !end || start === "-" || end === "-") return "";
+   if (!start || !end || start === "-" || end === "-") return "-";
     const s = new Date(`1970-01-01T${start}`);
     const e = new Date(`1970-01-01T${end}`);
     const diffMs = e - s;
@@ -113,28 +111,24 @@ const calcTotalOT = (r) => {
 
     const key = `${r.em_code.toString()}_${r.company_name}`;
     if (!tableData[key]) {
-      const emp = employees.find(
-        (e) =>
-          (e.em_code.toString() === r.em_code.toString() || e.name === r.em_code) &&
-          e.company_name === r.company_name
-      );
-      tableData[key] = {
-        em_code: emp ? emp.em_code : r.em_code,
-        name: emp ? emp.name : "-",
-        company: r.company_name,
-        checkIn: "",
-        checkOut: "",
-        otIn: "",
-        otOut: "",
-        otInBefore: "",
-        otInAfter: "",
-        otOutBefore: "",
-        otOutAfter: "",
-      };
+      const emp = employees.find(e => e.em_code.toString() === r.em_code.toString());
+tableData[key] = {
+  em_code: r.em_code,
+  name: emp ? emp.name : r.name || "-",
+  company: r.company_name,
+  checkIn: "",
+  checkOut: "",
+  otInBefore: "",
+  otOutBefore: "",
+  otInAfter: "",
+  otOutAfter: "",
+};
     }
 
     const field = typeMap[r.type.toLowerCase()];
-    if (field) tableData[key][field] = r.time;
+if (field && groupedRecords[key]) {
+  groupedRecords[key][field] = r.time || "-";
+}
   });
 
   // ฟังก์ชันแปลงเป็น local date string YYYY-MM-DD
@@ -147,167 +141,175 @@ const calcTotalOT = (r) => {
   };
 
   // ฟังก์ชัน export Excel (หลาย Sheet)
-const exportExcel = async () => {
-  if (!selectedCompany || selectedCompany === "all" || !startDate || !endDate) {
-    alert("กรุณาเลือกบริษัทและช่วงวันที่ก่อน export Excel");
-    return;
-  }
-
-  if (!employees.length) {
-    alert("ยังไม่มีข้อมูลพนักงาน");
-    return;
-  }
-
-  let rangeRecords = [];
-  try {
-    const res = await axios.get(
-      `https://api-checkin-out.bpit-staff.com/api/time-record/range?start=${startDate}&end=${endDate}&company=${selectedCompany}`
-    );
-    if (res.data.success) rangeRecords = res.data.records;
-  } catch (err) {
-    console.error(err);
-    return;
-  }
-
-  if (!rangeRecords.length) {
-    alert("ไม่มีข้อมูลบันทึกเวลาในช่วงวันที่นี้");
-    return;
-  }
-
-  // สร้าง dayList
-  const dayList = [];
-  for (let d = new Date(startDate); d <= new Date(endDate); d.setDate(d.getDate() + 1)) {
-    dayList.push(getLocalDateStr(d));
-  }
-
-  // สร้าง groupedRecords
-  const groupedRecords = {};
-  employees.forEach((emp) => {
-    dayList.forEach((dateStr) => {
-      const key = `${emp.em_code}_${dateStr}`;
-      groupedRecords[key] = {
-        em_code: emp.em_code,
-        name: emp.name,
-        date: dateStr,
-        checkIn: "-",
-        checkOut: "-",
-        otInBefore: "-",
-        otOutBefore: "-",
-        otInAfter: "-",
-        otOutAfter: "-",
-        company_name: emp.company_name || selectedCompany,
-      };
-    });
-  });
-
-  // เติมข้อมูลจริงจาก API
-  rangeRecords.forEach((r) => {
-    const dateStr = getLocalDateStr(r.date);
-    const key = `${r.em_code}_${dateStr}`;
-
-    // fallback ถ้า key หรือ company_name ไม่ตรง
-    if (!groupedRecords[key]) {
-      console.warn("ไม่พบ key สำหรับ:", r.em_code, dateStr);
+  const exportExcel = async () => {
+    if (!selectedCompany || selectedCompany === "all" || !startDate || !endDate) {
+      alert("กรุณาเลือกบริษัทและช่วงวันที่ก่อน export Excel");
       return;
     }
 
-    // ถ้า company_name ไม่ตรง ให้เติมข้อมูลลงแม้ไม่ตรง
-    const record = groupedRecords[key];
-    const field = typeMap[r.type.toLowerCase()];
-    if (field) {
-      record[field] = r.time || "-";
+    if (!employees.length) {
+      alert("ยังไม่มีข้อมูลพนักงาน");
+      return;
     }
-  });
 
-  const workbook = new ExcelJS.Workbook();
-  const dayNames = ["อาทิตย์", "จันทร์", "อังคาร", "พุธ", "พฤหัสบดี", "ศุกร์", "เสาร์"];
+    let rangeRecords = [];
+    try {
+      const res = await axios.get(
+        `https://api-checkin-out.bpit-staff.com/api/time-record/range?start=${startDate}&end=${endDate}&company=${selectedCompany}`
+      );
+      if (res.data.success) rangeRecords = res.data.records;
+    } catch (err) {
+      console.error(err);
+      return;
+    }
 
-  // สร้าง Sheet สำหรับแต่ละพนักงาน
-  employees.forEach((emp) => {
-    const sheet = workbook.addWorksheet(emp.name || emp.em_code);
+    // สร้าง dayList
+    const dayList = [];
+    for (let d = new Date(startDate); d <= new Date(endDate); d.setDate(d.getDate() + 1)) {
+      dayList.push(getLocalDateStr(d));
+    }
 
-    // Header
-    sheet.mergeCells("E2:G2");
-    sheet.getCell("E2").value = "BPIT holdings CO.,LTD.";
-    sheet.getCell("E2").font = { bold: true, size: 16 };
-    sheet.getCell("E2").alignment = { horizontal: "center", vertical: "middle" };
-
-    sheet.mergeCells("E3:G3");
-    sheet.getCell("E3").value = "TIME RECORD REPORT";
-    sheet.getCell("E3").font = { bold: true, size: 14 };
-    sheet.getCell("E3").alignment = { horizontal: "center", vertical: "middle" };
-
-    sheet.mergeCells("E4:G4");
-    sheet.getCell("E4").value = `ช่วงเวลา: ${startDate} ถึง ${endDate}`;
-    sheet.getCell("E4").alignment = { horizontal: "center" };
-
-    sheet.mergeCells("B7:C7");
-    sheet.getCell("B7").value = `ชื่อ: ${emp.name}`;
-    sheet.mergeCells("B8:C8");
-    sheet.getCell("B8").value = `ตำแหน่ง: ${emp.position || "-"}`;
-    sheet.mergeCells("B9:C9");
-    sheet.getCell("B9").value = `รหัส: ${emp.em_code}`;
-    sheet.mergeCells("B10:C10");
-    sheet.getCell("B10").value = `บริษัท: ${emp.company_name || selectedCompany}`;
-
-    // Table Header
-    const header = [
-      "วัน", "วัน/เดือน/ปี", "เวลาเข้า", "เวลาออก",
-      "OT IN (ก่อนเข้างาน)", "OT OUT (ก่อนเข้างาน)",
-      "OT IN (หลังเลิกงาน)", "OT OUT (หลังเลิกงาน)",
-      "ชม.ทำงาน", "ชม. OT"
-    ];
-    const headerRow = sheet.addRow(header);
-    headerRow.eachCell((cell) => {
-      cell.font = { bold: true, color: { argb: "FFFFFFFF" }, size: 12 };
-      cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1F4E78" } };
-      cell.alignment = { vertical: "middle", horizontal: "center" };
-      cell.border = { top: { style: "thin" }, left: { style: "thin" }, bottom: { style: "thin" }, right: { style: "thin" } };
+    // สร้าง groupedRecords
+    const groupedRecords = {};
+    employees.forEach((emp) => {
+      dayList.forEach((dateStr) => {
+        const key = `${emp.em_code}_${dateStr}`;
+        groupedRecords[key] = {
+          em_code: emp.em_code,
+          name: emp.name,
+          date: dateStr,
+          checkIn: "-",
+          checkOut: "-",
+          otInBefore: "-",
+          otOutBefore: "-",
+          otInAfter: "-",
+          otOutAfter: "-",
+          otIn: "-",
+          otOut: "-",
+          company_name: emp.company_name || selectedCompany,
+        };
+      });
     });
 
-    sheet.columns = [
-      { width: 12 }, { width: 15 }, { width: 12 }, { width: 12 },
-      { width: 18 }, { width: 18 }, { width: 18 }, { width: 18 },
-      { width: 12 }, { width: 12 }
-    ];
+    // เติมข้อมูลจริงจาก API
+    rangeRecords.forEach((r) => {
+      const dateStr = getLocalDateStr(r.date);
+      const key = `${r.em_code}_${dateStr}`;
+      if (groupedRecords[key] && groupedRecords[key].company_name === r.company_name) {
+        const field = typeMap[r.type.toLowerCase()];
+        if (field) groupedRecords[key][field] = r.time;
+      }
+    });
 
-    // Loop วัน
-    dayList.forEach((dateStr, idx) => {
-      const key = `${emp.em_code}_${dateStr}`;
-      const r = groupedRecords[key];
+    const workbook = new ExcelJS.Workbook();
+    const dayNames = ["อาทิตย์", "จันทร์", "อังคาร", "พุธ", "พฤหัสบดี", "ศุกร์", "เสาร์"];
 
-      const otStart = r.otInBefore !== "-" ? r.otInBefore : (r.otInAfter !== "-" ? r.otInAfter : "");
-      const otEnd = r.otOutBefore !== "-" ? r.otOutBefore : (r.otOutAfter !== "-" ? r.otOutAfter : "");
+    // สร้าง Sheet สำหรับแต่ละพนักงาน
+    employees.forEach((emp) => {
+      const sheet = workbook.addWorksheet(emp.name || emp.em_code);
+     
+      // Header ข้อความ
+      sheet.mergeCells("E2:G2");
+      sheet.getCell("E2").value = "BPIT holdings CO.,LTD.";
+      sheet.getCell("E2").font = { bold: true, size: 16 };
+      sheet.getCell("E2").alignment = { horizontal: "center", vertical: "middle" };
 
-      const row = sheet.addRow([
-        dayNames[new Date(dateStr).getDay()],
-        dateStr,
-        r.checkIn,
-        r.checkOut,
-        r.otInBefore,
-        r.otOutBefore,
-        r.otInAfter,
-        r.otOutAfter,
-        calcDuration(r.checkIn, r.checkOut),
-        calcDuration(otStart, otEnd),
-      ]);
+      sheet.mergeCells("E3:G3");
+      sheet.getCell("E3").value = "TIME RECORD REPORT";
+      sheet.getCell("E3").font = { bold: true, size: 14 };
+      sheet.getCell("E3").alignment = { horizontal: "center", vertical: "middle" };
 
-      row.eachCell((cell) => {
+      sheet.mergeCells("E4:G4");
+      sheet.getCell("E4").value = `ช่วงเวลา: ${startDate} ถึง ${endDate}`;
+      sheet.getCell("E4").alignment = { horizontal: "center" };
+
+      sheet.mergeCells("B7:C7");
+      sheet.getCell("B7").value = `ชื่อ: ${emp.name}`;
+      sheet.mergeCells("B8:C8");
+      sheet.getCell("B8").value = `ตำแหน่ง: ${emp.position || "-"}`;
+      sheet.mergeCells("B9:C9");
+      sheet.getCell("B9").value = `รหัส: ${emp.em_code}`;
+      sheet.mergeCells("B10:C10");
+      sheet.getCell("B10").value = `บริษัท: ${emp.company_name || selectedCompany}`;
+      sheet.getCell("B11").value = ` `;
+      // Table Header
+      const header = [
+        "วัน", "วัน/เดือน/ปี", "เวลาเข้า", "เวลาออก",
+        "OT IN (ก่อนเข้างาน)", "OT OUT (ก่อนเข้างาน)",
+        "OT IN (หลังเลิกงาน)", "OT OUT (หลังเลิกงาน)",
+        "ชม.ทำงาน", "ชม. OT"
+      ];
+      const headerRow = sheet.addRow(header);
+      headerRow.eachCell((cell) => {
+        cell.font = { bold: true, color: { argb: "FFFFFFFF" }, size: 12 };
+        cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1F4E78" } };
+        cell.alignment = { vertical: "middle", horizontal: "center" };
         cell.border = { top: { style: "thin" }, left: { style: "thin" }, bottom: { style: "thin" }, right: { style: "thin" } };
       });
 
-      if (idx % 2 === 0) {
+      sheet.columns = [
+        { width: 12 }, { width: 15 }, { width: 12 }, { width: 12 },
+        { width: 18 }, { width: 18 }, { width: 18 }, { width: 18 },
+        { width: 12 }, { width: 12 }
+      ];
+
+      // Loop วัน
+      dayList.forEach((dateStr, idx) => {
+        const key = `${emp.em_code}_${dateStr}`;
+        const r = groupedRecords[key];
+
+        const otStart = r.otInBefore !== "-" ? r.otInBefore : (r.otInAfter !== "-" ? r.otInAfter : "");
+        const otEnd = r.otOutBefore !== "-" ? r.otOutBefore : (r.otOutAfter !== "-" ? r.otOutAfter : "");
+
+        const row = sheet.addRow([
+          dayNames[new Date(dateStr).getDay()],
+          dateStr,
+          r.checkIn,
+          r.checkOut,
+          r.otInBefore,
+          r.otOutBefore,
+          r.otInAfter,
+          r.otOutAfter,
+          calcDuration(r.checkIn, r.checkOut),
+          calcDuration(otStart, otEnd),
+        ]);
+
         row.eachCell((cell) => {
-          cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFD9E1F2" } };
+          cell.border = { top: { style: "thin" }, left: { style: "thin" }, bottom: { style: "thin" }, right: { style: "thin" } };
         });
-      }
+
+        if (idx % 2 === 0) {
+          row.eachCell((cell) => {
+            cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFD9E1F2" } };
+          });
+        }
+      });
+
+      // Footer สำหรับเซ็นชื่อ
+      const footerStartRow = sheet.lastRow.number + 3;
+      sheet.getRow(footerStartRow).height = 20;
+      sheet.getRow(footerStartRow + 1).height = 15;
+
+      sheet.mergeCells(`B${footerStartRow}:D${footerStartRow}`);
+      sheet.getCell(`B${footerStartRow}`).value = "พนักงานลงชื่อ:";
+      sheet.getCell(`B${footerStartRow}`).alignment = { vertical:'middle', horizontal:'left' };
+
+      sheet.mergeCells(`F${footerStartRow}:H${footerStartRow}`);
+      sheet.getCell(`F${footerStartRow}`).value = "ผู้อนุมัติ:";
+      sheet.getCell(`F${footerStartRow}`).alignment = { vertical:'middle', horizontal:'left' };
+
+      sheet.mergeCells(`B${footerStartRow + 1}:D${footerStartRow + 1}`);
+      sheet.getCell(`B${footerStartRow + 1}`).value = "(...........................................)";
+      sheet.getCell(`B${footerStartRow + 1}`).alignment = { vertical:'middle', horizontal:'center' };
+
+      sheet.mergeCells(`F${footerStartRow + 1}:H${footerStartRow + 1}`);
+      sheet.getCell(`F${footerStartRow + 1}`).value = "(...........................................)";
+      sheet.getCell(`F${footerStartRow + 1}`).alignment = { vertical:'middle', horizontal:'center' };
     });
-  });
 
-  const buf = await workbook.xlsx.writeBuffer();
-  saveAs(new Blob([buf]), `TimeRecords_${startDate}_to_${endDate}.xlsx`);
-};
-
+    const buf = await workbook.xlsx.writeBuffer();
+    saveAs(new Blob([buf]), `TimeRecords_${startDate}_to_${endDate}.xlsx`);
+  };
 
   if (!user) return null;
 
