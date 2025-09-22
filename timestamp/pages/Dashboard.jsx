@@ -102,7 +102,13 @@ export default function Dashboard({ user }) {
     const mins = Math.round(totalMinutes % 60);
     return `${hrs}ชม. ${mins}นาที`;
   };
-
+ const getLocalDateStr = (dateStr) => {
+    const d = new Date(dateStr);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
   // สร้าง tableData หน้าเว็บ
   const tableData = {};
   records.forEach((r) => {
@@ -125,14 +131,6 @@ export default function Dashboard({ user }) {
     const field = typeMap[r.type.toLowerCase()];
     if (field) tableData[key][field] = r.time || "-";
   });
-
-  const getLocalDateStr = (dateStr) => {
-    const d = new Date(dateStr);
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
-  };
 
   const exportExcel = async () => {
     if (!selectedCompany || selectedCompany === "all" || !startDate || !endDate) {
