@@ -276,9 +276,16 @@ console.log("employees for export:", empList); // ต้องมีข้อม
     ];
     const headerRow1 = sheet.addRow(topHeader);
     // Merge group headers
+    
     sheet.mergeCells(headerRow1.number, 3, headerRow1.number, 4);
     sheet.mergeCells(headerRow1.number, 5, headerRow1.number, 6);
     sheet.mergeCells(headerRow1.number, 7, headerRow1.number, 8);
+
+    // Merge columns ที่ไม่ split
+sheet.mergeCells(headerRow1.number, 1, headerRow2.number, 1); // วัน
+sheet.mergeCells(headerRow1.number, 2, headerRow2.number, 2); // วัน/เดือน/ปี
+sheet.mergeCells(headerRow1.number, 9, headerRow2.number, 9); // ชม.ทำงาน
+sheet.mergeCells(headerRow1.number, 10, headerRow2.number, 10); // ชม. OT
     sheet.getCell(headerRow1.number, 1).alignment = { horizontal: "center", vertical: "middle" };
     sheet.getCell(headerRow1.number, 2).alignment = { horizontal: "center", vertical: "middle" };
     sheet.getCell(headerRow1.number, 9).alignment = { horizontal: "center", vertical: "middle" };
@@ -318,7 +325,7 @@ console.log("employees for export:", empList); // ต้องมีข้อม
    dayList.forEach((dateStr, idx) => {
   const key = `${emp.em_code}_${dateStr}`;
   const r = groupedRecords[key];
-  if (!r) return; // <-- ใส่ตรงนี้เลย
+  if (!r) return; 
 
   const row = sheet.addRow([
     dayNames[new Date(dateStr).getDay()],
