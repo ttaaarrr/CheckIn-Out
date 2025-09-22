@@ -113,7 +113,8 @@ export default function Dashboard({ user }) {
   const tableData = {};
   records.forEach((r) => {
     if (!r.type || !r.em_code) return;
-    const key = `${r.em_code}_${getLocalDateStr(selectedDate)}`;
+    const dateStr = r.date.split("T")[0];   // เอาวันจริงจาก record
+    const key = `${r.em_code}_${dateStr}`;
     if (!tableData[key]) {
       const emp = employees.find(e => e.em_code.toString() === r.em_code.toString());
       tableData[key] = {
