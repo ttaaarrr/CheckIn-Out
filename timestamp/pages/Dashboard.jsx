@@ -264,39 +264,55 @@ console.log("employees for export:", empList); // ต้องมีข้อม
     sheet.mergeCells("B11:C11");
     sheet.getCell("B11").value = ` `;
 
-    const header = ["วัน","วัน/เดือน/ปี","เวลาเข้า","เวลาออก",
-      "OT IN (ก่อนเข้างาน)","OT OUT (ก่อนเข้างาน)","OT IN (หลังเลิกงาน)","OT OUT (หลังเลิกงาน)",
-      "ชม.ทำงาน","ชม. OT"
+    // Two-level grouped header
+    const topHeader = [
+      "วัน",
+      "วัน/เดือน/ปี",
+      "เวลางานปกติ", "",
+      "OT ก่อนเข้างาน", "",
+      "OT หลังเลิกงาน", "",
+      "ชม.ทำงาน",
+      "ชม. OT"
     ];
-    const headerRow = sheet.addRow(header);
-    headerRow.eachCell(cell => {
-      cell.font = { bold: true, color: { argb: "FFFFFFFF" }, size: 12 };
-      cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1F4E78" } };
-      cell.alignment = { vertical: "middle", horizontal: "center" };
-      cell.border = { top:{style:"thin"}, left:{style:"thin"}, bottom:{style:"thin"}, right:{style:"thin"} };
+    const headerRow1 = sheet.addRow(topHeader);
+    // Merge group headers
+    sheet.mergeCells(headerRow1.number, 3, headerRow1.number, 4);
+    sheet.mergeCells(headerRow1.number, 5, headerRow1.number, 6);
+    sheet.mergeCells(headerRow1.number, 7, headerRow1.number, 8);
+    sheet.getCell(headerRow1.number, 1).alignment = { horizontal: "center", vertical: "middle" };
+    sheet.getCell(headerRow1.number, 2).alignment = { horizontal: "center", vertical: "middle" };
+    sheet.getCell(headerRow1.number, 9).alignment = { horizontal: "center", vertical: "middle" };
+    sheet.getCell(headerRow1.number, 10).alignment = { horizontal: "center", vertical: "middle" };
+
+    const subHeader = [
+      "", "",
+      "เข้า", "ออก",
+      "เข้า", "ออก",
+      "เข้า", "ออก",
+      "", ""
+    ];
+    const headerRow2 = sheet.addRow(subHeader);
+
+    // Style both header rows
+    [headerRow1, headerRow2].forEach(row => {
+      row.eachCell(cell => {
+        cell.font = { bold: true, color: { argb: "FFFFFFFF" }, size: 12 };
+        cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1F4E78" } };
+        cell.alignment = { vertical: "middle", horizontal: "center" };
+        cell.border = { top:{style:"thin"}, left:{style:"thin"}, bottom:{style:"thin"}, right:{style:"thin"} };
+      });
     });
 
     sheet.columns = [
-      { width: 12},{width:15},{width:12},{width:12},
-      {width:18},{width:18},{width:18},{width:18},
-      {width:12},{width:12}
+      { width: 12}, {width:15},
+      {width:12}, {width:12},
+      {width:18}, {width:18},
+      {width:18}, {width:18},
+      {width:12}, {width:12}
     ];
 
-    // Freeze header and enable auto filter
-    sheet.views = [{ state: 'frozen', ySplit: headerRow.number }];
-    sheet.autoFilter = {
-      from: { row: headerRow.number, column: 1 },
-      to: { row: headerRow.number, column: 10 }
-    };
-
-    // Page setup for nicer print/export
-    sheet.pageSetup = {
-      orientation: 'landscape',
-      fitToPage: true,
-      fitToWidth: 1,
-      fitToHeight: 0,
-      margins: { left: 0.3, right: 0.3, top: 0.5, bottom: 0.5, header: 0.2, footer: 0.2 }
-    };
+    // Freeze the two header rows
+    sheet.views = [{ state: 'frozen', ySplit: headerRow2.number }];
 
     // เติมข้อมูล
    dayList.forEach((dateStr, idx) => {
