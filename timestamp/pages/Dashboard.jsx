@@ -156,20 +156,21 @@ export default function Dashboard({ user }) {
     return;
   }
   // ดึง employees
-  let empList = employees;
-  if (!empList.length) {
-    try {
-      const empRes = await axios.get(
-        `https://api-checkin-out.bpit-staff.com/api/employees?company_name=${selectedCompany}`
-      );
-      if (empRes.data.success) empList = empRes.data.employees;
-    } catch (err) {
-      console.error(err);
-      alert("ไม่สามารถดึงข้อมูลพนักงานได้");
-      return;
-    }
+ let empList = employees; // เอา state employees
+if (!empList.length) {
+  try {
+    const empRes = await axios.get(
+      `https://api-checkin-out.bpit-staff.com/api/employees?company_name=${selectedCompany}`
+    );
+    if (empRes.data.success) empList = empRes.data.employees;
+  } catch (err) {
+    console.error(err);
+    alert("ไม่สามารถดึงข้อมูลพนักงานได้");
+    return;
   }
-  console.log("employees for export:", empList);
+}
+
+console.log("employees for export:", empList); // ต้องมีข้อมูลตอนนี้
   // สร้าง list วัน
   const dayList = [];
   for (let d = new Date(startDate); d <= new Date(endDate); d.setDate(d.getDate() + 1)) {
@@ -178,7 +179,7 @@ export default function Dashboard({ user }) {
 
   // สร้าง groupedRecords: emp+date
   const groupedRecords = {};
-  employees.forEach((emp) => {
+  empList.forEach((emp) => {
     dayList.forEach((dateStr) => {
       const key = `${emp.em_code}_${dateStr}`;
       groupedRecords[key] = {
