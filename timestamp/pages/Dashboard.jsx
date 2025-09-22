@@ -110,28 +110,7 @@ export default function Dashboard({ user }) {
     return `${year}-${month}-${day}`;
   };
   // สร้าง tableData หน้าเว็บ
-const tableData = records.map((r) => ({
-  em_code: r.empId || r.em_code || "-",   // ตรวจสอบ key ให้ตรง API
-  name: r.name || "-",
-  checkIn: r.inTime || r.checkIn || "-",
-  checkOut: r.outTime || r.checkOut || "-",
-  otInBefore: r.otInBefore || "-",
-  otOutBefore: r.otOutBefore || "-",
-  otInAfter: r.otInAfter || "-",
-  otOutAfter: r.otOutAfter || "-",
-}));
-    worksheet.columns = [
-    { header: "รหัสพนักงาน", key: "em_code", width: 15 },
-    { header: "ชื่อ", key: "name", width: 20 },
-    { header: "เวลาเข้า", key: "checkIn", width: 15 },
-    { header: "เวลาออก", key: "checkOut", width: 15 },
-    { header: "OT IN ก่อนเข้างาน", key: "otInBefore", width: 20 },
-    { header: "OT OUT ก่อนเข้างาน", key: "otOutBefore", width: 20 },
-    { header: "OT IN หลังเลิกงาน", key: "otInAfter", width: 20 },
-    { header: "OT OUT หลังเลิกงาน", key: "otOutAfter", width: 20 },
-    { header: "ชม.ทำงาน", key: "workHours", width: 15 },
-    { header: "ชม. OT", key: "otTotal", width: 15 },
-  ];
+  const tableData = {};
   records.forEach(r => {
   worksheet.addRow({
     em_code: r.empId,     // map ให้ตรง
@@ -146,6 +125,8 @@ const tableData = records.map((r) => ({
     otTotal: r.otTotal || "-"
   });
 });
+
+
   const exportExcel = async () => {
     if (!selectedCompany || selectedCompany === "all" || !startDate || !endDate) {
       alert("กรุณาเลือกบริษัทและช่วงวันที่ก่อน export Excel");
@@ -204,7 +185,6 @@ const tableData = records.map((r) => ({
     });
 
     const workbook = new ExcelJS.Workbook();
-     const worksheet = workbook.addWorksheet("Time Records");
     const dayNames = ["อาทิตย์", "จันทร์", "อังคาร", "พุธ", "พฤหัสบดี", "ศุกร์", "เสาร์"];
 
     employees.forEach((emp) => {
