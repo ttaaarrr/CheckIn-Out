@@ -105,7 +105,7 @@ export default function Checkin() {
       }
     } catch (err) {
       console.error(err);
-      setMessage({ text: err.message || 'กรุณาอนุญาต GPS ก่อนลงเวลา', type: 'error' });
+      setMessage({ text: 'กรุณาอนุญาต GPS ก่อนลงเวลา', type: 'error' });
     }
   };
 
