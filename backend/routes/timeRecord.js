@@ -11,7 +11,7 @@ router.post('/', async (req, res) => {
     const today = new Date().toISOString().slice(0, 10);
 
     // ตรวจ type
-    const validTypes = ['in','out','ot_in','ot_out','ot_in_before','ot_in_after','ot_out_before','ot_out_after'];
+    const validTypes = ['in','out','ot_in_before','ot_in_after','ot_out_before','ot_out_after'];
     if (!validTypes.includes(type)) {
       return res.json({ success: false, message: `Type ไม่ถูกต้อง: ${type}` });
     }
