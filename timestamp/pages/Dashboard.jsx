@@ -111,28 +111,20 @@ export default function Dashboard({ user }) {
   };
   // สร้าง tableData หน้าเว็บ
   const tableData = {};
-  records.forEach((r) => {
-    if (!r.type || !r.em_code) return;
-    const dateStr = r.date.split("T")[0];   // เอาวันจริงจาก record
-    const key = `${r.em_code}_${dateStr}`;
-    if (!tableData[key]) {
-      const emp = employees.find(e => e.em_code.toString() === r.em_code.toString());
-      tableData[key] = {
-        em_code: r.em_code,
-        name: emp ? emp.name : r.name || "-",
-        company: r.company_name || selectedCompany,
-        checkIn: "-",
-        checkOut: "-",
-        otInBefore: "-",
-        otOutBefore: "-",
-        otInAfter: "-",
-        otOutAfter: "-",
-      };
-    }
-    const field = typeMap[r.type.toLowerCase()];
-    if (field) tableData[key][field] = r.time || "-";
+  records.forEach(r => {
+  worksheet.addRow({
+    em_code: r.empId,     // map ให้ตรง
+    name: r.name,
+    checkIn: r.inTime || "-",
+    checkOut: r.outTime || "-",
+    otInBefore: r.otInBefore || "-",
+    otOutBefore: r.otOutBefore || "-",
+    otInAfter: r.otInAfter || "-",
+    otOutAfter: r.otOutAfter || "-",
+    workHours: r.workHours || "-",
+    otTotal: r.otTotal || "-"
   });
-
+});
   const exportExcel = async () => {
     if (!selectedCompany || selectedCompany === "all" || !startDate || !endDate) {
       alert("กรุณาเลือกบริษัทและช่วงวันที่ก่อน export Excel");
