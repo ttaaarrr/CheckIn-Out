@@ -191,13 +191,14 @@ const exportExcel = async () => {
 
   // เติมข้อมูลจริงจาก API
   rangeRecords.forEach((r) => {
-    const dateStr = r.date.split("T")[0]; // ใช้ date จาก API
-    const key = `${r.em_code}_${dateStr}`;
-    if (groupedRecords[key]) {
-      const field = typeMap[r.type.toLowerCase()];
-      if (field) groupedRecords[key][field] = r.time || "-";
-    }
-  });
+  if (!r.date) return; // ข้าม record ที่ไม่มี date
+  const dateStr = r.date.split("T")[0]; // ถ้าแน่ใจว่ามีค่า
+  const key = `${r.em_code}_${dateStr}`;
+  if (groupedRecords[key]) {
+    const field = typeMap[r.type.toLowerCase()];
+    if (field) groupedRecords[key][field] = r.time || "-";
+  }
+});
 
   const workbook = new ExcelJS.Workbook();
   const dayNames = ["อาทิตย์", "จันทร์", "อังคาร", "พุธ", "พฤหัสบดี", "ศุกร์", "เสาร์"];
