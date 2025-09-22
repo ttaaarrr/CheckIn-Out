@@ -279,9 +279,6 @@ console.log("employees for export:", empList); // ต้องมีข้อม
   const r = groupedRecords[key];
   if (!r) return; // <-- ใส่ตรงนี้เลย
 
-  const otStart = r.otInBefore !== "-" ? r.otInBefore : (r.otInAfter !== "-" ? r.otInAfter : "");
-  const otEnd = r.otOutBefore !== "-" ? r.otOutBefore : (r.otOutAfter !== "-" ? r.otOutAfter : "");
-
   const row = sheet.addRow([
     dayNames[new Date(dateStr).getDay()],
     dateStr,
@@ -292,7 +289,7 @@ console.log("employees for export:", empList); // ต้องมีข้อม
     r.otInAfter,
     r.otOutAfter,
     calcDuration(r.checkIn, r.checkOut),
-    calcDuration(otStart, otEnd)
+    calcTotalOT(r)
   ]);
 
   row.eachCell(cell => {
