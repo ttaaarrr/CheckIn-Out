@@ -354,19 +354,21 @@ console.log("employees for export:", empList); // ต้องมีข้อม
       const footerStartRow = sheet.lastRow.number + 3;
       sheet.mergeCells(`B${footerStartRow}:D${footerStartRow}`);
       sheet.getCell(`B${footerStartRow}`).value = "พนักงานลงชื่อ:";
-      sheet.getCell(`B${footerStartRow}`).alignment = { vertical:'middle', horizontal:'left' };
+      sheet.getCell(`B${footerStartRow}`).alignment = { vertical:'bottom', horizontal:'left' };
 
       sheet.mergeCells(`F${footerStartRow}:H${footerStartRow}`);
       sheet.getCell(`F${footerStartRow}`).value = "ผู้อนุมัติ:";
-      sheet.getCell(`F${footerStartRow}`).alignment = { vertical:'middle', horizontal:'left' };
+      sheet.getCell(`F${footerStartRow}`).alignment = { vertical:'bottom', horizontal:'left' };
 
       sheet.mergeCells(`B${footerStartRow + 1}:D${footerStartRow + 1}`);
       sheet.getCell(`B${footerStartRow + 1}`).value = "(...........................................)";
-      sheet.getCell(`B${footerStartRow + 1}`).alignment = { vertical:'middle', horizontal:'center' };
+      sheet.getCell(`B${footerStartRow + 1}`).alignment = { vertical:'bottom', horizontal:'center' };
 
       sheet.mergeCells(`F${footerStartRow + 1}:H${footerStartRow + 1}`);
       sheet.getCell(`F${footerStartRow + 1}`).value = "(...........................................)";
-      sheet.getCell(`F${footerStartRow + 1}`).alignment = { vertical:'middle', horizontal:'center' };
+      sheet.getCell(`F${footerStartRow + 1}`).alignment = { vertical:'bottom', horizontal:'center' };
+      
+      sheet.getRow(footerStartRow).height = 30;
       sheet.getRow(footerStartRow + 1).height = 30;
     });
 
