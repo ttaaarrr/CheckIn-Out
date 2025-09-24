@@ -249,10 +249,6 @@ console.log("employees for export:", empList); // ต้องมีข้อม
     sheet.getCell("E3").font = { bold: true, size: 14 };
     sheet.getCell("E3").alignment = { horizontal: "center" };
 
-    sheet.mergeCells("E4:F4");
-    sheet.getCell("E4").value = `บันทึกเวลาทำงานช่วงเวลา: ${startDate} ถึง ${endDate}`;
-    sheet.getCell("E4").alignment = { horizontal: "center" };
-
     sheet.mergeCells("B7:C7");
     sheet.getCell("B7").value =`ชื่อ: ${emp.name}`;
     sheet.mergeCells("B8:C8");
@@ -348,6 +344,11 @@ console.log("employees for export:", empList); // ต้องมีข้อม
     
  // Footer
       const footerStartRow = sheet.lastRow.number + 3;
+
+      sheet.mergeCells(`B${footerStartRow - 2}:H${footerStartRow - 2}`);
+      sheet.getCell(`B${footerStartRow - 2}`).value = `บันทึกเวลาทำงานช่วงเวลา: ${startDate} ถึง ${endDate}`;
+      sheet.getCell(`B${footerStartRow - 2}`).alignment = { vertical: "middle", horizontal: "center" };
+
       sheet.mergeCells(`B${footerStartRow}:D${footerStartRow}`);
       sheet.getCell(`B${footerStartRow}`).value = "พนักงานลงชื่อ:";
       sheet.getCell(`B${footerStartRow}`).alignment = { vertical:'bottom', horizontal:'left' };
