@@ -319,9 +319,6 @@ console.log("employees for export:", empList); // ต้องมีข้อม
       {width:12}, {width:12}
     ];
 
-    // Freeze the two header rows
-    sheet.views = [{ state: 'frozen', ySplit: headerRow2.number }];
-
     // เติมข้อมูล
    dayList.forEach((dateStr, idx) => {
   const key = `${emp.em_code}_${dateStr}`;
