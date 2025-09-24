@@ -367,6 +367,7 @@ console.log("employees for export:", empList); // ต้องมีข้อม
       sheet.mergeCells(`F${footerStartRow + 1}:H${footerStartRow + 1}`);
       sheet.getCell(`F${footerStartRow + 1}`).value = "(...........................................)";
       sheet.getCell(`F${footerStartRow + 1}`).alignment = { vertical:'middle', horizontal:'center' };
+      sheet.getRow(footerStartRow + 1).height = 30;
     });
 
   const buf = await workbook.xlsx.writeBuffer();
