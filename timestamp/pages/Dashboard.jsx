@@ -254,9 +254,9 @@ console.log("employees for export:", empList); // ต้องมีข้อม
     sheet.getCell("D3").font = { bold: true, size: 14 };
     sheet.getCell("D3").alignment = { horizontal: "center" };
 
-    sheet.mergeCells("E4:F4");
-    sheet.getCell("E4").value = `บันทึกเวลาทำงานประจำเดือน ${monthNames[new Date().getMonth()]}`;
-    sheet.getCell("E4").alignment = { horizontal: "center" };
+    sheet.mergeCells("D4:F4");
+    sheet.getCell("D4").value = `บันทึกเวลาทำงานประจำเดือน ${monthNames[new Date().getMonth()]}`;
+    sheet.getCell("D4").alignment = { horizontal: "center" };
 
     sheet.mergeCells("B7:C7");
     sheet.getCell("B7").value =`ชื่อ: ${emp.name}`;
