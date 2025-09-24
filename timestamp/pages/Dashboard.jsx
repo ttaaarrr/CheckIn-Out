@@ -239,15 +239,15 @@ console.log("employees for export:", empList); // ต้องมีข้อม
       const logoId2 = workbook.addImage({ base64: headerLogo2Base64, extension: "png" });
       sheet.addImage(logoId2, "G1:H5");
     // Header
-    sheet.mergeCells("E2:F2");
-    sheet.getCell("E2").value = "BPIT holdings CO.,LTD.";
-    sheet.getCell("E2").font = { bold: true, size: 16 };
-    sheet.getCell("E2").alignment = { horizontal: "center" };
+    sheet.mergeCells("D2:F2");
+    sheet.getCell("D2").value = "BPIT holdings CO.,LTD.";
+    sheet.getCell("D2").font = { bold: true, size: 16 };
+    sheet.getCell("D2").alignment = { horizontal: "center" };
 
-    sheet.mergeCells("E3:F3");
-    sheet.getCell("E3").value = "TIME RECORD REPORT";
-    sheet.getCell("E3").font = { bold: true, size: 14 };
-    sheet.getCell("E3").alignment = { horizontal: "center" };
+    sheet.mergeCells("D3:F3");
+    sheet.getCell("D3").value = "TIME RECORD REPORT";
+    sheet.getCell("D3").font = { bold: true, size: 14 };
+    sheet.getCell("D3").alignment = { horizontal: "center" };
 
 //     sheet.mergeCells("E4:F4");
 // sheet.getCell("E4").value = `บันทึกเวลาทำงานประจำเดือน ${month}`;
