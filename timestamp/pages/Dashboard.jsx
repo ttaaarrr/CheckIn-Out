@@ -249,9 +249,9 @@ console.log("employees for export:", empList); // ต้องมีข้อม
     sheet.getCell("E3").font = { bold: true, size: 14 };
     sheet.getCell("E3").alignment = { horizontal: "center" };
 
-    sheet.mergeCells("E4:G4");
-    sheet.getCell("E4").value = `ช่วงเวลา: ${startDate} ถึง ${endDate}`;
-    sheet.getCell("E4").alignment = { horizontal: "center" };
+    sheet.mergeCells("E10:G10");
+    sheet.getCell("E10").value = `บันทึกเวลาทำงานช่วงเวลา: ${startDate} ถึง ${endDate}`;
+    sheet.getCell("E10").alignment = { horizontal: "center" };
 
     sheet.mergeCells("B7:C7");
     sheet.getCell("B7").value = `ชื่อ: ${emp.name}`;
