@@ -265,16 +265,12 @@ sheet.addImage(logoRightId, {
 });
    // assume workbook and sheet ถูกสร้างแล้ว
 sheet.pageSetup = {
-  paperSize: 9,           // A4
+ paperSize: 9, // A4
   orientation: 'portrait',
-  fitToPage: true,
-  fitToWidth: 1,
-  fitToHeight: 1,
-  margins: {
-    left: 0.5, right: 0.5,
-    top: 0.5, bottom: 0.5,
-    header: 0.3, footer: 0.3
-  }
+  margins: { left:0.5, right:0.5, top:0.5, bottom:0.5, header:0.3, footer:0.3 },
+  horizontalCentered: true,
+  verticalCentered: false,
+  scale: 90 // ปรับให้ขนาดพอดีเวลา print
 };
 
 // Header
@@ -316,6 +312,11 @@ sheet.mergeCells(headerRow1.number, 11, headerRow1.number+1, 11); // หมา�
 const subHeader = ["", "", "เข้า","ออก","เข้า","ออก","เข้า","ออก","","",""];
 const headerRow2 = sheet.addRow(subHeader);
 
+headerRow1.height = 25;
+headerRow2.height = 20;
+sheet.eachRow({ includeEmpty: false }, row => {
+  if(row.number > headerRow2.number) row.height = 20; // data rows
+});
 // Style headers
 [headerRow1, headerRow2].forEach(row => {
   row.eachCell(cell => {
@@ -328,11 +329,11 @@ const headerRow2 = sheet.addRow(subHeader);
 
 // Adjust column width for A4
 sheet.columns = [
-  { width: 10}, {width:12},
-  {width:10}, {width:10},
-  {width:12}, {width:12},
-  {width:12}, {width:12},
-  {width:10}, {width:10}, {width:12}
+  { width: 12 }, { width: 15 },
+  { width: 12 }, { width: 12 },
+  { width: 14 }, { width: 14 },
+  { width: 14 }, { width: 14 },
+  { width: 12 }, { width: 12 }, { width: 14 }
 ];
 
 // Fill data
@@ -362,9 +363,13 @@ dayList.forEach((dateStr, idx) => {
     cell.fill = { type:"pattern", pattern:"solid", fgColor:{argb:"FFD9E1F2"} };
   });
 
-  row.height = 18; // ตั้ง row height ให้ uniform
+  row.height = 20; // ตั้ง row height ให้ uniform
 });
-
+sheet.eachRow({ includeEmpty: false }, row => {
+  row.eachCell(cell => {
+    cell.alignment = { vertical: 'middle', horizontal: 'center' };
+  });
+});
 // Footer
 const footerStartRow = sheet.lastRow.number + 3;
 
