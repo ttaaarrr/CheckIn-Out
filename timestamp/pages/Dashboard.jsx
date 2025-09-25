@@ -231,6 +231,11 @@ console.log("employees for export:", empList); // ต้องมีข้อม
     "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"
   ];
   
+const formatDateTH = (dateStr) => {
+  const d = new Date(dateStr);
+   if (isNaN(d)) return "-";
+  return `${d.getDate()} ${monthNames[d.getMonth()]} ${d.getFullYear()}`;
+}
   // โหลดโลโก้เป็น ArrayBuffer (Browser-compatible)
   const fetchLogoBuffer = async (url) => {
     const res = await fetch(url);
@@ -250,8 +255,8 @@ const logoRightId = workbook.addImage({
   buffer: logoRightBuffer,
   extension: 'jpg'
 });
-const periodText = `บันทึกเวลาทำงานประจำช่วง ${monthNames[startDate.getMonth()]} ${startDate.getFullYear()} - ${monthNames[endDate.getMonth()]} ${endDate.getFullYear()}`;
 
+const periodText = `บันทึกเวลาทำงานประจำช่วง ${formatDateTH(startDate)} - ${formatDateTH(endDate)}`;
 // วางโลโก้ซ้าย
 sheet.addImage(logoLeftId, {
   tl: { col: 1, row: 0 }, // top-left cell
