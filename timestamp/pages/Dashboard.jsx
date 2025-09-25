@@ -253,14 +253,14 @@ const logoRightId = workbook.addImage({
 // วางโลโก้ซ้าย
 sheet.addImage(logoLeftId, {
   tl: { col: 1, row: 1 }, // top-left cell
-  br: { col: 2.5, row: 3 }, // bottom-right cell (ครอบคลุมหลาย cell)
+  br: { col: 3, row: 3 }, // bottom-right cell (ครอบคลุมหลาย cell)
   editAs: 'oneCell'
 });
 
 // วางโลโก้ขวา
 sheet.addImage(logoRightId, {
   tl: { col: 6, row: 1 },
-  br: { col: 7.5, row: 3 },
+  br: { col: 8, row: 3 },
   editAs: 'oneCell'
 });
    // assume workbook and sheet ถูกสร้างแล้ว
@@ -310,16 +310,28 @@ const topHeader = [
   "ชม.ทำงาน", "ชม. OT", "หมายเหตุ"
 ];
 const headerRow1 = sheet.addRow(topHeader);
-sheet.mergeCells(headerRow1.number, 3, headerRow1.number, 4);
-sheet.mergeCells(headerRow1.number, 5, headerRow1.number, 6);
-sheet.mergeCells(headerRow1.number, 7, headerRow1.number, 8);
+
+// รวมเซลล์หัวข้อหลัก
+sheet.mergeCells(headerRow1.number, 3, headerRow1.number, 4); // เวลางานปกติ
+sheet.getCell(headerRow1.number, 3).value = "เวลางานปกติ";
+
+sheet.mergeCells(headerRow1.number, 5, headerRow1.number, 6); // OT ก่อนเข้างาน
+sheet.getCell(headerRow1.number, 5).value = "OT ก่อนเข้างาน";
+
+sheet.mergeCells(headerRow1.number, 7, headerRow1.number, 8); // OT หลังเลิกงาน
+sheet.getCell(headerRow1.number, 7).value = "OT หลังเลิกงาน";
+
+// คอลัมน์ที่ต้อง merge ลง 2 แถว
 sheet.mergeCells(headerRow1.number, 1, headerRow1.number+1, 1); // วัน
 sheet.mergeCells(headerRow1.number, 2, headerRow1.number+1, 2); // วัน/เดือน/ปี
 sheet.mergeCells(headerRow1.number, 9, headerRow1.number+1, 9); // ชม.ทำงาน
 sheet.mergeCells(headerRow1.number, 10, headerRow1.number+1, 10); // ชม. OT
 sheet.mergeCells(headerRow1.number, 11, headerRow1.number+1, 11); // หมายเหตุ
 
-const subHeader = ["เข้า","ออก","เข้า","ออก","เข้า","ออก"];
+// แถวล่าง (หัวข้อย่อย)
+const subHeader = [
+  "", "", "เข้า", "ออก", "เข้า", "ออก", "เข้า", "ออก", "", "", ""
+];
 const headerRow2 = sheet.addRow(subHeader);
 
 // Style headers
