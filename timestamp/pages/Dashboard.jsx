@@ -230,18 +230,24 @@ console.log("employees for export:", empList); // ต้องมีข้อม
     "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม",
     "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"
   ];
+  // โหลดโลโก้เป็น ArrayBuffer (Browser-compatible)
+  const fetchLogoBuffer = async (url) => {
+    const res = await fetch(url);
+    return await res.arrayBuffer();
+  };
+  const logoLeftBuffer = await fetchLogoBuffer('/logo_black.png'); // public/logo_black.png
+  const logoRightBuffer = await fetchLogoBuffer('/logo.jpg');       // public/logo.jpg
 
   empList.forEach((emp) => {
   const sheet = workbook.addWorksheet(emp.name || emp.em_code);
- // --- Logo Header ---
- const logoLeftId = workbook.addImage({
-  filename: './logo_black.png', // โลโก้ซ้าย
-  extension: 'png',
-});
 
+  const logoLeftId = workbook.addImage({
+  buffer: logoLeftBuffer,
+  extension: 'png'
+});
 const logoRightId = workbook.addImage({
-  filename: './logo.jpg', // โลโก้ขวา
-  extension: 'jpg',
+  buffer: logoRightBuffer,
+  extension: 'jpg'
 });
 
 // วางโลโก้ซ้าย
