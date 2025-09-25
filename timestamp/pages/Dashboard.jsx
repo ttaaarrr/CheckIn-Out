@@ -302,59 +302,61 @@ sheet.mergeCells("H10:I10"); sheet.getCell("H10").value = `ชื่อหน่
 sheet.getCell("B11").value = ` `;
 
 // Two-level grouped header
-    const topHeader = ["วัน","วัน/เดือน/ปี","เวลางานปกติ","OT ก่อนเข้างาน","OT หลังเลิกงาน","ชม.ทำงาน","ชม. OT","หมายเหตุ"];
-    const headerRow1 = sheet.addRow(topHeader);
+const topHeader = ["วัน","วัน/เดือน/ปี","เวลางานปกติ","","OT ก่อนเข้างาน","","OT หลังเลิกงาน","","ชม.ทำงาน","ชม. OT","หมายเหตุ"];
+const headerRow1 = sheet.addRow(topHeader);
+sheet.mergeCells(headerRow1.number, 3, headerRow1.number+1, 4); // เวลางานปกติ
+sheet.mergeCells(headerRow1.number, 5, headerRow1.number+1, 6); // OT ก่อนเข้างาน
+sheet.mergeCells(headerRow1.number, 7, headerRow1.number+1, 8); // OT หลังเลิกงาน
+sheet.mergeCells(headerRow1.number, 1, headerRow1.number+1, 1); // วัน
+sheet.mergeCells(headerRow1.number, 2, headerRow1.number+1, 2); // วัน/เดือน/ปี
+sheet.mergeCells(headerRow1.number, 9, headerRow1.number+1, 9); // ชม.ทำงาน
+sheet.mergeCells(headerRow1.number, 10, headerRow1.number+1, 10); // ชม.OT
+sheet.mergeCells(headerRow1.number, 11, headerRow1.number+1, 11); // หมายเหตุ
 
-    // Merge top header cells for grouped columns
-    sheet.mergeCells(headerRow1.number, 3, headerRow1.number, 4); // เวลางานปกติ
-    sheet.mergeCells(headerRow1.number, 5, headerRow1.number, 6); // OT ก่อนเข้างาน
-    sheet.mergeCells(headerRow1.number, 7, headerRow1.number, 8); // OT หลังเลิกงาน
+const subHeader = ["", "", "เข้า","ออก","เข้า","ออก","เข้า","ออก","","",""];
+const headerRow2 = sheet.addRow(subHeader);
 
-    const subHeader = ["", "", "เข้า","ออก","เข้า","ออก","เข้า","ออก"];
-    const headerRow2 = sheet.addRow(subHeader);
+// Style headers
+[headerRow1, headerRow2].forEach(row => {
+  row.eachCell(cell => {
+    cell.font = { bold: true, color: { argb: "FFFFFFFF" }, size: 10 };
+    cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1F4E78" } };
+    cell.alignment = { vertical: "middle", horizontal: "center", wrapText: true };
+    cell.border = { top:{style:"thin"}, left:{style:"thin"}, bottom:{style:"thin"}, right:{style:"thin"} };
+  });
+});
 
-    // Style headers
-    [headerRow1, headerRow2].forEach(row => {
-      row.eachCell({ includeEmpty: true }, cell => {
-        cell.font = { bold: true, color: { argb: "FFFFFFFF" }, size: 10 };
-        cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1F4E78" } };
-        cell.alignment = { vertical: "middle", horizontal: "center", wrapText: true };
-        cell.border = { top:{style:"thin"}, left:{style:"thin"}, bottom:{style:"thin"}, right:{style:"thin"} };
-      });
-    });
+// Adjust column width for A4
+sheet.columns = [
+  { width: 10}, {width:12},
+  {width:10}, {width:10},
+  {width:12}, {width:12},
+  {width:12}, {width:12},
+  {width:10}, {width:10}, {width:12}
+];
 
-    // Adjust column width
-    sheet.columns = [
-      { width: 10}, {width:12},
-      {width:10}, {width:10},
-      {width:12}, {width:12},
-      {width:12}, {width:12}
-    ];
+// Fill data
+dayList.forEach((dateStr, idx) => {
+  const key = `${emp.em_code}_${dateStr}`;
+  const r = groupedRecords[key];
+  if (!r) return;
 
-    // Fill data
-    dayList.forEach((dateStr, idx) => {
-      const key = `${emp.em_code}_${dateStr}`;
-      const r = groupedRecords[key];
-      if (!r) return;
+  const row = sheet.addRow([
+    dayNames[new Date(dateStr).getDay()],
+    dateStr,
+    r.checkIn, r.checkOut,
+    r.otInBefore, r.otOutBefore,
+    r.otInAfter, r.otOutAfter,
+    calcDuration(r.checkIn, r.checkOut),
+    calcTotalOT(r),
+    r.note || ""
+  ]);
 
-      const row = sheet.addRow([
-        dayNames[new Date(dateStr).getDay()],
-        dateStr,
-        r.checkIn, r.checkOut,
-        r.otInBefore, r.otOutBefore,
-        r.otInAfter, r.otOutAfter
-      ]);
+  row.eachCell(cell => { cell.border = { top:{style:"thin"}, left:{style:"thin"}, bottom:{style:"thin"}, right:{style:"thin"} }; });
+  if(idx % 2 === 0) row.eachCell(cell => { cell.fill = { type:"pattern", pattern:"solid", fgColor:{argb:"FFD9E1F2"} }; });
 
-      row.eachCell(cell => {
-        cell.border = { top:{style:"thin"}, left:{style:"thin"}, bottom:{style:"thin"}, right:{style:"thin"} };
-      });
-
-      if(idx % 2 === 0) row.eachCell(cell => {
-        cell.fill = { type:"pattern", pattern:"solid", fgColor:{argb:"FFD9E1F2"} };
-      });
-
-      row.height = 18;
-    });
+  row.height = 18;
+});
 
 // Footer
 const footerStartRow = sheet.lastRow.number + 3;
