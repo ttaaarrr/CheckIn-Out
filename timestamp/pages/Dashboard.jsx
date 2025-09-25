@@ -309,22 +309,22 @@ sheet.mergeCells("B10:C10"); sheet.getCell("B10").value = `ตำแหน่ง
 sheet.getCell("B11").value = ` `;
 
 // Two-level grouped header
-const topHeader = [
-  "วัน", "วัน/เดือน/ปี", 
-  "เวลางานปกติ", "OT ก่อนเข้างาน", "OT หลังเลิกงาน", 
-  "ชม.ทำงาน", "ชม. OT", "หมายเหตุ"
-];
-const headerRow1 = sheet.addRow(topHeader);
+// const topHeader = [
+//   "วัน", "วัน/เดือน/ปี", 
+//   "เวลางานปกติ", "OT ก่อนเข้างาน", "OT หลังเลิกงาน", 
+//   "ชม.ทำงาน", "ชม. OT", "หมายเหตุ"
+// ];
+// const headerRow1 = sheet.addRow(topHeader);
 
 // สร้างหัวตาราง (2 แถว)
-sheet.mergeCells('A1:A2'); // วัน
-sheet.mergeCells('B1:B2'); // วัน/เดือน/ปี
-sheet.mergeCells('C1:D1'); // เวลางานปกติ
-sheet.mergeCells('E1:F1'); // OT ก่อนเริ่มงาน
-sheet.mergeCells('G1:H1'); // OT หลังเลิกงาน
-sheet.mergeCells('I1:I2'); // ชม.ทำงาน
-sheet.mergeCells('J1:K1'); // ชม.OT
-sheet.mergeCells('L1:L2'); // หมายเหตุ
+sheet.mergeCells('A13:A14'); // วัน
+sheet.mergeCells('B13:B14'); // วัน/เดือน/ปี
+sheet.mergeCells('C13:D13'); // เวลางานปกติ
+sheet.mergeCells('E13:F13'); // OT ก่อนเริ่มงาน
+sheet.mergeCells('G13:H13'); // OT หลังเลิกงาน
+sheet.mergeCells('I13:I14'); // ชม.ทำงาน
+sheet.mergeCells('J13:K14'); // ชม.OT
+sheet.mergeCells('L13:L14'); // หมายเหตุ
 
 // ตั้งค่าหัวแถวหลัก
 sheet.getCell('A1').value = 'วัน';
@@ -337,18 +337,18 @@ sheet.getCell('J1').value = 'ชม. OT';
 sheet.getCell('L1').value = 'หมายเหตุ';
 
 // ตั้งค่าหัวแถวรอง (แถว 2)
-sheet.getCell('C2').value = 'เข้า';
-sheet.getCell('D2').value = 'ออก';
-sheet.getCell('E2').value = 'เข้า';
-sheet.getCell('F2').value = 'ออก';
-sheet.getCell('G2').value = 'เข้า';
-sheet.getCell('H2').value = 'ออก';
-sheet.getCell('J2').value = 'เข้า';
-sheet.getCell('K2').value = 'ออก';
+sheet.getCell('C14').value = 'เข้า';
+sheet.getCell('D14').value = 'ออก';
+sheet.getCell('E14').value = 'เข้า';
+sheet.getCell('F14').value = 'ออก';
+sheet.getCell('G14').value = 'เข้า';
+sheet.getCell('H14').value = 'ออก';
+sheet.getCell('J14').value = 'เข้า';
+sheet.getCell('K14').value = 'ออก';
 
 // จัดสไตล์หัวตาราง
-['A1','B1','C1','E1','G1','I1','J1','L1',
- 'C2','D2','E2','F2','G2','H2','J2','K2'].forEach(cell => {
+['A13','B13','C13','E13','G13','I13','J13','L13',
+ 'C14','D14','E14','F14','G14','H14','J14','K14'].forEach(cell => {
   sheet.getCell(cell).alignment = { vertical: 'middle', horizontal: 'center' };
   sheet.getCell(cell).font = { bold: true };
   sheet.getCell(cell).fill = {
