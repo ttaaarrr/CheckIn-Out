@@ -265,12 +265,16 @@ sheet.addImage(logoRightId, {
 });
    // assume workbook and sheet ถูกสร้างแล้ว
 sheet.pageSetup = {
- paperSize: 9, // A4
+  paperSize: 9,           // A4
   orientation: 'portrait',
-  margins: { left:0.5, right:0.5, top:0.5, bottom:0.5, header:0.3, footer:0.3 },
-  horizontalCentered: true,
-  verticalCentered: false,
-  scale: 90 // ปรับให้ขนาดพอดีเวลา print
+  fitToPage: true,
+  fitToWidth: 1,
+  fitToHeight: 1,
+  margins: {
+    left: 0.5, right: 0.5,
+    top: 0.5, bottom: 0.5,
+    header: 0.3, footer: 0.3
+  }
 };
 
 // Header
@@ -285,17 +289,8 @@ sheet.getCell("D3").font = { bold: true, size: 12 };
 sheet.getCell("D3").alignment = { horizontal: "center" };
 
 sheet.mergeCells("D4:F4");
-const formatDate = (dateStr) => {
-  const d = new Date(dateStr);
-  const day = String(d.getDate()).padStart(2, "0");
-  const month = String(d.getMonth() + 1).padStart(2, "0");
-  const year = d.getFullYear();
-  return `${day}/${month}/${year}`;
-};
-
-sheet.getCell("D4").value = `บันทึกเวลาทำงานประจำเดือน ${formatDate(startDate)} - ${formatDate(endDate)}`;
-sheet.getCell("D4").alignment = { horizontal: "center", vertical: "middle" };
-
+sheet.getCell("D4").value = `บันทึกเวลาทำงานประจำเดือน ${monthNames[new Date().getMonth()]}`;
+sheet.getCell("D4").alignment = { horizontal: "center" };
 
 // Employee info
 sheet.mergeCells("B7:C7"); sheet.getCell("B7").value = `ชื่อ: ${emp.name}`;
@@ -321,11 +316,6 @@ sheet.mergeCells(headerRow1.number, 11, headerRow1.number+1, 11); // หมา�
 const subHeader = ["", "", "เข้า","ออก","เข้า","ออก","เข้า","ออก","","",""];
 const headerRow2 = sheet.addRow(subHeader);
 
-headerRow1.height = 25;
-headerRow2.height = 20;
-sheet.eachRow({ includeEmpty: false }, row => {
-  if(row.number > headerRow2.number) row.height = 20; // data rows
-});
 // Style headers
 [headerRow1, headerRow2].forEach(row => {
   row.eachCell(cell => {
@@ -338,11 +328,11 @@ sheet.eachRow({ includeEmpty: false }, row => {
 
 // Adjust column width for A4
 sheet.columns = [
-  { width: 12 }, { width: 15 },
-  { width: 12 }, { width: 12 },
-  { width: 14 }, { width: 14 },
-  { width: 14 }, { width: 14 },
-  { width: 12 }, { width: 12 }, { width: 14 }
+  { width: 10}, {width:12},
+  {width:10}, {width:10},
+  {width:12}, {width:12},
+  {width:12}, {width:12},
+  {width:10}, {width:10}, {width:12}
 ];
 
 // Fill data
@@ -372,13 +362,9 @@ dayList.forEach((dateStr, idx) => {
     cell.fill = { type:"pattern", pattern:"solid", fgColor:{argb:"FFD9E1F2"} };
   });
 
-  row.height = 20; // ตั้ง row height ให้ uniform
+  row.height = 18; // ตั้ง row height ให้ uniform
 });
-sheet.eachRow({ includeEmpty: false }, row => {
-  row.eachCell(cell => {
-    cell.alignment = { vertical: 'middle', horizontal: 'center' };
-  });
-});
+
 // Footer
 const footerStartRow = sheet.lastRow.number + 3;
 
@@ -399,17 +385,17 @@ sheet.getCell(`H${footerStartRow}`).alignment = { vertical:'bottom', horizontal:
 
 // ลายเซ็นเจ้าหน้าที่BPIT
 sheet.mergeCells(`B${footerStartRow+2}:C${footerStartRow+3}`);
-sheet.getCell(`B${footerStartRow+2}`).value = "(.....................................)";
+sheet.getCell(`B${footerStartRow+2}`).value = "(...........................................)";
 sheet.getCell(`B${footerStartRow+2}`).alignment = { vertical:'bottom', horizontal:'center' };
 
 // ลายเซ็นพนักงาน
 sheet.mergeCells(`E${footerStartRow+2}:F${footerStartRow+3}`);
-sheet.getCell(`E${footerStartRow+2}`).value = "(.....................................)";
+sheet.getCell(`E${footerStartRow+2}`).value = "(...........................................)";
 sheet.getCell(`E${footerStartRow+2}`).alignment = { vertical:'bottom', horizontal:'center' };
 
 // ลายเซ็นผู้อนุมัติ
 sheet.mergeCells(`H${footerStartRow+2}:I${footerStartRow+3}`);
-sheet.getCell(`H${footerStartRow+2}`).value = "(.....................................)";
+sheet.getCell(`H${footerStartRow+2}`).value = "(...........................................)";
 sheet.getCell(`H${footerStartRow+2}`).alignment = { vertical:'bottom', horizontal:'center' };
 
 // Row height footer
@@ -419,10 +405,8 @@ for(let i=footerStartRow; i<=footerStartRow+3; i++) sheet.getRow(i).height = 25;
 
 // Save file
 const buf = await workbook.xlsx.writeBuffer();
-saveAs(
-  new Blob([buf]), 
-  `TimeRecords_${formatDate(startDate)}-${formatDate(endDate)}.xlsx`
-);
+saveAs(new Blob([buf]), `TimeRecords_${monthNames[new Date().getMonth()]}_${new Date().getFullYear()}.xlsx`);
+
 };
 
   if (!user) return null;
