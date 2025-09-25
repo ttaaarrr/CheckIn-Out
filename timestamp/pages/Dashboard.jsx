@@ -230,6 +230,7 @@ console.log("employees for export:", empList); // ต้องมีข้อม
     "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม",
     "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"
   ];
+  
   // โหลดโลโก้เป็น ArrayBuffer (Browser-compatible)
   const fetchLogoBuffer = async (url) => {
     const res = await fetch(url);
@@ -249,6 +250,7 @@ const logoRightId = workbook.addImage({
   buffer: logoRightBuffer,
   extension: 'jpg'
 });
+const periodText = `บันทึกเวลาทำงานประจำช่วง ${monthNames[startDate.getMonth()]} ${startDate.getFullYear()} - ${monthNames[endDate.getMonth()]} ${endDate.getFullYear()}`;
 
 // วางโลโก้ซ้าย
 sheet.addImage(logoLeftId, {
@@ -289,7 +291,7 @@ sheet.getCell("D3").font = { bold: true, size: 12 };
 sheet.getCell("D3").alignment = { horizontal: "center" };
 
 sheet.mergeCells("D4:F4");
-sheet.getCell("D4").value = `บันทึกเวลาทำงานประจำเดือน ${monthNames[new Date().getMonth()]}`;
+sheet.getCell("D4").value = periodText;
 sheet.getCell("D4").alignment = { horizontal: "center" };
 
 // Employee info
@@ -405,8 +407,7 @@ for(let i=footerStartRow; i<=footerStartRow+3; i++) sheet.getRow(i).height = 25;
 
 // Save file
 const buf = await workbook.xlsx.writeBuffer();
-saveAs(new Blob([buf]), `TimeRecords_${monthNames[new Date().getMonth()]}_${new Date().getFullYear()}.xlsx`);
-
+saveAs(new Blob([buf]), `TimeRecords_${startDate}_${endDate}.xlsx`);
 };
 
   if (!user) return null;
