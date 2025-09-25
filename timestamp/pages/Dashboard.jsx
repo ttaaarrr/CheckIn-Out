@@ -302,7 +302,16 @@ sheet.mergeCells("H10:I10"); sheet.getCell("H10").value = `ชื่อหน่
 sheet.getCell("B11").value = ` `;
 
 // Two-level grouped header
-const topHeader = ["วัน","วัน/เดือน/ปี","เวลางานปกติ","","OT ก่อนเข้างาน","","OT หลังเลิกงาน","","ชม.ทำงาน","ชม. OT","หมายเหตุ"];
+const topHeader = [
+  "วัน",
+  "วัน/เดือน/ปี",
+  "เวลางานปกติ",
+  "OT ก่อนเข้างาน",
+  "OT หลังเลิกงาน",
+  "ชม.ทำงาน",
+  "ชม. OT",
+  "หมายเหตุ"
+];
 const headerRow1 = sheet.addRow(topHeader);
 sheet.mergeCells(headerRow1.number, 3, headerRow1.number, 4); // เวลางานปกติ
 sheet.mergeCells(headerRow1.number, 5, headerRow1.number, 6); // OT ก่อนเข้างาน
