@@ -316,32 +316,70 @@ const topHeader = [
 ];
 const headerRow1 = sheet.addRow(topHeader);
 
-// Merge สำหรับหัวข้อหลักที่มี sub-header
-sheet.mergeCells(headerRow1.number, 1, headerRow1.number+1, 1);  // วัน
-sheet.mergeCells(headerRow1.number, 2, headerRow1.number+1, 2);  // วัน/เดือน/ปี
+// สร้างหัวตาราง (2 แถว)
+sheet.mergeCells('A1:A2'); // วัน
+sheet.mergeCells('B1:B2'); // วัน/เดือน/ปี
+sheet.mergeCells('C1:D1'); // เวลางานปกติ
+sheet.mergeCells('E1:F1'); // OT ก่อนเริ่มงาน
+sheet.mergeCells('G1:H1'); // OT หลังเลิกงาน
+sheet.mergeCells('I1:I2'); // ชม.ทำงาน
+sheet.mergeCells('J1:K1'); // ชม.OT
+sheet.mergeCells('L1:L2'); // หมายเหตุ
 
-sheet.mergeCells(headerRow1.number, 3, headerRow1.number, 4);    // เวลางานปกติ
-sheet.mergeCells(headerRow1.number, 5, headerRow1.number, 6);    // OT ก่อนเข้างาน
-sheet.mergeCells(headerRow1.number, 7, headerRow1.number, 8);    // OT หลังเลิกงาน
+// ตั้งค่าหัวแถวหลัก
+sheet.getCell('A1').value = 'วัน';
+sheet.getCell('B1').value = 'วัน/เดือน/ปี';
+sheet.getCell('C1').value = 'เวลางานปกติ';
+sheet.getCell('E1').value = 'OT ก่อนเริ่มงาน';
+sheet.getCell('G1').value = 'OT หลังเลิกงาน';
+sheet.getCell('I1').value = 'ชม.ทำงาน';
+sheet.getCell('J1').value = 'ชม. OT';
+sheet.getCell('L1').value = 'หมายเหตุ';
 
-sheet.mergeCells(headerRow1.number, 9, headerRow1.number+1, 9);  // ชม.ทำงาน
-sheet.mergeCells(headerRow1.number, 10, headerRow1.number+1, 10);// ชม.OT
-sheet.mergeCells(headerRow1.number, 11, headerRow1.number+1, 11);// หมายเหตุ
+// ตั้งค่าหัวแถวรอง (แถว 2)
+sheet.getCell('C2').value = 'เข้า';
+sheet.getCell('D2').value = 'ออก';
+sheet.getCell('E2').value = 'เข้า';
+sheet.getCell('F2').value = 'ออก';
+sheet.getCell('G2').value = 'เข้า';
+sheet.getCell('H2').value = 'ออก';
+sheet.getCell('J2').value = 'เข้า';
+sheet.getCell('K2').value = 'ออก';
 
-// Header row 2 (sub-header)
-const subHeader = ["", "", "เข้า","ออก","เข้า","ออก","เข้า","ออก","","",""];
-const headerRow2 = sheet.addRow(subHeader);
-
-// Style headers
-[headerRow1, headerRow2].forEach(row => {
-  row.eachCell(cell => {
-    cell.font = { bold: true, color: { argb: "FFFFFFFF" }, size: 10 };
-    cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1F4E78" } };
-    cell.alignment = { vertical: "middle", horizontal: "center", wrapText: true };
-    cell.border = { top:{style:"thin"}, left:{style:"thin"}, bottom:{style:"thin"}, right:{style:"thin"} };
-  });
+// จัดสไตล์หัวตาราง
+['A1','B1','C1','E1','G1','I1','J1','L1',
+ 'C2','D2','E2','F2','G2','H2','J2','K2'].forEach(cell => {
+  sheet.getCell(cell).alignment = { vertical: 'middle', horizontal: 'center' };
+  sheet.getCell(cell).font = { bold: true };
+  sheet.getCell(cell).fill = {
+    type: 'pattern',
+    pattern: 'solid',
+    fgColor: { argb: '1F4E78' } // น้ำเงินเข้ม
+  };
+  sheet.getCell(cell).font = { color: { argb: 'FFFFFF' }, bold: true }; // ตัวอักษรขาว
+  sheet.getCell(cell).border = {
+    top: {style:'thin'},
+    left: {style:'thin'},
+    bottom: {style:'thin'},
+    right: {style:'thin'}
+  };
 });
 
+// จัดความกว้างคอลัมน์
+sheet.columns = [
+  { key: 'day', width: 8 },
+  { key: 'date', width: 15 },
+  { key: 'in', width: 10 },
+  { key: 'out', width: 10 },
+  { key: 'ot_before_in', width: 10 },
+  { key: 'ot_before_out', width: 10 },
+  { key: 'ot_after_in', width: 10 },
+  { key: 'ot_after_out', width: 10 },
+  { key: 'work_hours', width: 12 },
+  { key: 'ot_hours_in', width: 10 },
+  { key: 'ot_hours_out', width: 10 },
+  { key: 'note', width: 20 }
+];
 // Column width
 sheet.columns = [
   { width: 10}, {width:12},
