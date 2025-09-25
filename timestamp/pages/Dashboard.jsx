@@ -323,8 +323,8 @@ sheet.mergeCells('C13:D13'); // เวลางานปกติ
 sheet.mergeCells('E13:F13'); // OT ก่อนเริ่มงาน
 sheet.mergeCells('G13:H13'); // OT หลังเลิกงาน
 sheet.mergeCells('I13:I14'); // ชม.ทำงาน
-sheet.mergeCells('J13:K14'); // ชม.OT
-sheet.mergeCells('L13:L14'); // หมายเหตุ
+sheet.mergeCells('J13:J14'); // ชม.OT
+sheet.mergeCells('K13:K14'); // หมายเหตุ
 
 // ตั้งค่าหัวแถวหลัก
 sheet.getCell('A13').value = 'วัน';
