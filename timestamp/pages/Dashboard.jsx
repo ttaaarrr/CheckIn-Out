@@ -334,7 +334,7 @@ sheet.getCell('E13').value = 'OT ก่อนเริ่มงาน';
 sheet.getCell('G13').value = 'OT หลังเลิกงาน';
 sheet.getCell('I13').value = 'ชม.ทำงาน';
 sheet.getCell('J13').value = 'ชม. OT';
-sheet.getCell('L13').value = 'หมายเหตุ';
+sheet.getCell('K13').value = 'หมายเหตุ';
 
 // ตั้งค่าหัวแถวรอง (แถว 2)
 sheet.getCell('C14').value = 'เข้า';
@@ -346,7 +346,7 @@ sheet.getCell('H14').value = 'ออก';
 
 
 // จัดสไตล์หัวตาราง
-['A13','B13','C13','E13','G13','I13','J13','L13',
+['A13','B13','C13','E13','G13','I13','J13','K13',
  'C14','D14','E14','F14','G14','H14','J14','K14'].forEach(cell => {
   sheet.getCell(cell).alignment = { vertical: 'middle', horizontal: 'center' };
   sheet.getCell(cell).font = { bold: true };
