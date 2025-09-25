@@ -327,14 +327,14 @@ sheet.mergeCells('J13:K14'); // ชม.OT
 sheet.mergeCells('L13:L14'); // หมายเหตุ
 
 // ตั้งค่าหัวแถวหลัก
-sheet.getCell('A1').value = 'วัน';
-sheet.getCell('B1').value = 'วัน/เดือน/ปี';
-sheet.getCell('C1').value = 'เวลางานปกติ';
-sheet.getCell('E1').value = 'OT ก่อนเริ่มงาน';
-sheet.getCell('G1').value = 'OT หลังเลิกงาน';
-sheet.getCell('I1').value = 'ชม.ทำงาน';
-sheet.getCell('J1').value = 'ชม. OT';
-sheet.getCell('L1').value = 'หมายเหตุ';
+sheet.getCell('A13').value = 'วัน';
+sheet.getCell('B13').value = 'วัน/เดือน/ปี';
+sheet.getCell('C13').value = 'เวลางานปกติ';
+sheet.getCell('E13').value = 'OT ก่อนเริ่มงาน';
+sheet.getCell('G13').value = 'OT หลังเลิกงาน';
+sheet.getCell('I13').value = 'ชม.ทำงาน';
+sheet.getCell('J13').value = 'ชม. OT';
+sheet.getCell('L13').value = 'หมายเหตุ';
 
 // ตั้งค่าหัวแถวรอง (แถว 2)
 sheet.getCell('C14').value = 'เข้า';
