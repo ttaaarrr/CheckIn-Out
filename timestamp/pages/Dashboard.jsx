@@ -302,19 +302,18 @@ sheet.mergeCells("H10:I10"); sheet.getCell("H10").value = `ชื่อหน่
 sheet.getCell("B11").value = ` `;
 
 // Two-level grouped header
-const topHeader = [ "วัน","วัน/เดือน/ปี",
-  "เวลางานปกติ","","OT ก่อนเข้างาน","",
-  "OT หลังเลิกงาน","","ชม.ทำงาน","ชม. OT","หมายเหตุ"]; 
-const headerRow1 = sheet.addRow(topHeader); 
-sheet.mergeCells(headerRow1.number, 3, headerRow1.number, 4);
-sheet.mergeCells(headerRow1.number, 5, headerRow1.number, 6); 
-sheet.mergeCells(headerRow1.number, 7, headerRow1.number, 8); 
-sheet.mergeCells(headerRow1.number, 1, headerRow1.number+1, 1); // วัน 
-sheet.mergeCells(headerRow1.number, 2, headerRow1.number+1, 2); // วัน/เดือน/ปี 
-sheet.mergeCells(headerRow1.number, 9, headerRow1.number+1, 9); // ชม.ทำงาน 
-sheet.mergeCells(headerRow1.number, 10, headerRow1.number+1, 10); // ชม.OT 
-sheet.mergeCells(headerRow1.number, 11, headerRow1.number+1, 11); // หมายเหตุ 
-const subHeader = ["", "", "เข้า","ออก","เข้า","ออก","เข้า","ออก","",""]; 
+const topHeader = ["วัน","วัน/เดือน/ปี","เวลางานปกติ","","OT ก่อนเข้างาน","","OT หลังเลิกงาน","","ชม.ทำงาน","ชม. OT","หมายเหตุ"];
+const headerRow1 = sheet.addRow(topHeader);
+sheet.mergeCells(headerRow1.number, 3, headerRow1.number, 4); // เวลางานปกติ
+sheet.mergeCells(headerRow1.number, 5, headerRow1.number, 6); // OT ก่อนเข้างาน
+sheet.mergeCells(headerRow1.number, 7, headerRow1.number, 8); // OT หลังเลิกงาน
+sheet.mergeCells(headerRow1.number, 1, headerRow1.number+1, 1); // วัน
+sheet.mergeCells(headerRow1.number, 2, headerRow1.number+1, 2); // วัน/เดือน/ปี
+sheet.mergeCells(headerRow1.number, 9, headerRow1.number+1, 9); // ชม.ทำงาน
+sheet.mergeCells(headerRow1.number, 10, headerRow1.number+1, 10); // ชม.OT
+sheet.mergeCells(headerRow1.number, 11, headerRow1.number+1, 11); // หมายเหตุ
+
+const subHeader = ["", "", "เข้า","ออก","เข้า","ออก","เข้า","ออก","","",""];
 const headerRow2 = sheet.addRow(subHeader);
 
 // Style headers
