@@ -308,15 +308,10 @@ const topHeader = [
 ];
 const headerRow1 = sheet.addRow(topHeader);
 
-// รวมเซลล์หัวข้อหลัก
+// รวมเซลล์หัวข้อใหญ่
 sheet.mergeCells(headerRow1.number, 3, headerRow1.number, 4); // เวลางานปกติ
-sheet.getCell(headerRow1.number, 3).value = "เวลางานปกติ";
-
 sheet.mergeCells(headerRow1.number, 5, headerRow1.number, 6); // OT ก่อนเข้างาน
-sheet.getCell(headerRow1.number, 5).value = "OT ก่อนเข้างาน";
-
 sheet.mergeCells(headerRow1.number, 7, headerRow1.number, 8); // OT หลังเลิกงาน
-sheet.getCell(headerRow1.number, 7).value = "OT หลังเลิกงาน";
 
 // คอลัมน์ที่ต้อง merge ลง 2 แถว
 sheet.mergeCells(headerRow1.number, 1, headerRow1.number+1, 1); // วัน
@@ -325,7 +320,7 @@ sheet.mergeCells(headerRow1.number, 9, headerRow1.number+1, 9); // ชม.ทำ
 sheet.mergeCells(headerRow1.number, 10, headerRow1.number+1, 10); // ชม. OT
 sheet.mergeCells(headerRow1.number, 11, headerRow1.number+1, 11); // หมายเหตุ
 
-// แถวล่าง (หัวข้อย่อย)
+// แถวสอง (หัวข้อย่อย)
 const subHeader = [
   "", "", "เข้า", "ออก", "เข้า", "ออก", "เข้า", "ออก", "", "", ""
 ];
@@ -392,7 +387,7 @@ sheet.getCell(`I${footerStartRow}`).value = "ผู้อนุมัติ:";
 sheet.getCell(`I${footerStartRow}`).alignment = { vertical:'bottom', horizontal:'left' };
 
 // ลายเซ็นเจ้าหน้าที่BPIT
-sheet.mergeCells(`B${footerStartRow+2}:C${footerStartRow+2}`);
+sheet.mergeCells(`B${footerStartRow+2}:C${footerStartRow+3}`);
 sheet.getCell(`B${footerStartRow+2}`).value = "(...........................................)";
 sheet.getCell(`B${footerStartRow+2}`).alignment = { vertical:'bottom', horizontal:'center' };
 
@@ -402,7 +397,7 @@ sheet.getCell(`E${footerStartRow+2}`).value = "(................................
 sheet.getCell(`E${footerStartRow+2}`).alignment = { vertical:'bottom', horizontal:'center' };
 
 // ลายเซ็นผู้อนุมัติ
-sheet.mergeCells(`I${footerStartRow+2}:J${footerStartRow+2}`);
+sheet.mergeCells(`I${footerStartRow+2}:J${footerStartRow+3}`);
 sheet.getCell(`I${footerStartRow+2}`).value = "(...........................................)";
 sheet.getCell(`I${footerStartRow+2}`).alignment = { vertical:'bottom', horizontal:'center' };
 
