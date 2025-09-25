@@ -285,8 +285,17 @@ sheet.getCell("D3").font = { bold: true, size: 12 };
 sheet.getCell("D3").alignment = { horizontal: "center" };
 
 sheet.mergeCells("D4:F4");
-sheet.getCell("D4").value = `บันทึกเวลาทำงานประจำเดือน ${monthNames[new Date().getMonth()]}`;
-sheet.getCell("D4").alignment = { horizontal: "center" };
+const formatDate = (dateStr) => {
+  const d = new Date(dateStr);
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const year = d.getFullYear();
+  return `${day}/${month}/${year}`;
+};
+
+sheet.getCell("D4").value = `บันทึกเวลาทำงานประจำเดือน ${formatDate(startDate)} - ${formatDate(endDate)}`;
+sheet.getCell("D4").alignment = { horizontal: "center", vertical: "middle" };
+
 
 // Employee info
 sheet.mergeCells("B7:C7"); sheet.getCell("B7").value = `ชื่อ: ${emp.name}`;
@@ -322,7 +331,7 @@ sheet.eachRow({ includeEmpty: false }, row => {
   row.eachCell(cell => {
     cell.font = { bold: true, color: { argb: "FFFFFFFF" }, size: 10 };
     cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1F4E78" } };
-    cell.alignment = { vertical: "middle", horizontal: "left", wrapText: true };
+    cell.alignment = { vertical: "middle", horizontal: "center", wrapText: true };
     cell.border = { top:{style:"thin"}, left:{style:"thin"}, bottom:{style:"thin"}, right:{style:"thin"} };
   });
 });
