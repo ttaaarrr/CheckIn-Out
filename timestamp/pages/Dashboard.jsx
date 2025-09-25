@@ -252,15 +252,15 @@ const logoRightId = workbook.addImage({
 
 // วางโลโก้ซ้าย
 sheet.addImage(logoLeftId, {
-  tl: { col: 0, row: 1 }, // top-left cell
-  br: { col: 1.5, row: 3 }, // bottom-right cell (ครอบคลุมหลาย cell)
+  tl: { col: 1, row: 1 }, // top-left cell
+  br: { col: 2.5, row: 3 }, // bottom-right cell (ครอบคลุมหลาย cell)
   editAs: 'oneCell'
 });
 
 // วางโลโก้ขวา
 sheet.addImage(logoRightId, {
-  tl: { col: 5, row: 1 },
-  br: { col: 6.5, row: 3 },
+  tl: { col: 6, row: 1 },
+  br: { col: 7.5, row: 3 },
   editAs: 'oneCell'
 });
    // assume workbook and sheet ถูกสร้างแล้ว
@@ -279,7 +279,7 @@ sheet.pageSetup = {
 
 // Header
 sheet.mergeCells("D2:F2");
-sheet.getCell("D2").value = "BPIT holdings CO.,LTD.";
+sheet.getCell("D2").value = "BPIT Holdings CO.,LTD.";
 sheet.getCell("D2").font = { bold: true, size: 14 };
 sheet.getCell("D2").alignment = { horizontal: "center" };
 
@@ -295,8 +295,10 @@ sheet.getCell("D4").alignment = { horizontal: "center" };
 // Employee info
 sheet.mergeCells("B7:C7"); sheet.getCell("B7").value = `ชื่อ: ${emp.name}`;
 sheet.mergeCells("B8:C8"); sheet.getCell("B8").value = `รหัส: ${emp.em_code}`;
-sheet.mergeCells("B9:C9"); sheet.getCell("B9").value = `บริษัท: ${emp.company_name || selectedCompany}`;
+sheet.mergeCells("B9:C9"); sheet.getCell("B9").value = `บริษัท: BPIT Holdings`;
 sheet.mergeCells("B10:C10"); sheet.getCell("B10").value = `ตำแหน่ง: ${emp.position || "-"}`;
+sheet.mergeCells("E10:F10"); sheet.getCell("E10").value = `สังกัดบริษัทลูกค้า: ${emp.company_name || selectedCompany}`;
+sheet.mergeCells("H10:I10"); sheet.getCell("H10").value = `ชื่อหน่วยงานสังกัด:`;
 sheet.getCell("B11").value = ` `;
 
 // Two-level grouped header
@@ -317,7 +319,7 @@ sheet.mergeCells(headerRow1.number, 9, headerRow1.number+1, 9); // ชม.ทำ
 sheet.mergeCells(headerRow1.number, 10, headerRow1.number+1, 10); // ชม. OT
 sheet.mergeCells(headerRow1.number, 11, headerRow1.number+1, 11); // หมายเหตุ
 
-const subHeader = ["", "", "เข้า","ออก","เข้า","ออก","เข้า","ออก","",""];
+const subHeader = ["เข้า","ออก","เข้า","ออก","เข้า","ออก"];
 const headerRow2 = sheet.addRow(subHeader);
 
 // Style headers
@@ -366,34 +368,34 @@ dayList.forEach((dateStr, idx) => {
 const footerStartRow = sheet.lastRow.number + 3;
 
 // เจ้าหน้าที่BPIT
-sheet.mergeCells(`B${footerStartRow}:D${footerStartRow}`);
+sheet.mergeCells(`B${footerStartRow}:C${footerStartRow}`);
 sheet.getCell(`B${footerStartRow}`).value = "เจ้าหน้าที่BPIT:";
 sheet.getCell(`B${footerStartRow}`).alignment = { vertical:'bottom', horizontal:'left' };
 
 // พนักงาน
-sheet.mergeCells(`B${footerStartRow+1}:D${footerStartRow+1}`);
-sheet.getCell(`B${footerStartRow+1}`).value = "พนักงาน:";
-sheet.getCell(`B${footerStartRow+1}`).alignment = { vertical:'bottom', horizontal:'left' };
+sheet.mergeCells(`E${footerStartRow+1}:F${footerStartRow+1}`);
+sheet.getCell(`E${footerStartRow+1}`).value = "พนักงาน:";
+sheet.getCell(`E${footerStartRow+1}`).alignment = { vertical:'bottom', horizontal:'left' };
 
 // ผู้อนุมัติ
-sheet.mergeCells(`F${footerStartRow}:H${footerStartRow}`);
-sheet.getCell(`F${footerStartRow}`).value = "ผู้อนุมัติ:";
-sheet.getCell(`F${footerStartRow}`).alignment = { vertical:'bottom', horizontal:'left' };
+sheet.mergeCells(`I${footerStartRow}:J${footerStartRow}`);
+sheet.getCell(`I${footerStartRow}`).value = "ผู้อนุมัติ:";
+sheet.getCell(`I${footerStartRow}`).alignment = { vertical:'bottom', horizontal:'left' };
 
 // ลายเซ็นเจ้าหน้าที่BPIT
-sheet.mergeCells(`B${footerStartRow+2}:D${footerStartRow+2}`);
+sheet.mergeCells(`B${footerStartRow+2}:C${footerStartRow+2}`);
 sheet.getCell(`B${footerStartRow+2}`).value = "(...........................................)";
 sheet.getCell(`B${footerStartRow+2}`).alignment = { vertical:'bottom', horizontal:'center' };
 
 // ลายเซ็นพนักงาน
-sheet.mergeCells(`B${footerStartRow+3}:D${footerStartRow+3}`);
-sheet.getCell(`B${footerStartRow+3}`).value = "(...........................................)";
-sheet.getCell(`B${footerStartRow+3}`).alignment = { vertical:'bottom', horizontal:'center' };
+sheet.mergeCells(`E${footerStartRow+3}:F${footerStartRow+3}`);
+sheet.getCell(`E${footerStartRow+3}`).value = "(...........................................)";
+sheet.getCell(`E${footerStartRow+3}`).alignment = { vertical:'bottom', horizontal:'center' };
 
 // ลายเซ็นผู้อนุมัติ
-sheet.mergeCells(`F${footerStartRow+2}:H${footerStartRow+2}`);
-sheet.getCell(`F${footerStartRow+2}`).value = "(...........................................)";
-sheet.getCell(`F${footerStartRow+2}`).alignment = { vertical:'bottom', horizontal:'center' };
+sheet.mergeCells(`I${footerStartRow+2}:J${footerStartRow+2}`);
+sheet.getCell(`I${footerStartRow+2}`).value = "(...........................................)";
+sheet.getCell(`I${footerStartRow+2}`).alignment = { vertical:'bottom', horizontal:'center' };
 
 // Row height footer
 for(let i=footerStartRow; i<=footerStartRow+3; i++) sheet.getRow(i).height = 25;
