@@ -294,7 +294,7 @@ sheet.mergeCells("B8:C8"); sheet.getCell("B8").value = `รหัส: ${emp.em_c
 sheet.mergeCells("B9:C9"); sheet.getCell("B9").value = `บริษัท: BPIT Holdings`;
 sheet.mergeCells("B10:C10"); sheet.getCell("B10").value = `ตำแหน่ง: ${emp.position || "-"}`;
 sheet.mergeCells("E10:G10"); sheet.getCell("E10").value = `สังกัดบริษัทลูกค้า: ${emp.company_name || selectedCompany}`;
-sheet.mergeCells("I10:K10"); sheet.getCell("IS10").value = `ชื่อหน่วยงานสังกัด:`;
+sheet.mergeCells("I10:K10"); sheet.getCell("I10").value = `ชื่อหน่วยงานสังกัด:`;
 sheet.getCell("B11").value = ` `;
 
 // Two-level grouped header
@@ -322,7 +322,7 @@ sheet.eachRow({ includeEmpty: false }, row => {
   row.eachCell(cell => {
     cell.font = { bold: true, color: { argb: "FFFFFFFF" }, size: 10 };
     cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1F4E78" } };
-    cell.alignment = { vertical: "middle", horizontal: "center", wrapText: true };
+    cell.alignment = { vertical: "middle", horizontal: "left", wrapText: true };
     cell.border = { top:{style:"thin"}, left:{style:"thin"}, bottom:{style:"thin"}, right:{style:"thin"} };
   });
 });
