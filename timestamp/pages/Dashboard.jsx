@@ -253,14 +253,14 @@ const logoRightId = workbook.addImage({
 // วางโลโก้ซ้าย
 sheet.addImage(logoLeftId, {
   tl: { col: 1, row: 1 }, // top-left cell
-  br: { col: 3, row: 3 }, // bottom-right cell (ครอบคลุมหลาย cell)
+  br: { col: 2.5, row: 3 }, // bottom-right cell (ครอบคลุมหลาย cell)
   editAs: 'oneCell'
 });
 
 // วางโลโก้ขวา
 sheet.addImage(logoRightId, {
   tl: { col: 6, row: 1 },
-  br: { col: 8, row: 3 },
+  br: { col: 7.5, row: 3 },
   editAs: 'oneCell'
 });
    // assume workbook and sheet ถูกสร้างแล้ว
@@ -303,11 +303,8 @@ sheet.getCell("B11").value = ` `;
 
 // Two-level grouped header
 const topHeader = [
-  "วัน", "วัน/เดือน/ปี",
-  "เวลางานปกติ", "",
-  "OT ก่อนเข้างาน", "",
-  "OT หลังเลิกงาน", "",
-  "ชม.ทำงาน", "ชม. OT", "หมายเหตุ"
+  "วัน", "วัน/เดือน/ปี", "เวลางานปกติ", "OT ก่อนเข้างาน",
+  "OT หลังเลิกงาน", "ชม.ทำงาน", "ชม. OT", "หมายเหตุ"
 ];
 const headerRow1 = sheet.addRow(topHeader);
 
@@ -385,9 +382,9 @@ sheet.getCell(`B${footerStartRow}`).value = "เจ้าหน้าที่BP
 sheet.getCell(`B${footerStartRow}`).alignment = { vertical:'bottom', horizontal:'left' };
 
 // พนักงาน
-sheet.mergeCells(`E${footerStartRow+1}:F${footerStartRow+1}`);
-sheet.getCell(`E${footerStartRow+1}`).value = "พนักงาน:";
-sheet.getCell(`E${footerStartRow+1}`).alignment = { vertical:'bottom', horizontal:'left' };
+sheet.mergeCells(`E${footerStartRow}:F${footerStartRow+1}`);
+sheet.getCell(`E${footerStartRow}`).value = "พนักงาน:";
+sheet.getCell(`E${footerStartRow}`).alignment = { vertical:'bottom', horizontal:'left' };
 
 // ผู้อนุมัติ
 sheet.mergeCells(`I${footerStartRow}:J${footerStartRow}`);
@@ -400,9 +397,9 @@ sheet.getCell(`B${footerStartRow+2}`).value = "(................................
 sheet.getCell(`B${footerStartRow+2}`).alignment = { vertical:'bottom', horizontal:'center' };
 
 // ลายเซ็นพนักงาน
-sheet.mergeCells(`E${footerStartRow+3}:F${footerStartRow+3}`);
-sheet.getCell(`E${footerStartRow+3}`).value = "(...........................................)";
-sheet.getCell(`E${footerStartRow+3}`).alignment = { vertical:'bottom', horizontal:'center' };
+sheet.mergeCells(`E${footerStartRow+2}:F${footerStartRow+3}`);
+sheet.getCell(`E${footerStartRow+2}`).value = "(...........................................)";
+sheet.getCell(`E${footerStartRow+2}`).alignment = { vertical:'bottom', horizontal:'center' };
 
 // ลายเซ็นผู้อนุมัติ
 sheet.mergeCells(`I${footerStartRow+2}:J${footerStartRow+2}`);
