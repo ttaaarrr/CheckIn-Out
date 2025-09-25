@@ -253,14 +253,14 @@ const logoRightId = workbook.addImage({
 // วางโลโก้ซ้าย
 sheet.addImage(logoLeftId, {
   tl: { col: 1, row: 1 }, // top-left cell
-  br: { col: 2.5, row: 3 }, // bottom-right cell (ครอบคลุมหลาย cell)
+  br: { col: 3, row: 4 }, // bottom-right cell (ครอบคลุมหลาย cell)
   editAs: 'oneCell'
 });
 
 // วางโลโก้ขวา
 sheet.addImage(logoRightId, {
   tl: { col: 6, row: 1 },
-  br: { col: 7.5, row: 3 },
+  br: { col: 8, row: 4 },
   editAs: 'oneCell'
 });
    // assume workbook and sheet ถูกสร้างแล้ว
@@ -302,28 +302,19 @@ sheet.mergeCells("H10:I10"); sheet.getCell("H10").value = `ชื่อหน่
 sheet.getCell("B11").value = ` `;
 
 // Two-level grouped header
-const topHeader = [
-  "วัน", "วัน/เดือน/ปี", "เวลางานปกติ", "OT ก่อนเข้างาน",
-  "OT หลังเลิกงาน", "ชม.ทำงาน", "ชม. OT", "หมายเหตุ"
-];
-const headerRow1 = sheet.addRow(topHeader);
-
-// รวมเซลล์หัวข้อใหญ่
-sheet.mergeCells(headerRow1.number, 3, headerRow1.number, 4); // เวลางานปกติ
-sheet.mergeCells(headerRow1.number, 5, headerRow1.number, 6); // OT ก่อนเข้างาน
-sheet.mergeCells(headerRow1.number, 7, headerRow1.number, 8); // OT หลังเลิกงาน
-
-// คอลัมน์ที่ต้อง merge ลง 2 แถว
-sheet.mergeCells(headerRow1.number, 1, headerRow1.number+1, 1); // วัน
-sheet.mergeCells(headerRow1.number, 2, headerRow1.number+1, 2); // วัน/เดือน/ปี
-sheet.mergeCells(headerRow1.number, 9, headerRow1.number+1, 9); // ชม.ทำงาน
-sheet.mergeCells(headerRow1.number, 10, headerRow1.number+1, 10); // ชม. OT
-sheet.mergeCells(headerRow1.number, 11, headerRow1.number+1, 11); // หมายเหตุ
-
-// แถวสอง (หัวข้อย่อย)
-const subHeader = [
-  "", "", "เข้า", "ออก", "เข้า", "ออก", "เข้า", "ออก", "", "", ""
-];
+const topHeader = [ "วัน","วัน/เดือน/ปี",
+  "เวลางานปกติ","","OT ก่อนเข้างาน","",
+  "OT หลังเลิกงาน","","ชม.ทำงาน","ชม. OT","หมายเหตุ"]; 
+const headerRow1 = sheet.addRow(topHeader); 
+sheet.mergeCells(headerRow1.number, 3, headerRow1.number, 4);
+sheet.mergeCells(headerRow1.number, 5, headerRow1.number, 6); 
+sheet.mergeCells(headerRow1.number, 7, headerRow1.number, 8); 
+sheet.mergeCells(headerRow1.number, 1, headerRow1.number+1, 1); // วัน 
+sheet.mergeCells(headerRow1.number, 2, headerRow1.number+1, 2); // วัน/เดือน/ปี 
+sheet.mergeCells(headerRow1.number, 9, headerRow1.number+1, 9); // ชม.ทำงาน 
+sheet.mergeCells(headerRow1.number, 10, headerRow1.number+1, 10); // ชม.OT 
+sheet.mergeCells(headerRow1.number, 11, headerRow1.number+1, 11); // หมายเหตุ 
+const subHeader = ["", "", "เข้า","ออก","เข้า","ออก","เข้า","ออก","",""]; 
 const headerRow2 = sheet.addRow(subHeader);
 
 // Style headers
@@ -372,7 +363,7 @@ dayList.forEach((dateStr, idx) => {
 const footerStartRow = sheet.lastRow.number + 3;
 
 // เจ้าหน้าที่BPIT
-sheet.mergeCells(`B${footerStartRow}:C${footerStartRow}`);
+sheet.mergeCells(`B${footerStartRow}:C${footerStartRow+1}`);
 sheet.getCell(`B${footerStartRow}`).value = "เจ้าหน้าที่BPIT:";
 sheet.getCell(`B${footerStartRow}`).alignment = { vertical:'bottom', horizontal:'left' };
 
@@ -382,7 +373,7 @@ sheet.getCell(`E${footerStartRow}`).value = "พนักงาน:";
 sheet.getCell(`E${footerStartRow}`).alignment = { vertical:'bottom', horizontal:'left' };
 
 // ผู้อนุมัติ
-sheet.mergeCells(`I${footerStartRow}:J${footerStartRow}`);
+sheet.mergeCells(`I${footerStartRow}:J${footerStartRow+1}`);
 sheet.getCell(`I${footerStartRow}`).value = "ผู้อนุมัติ:";
 sheet.getCell(`I${footerStartRow}`).alignment = { vertical:'bottom', horizontal:'left' };
 
