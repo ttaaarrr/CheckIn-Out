@@ -419,8 +419,10 @@ for(let i=footerStartRow; i<=footerStartRow+3; i++) sheet.getRow(i).height = 25;
 
 // Save file
 const buf = await workbook.xlsx.writeBuffer();
-saveAs(new Blob([buf]), `TimeRecords_${monthNames[new Date().getMonth()]}_${new Date().getFullYear()}.xlsx`);
-
+saveAs(
+  new Blob([buf]), 
+  `TimeRecords_${formatDate(startDate)}-${formatDate(endDate)}.xlsx`
+);
 };
 
   if (!user) return null;
