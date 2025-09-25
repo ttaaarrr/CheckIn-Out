@@ -307,11 +307,11 @@ const headerRow1 = sheet.addRow(topHeader);
 sheet.mergeCells(headerRow1.number, 3, headerRow1.number+1, 4); // เวลางานปกติ
 sheet.mergeCells(headerRow1.number, 5, headerRow1.number+1, 6); // OT ก่อนเข้างาน
 sheet.mergeCells(headerRow1.number, 7, headerRow1.number+1, 8); // OT หลังเลิกงาน
-sheet.mergeCells(headerRow1.number, 1, headerRow1.number+1, 1); // วัน
-sheet.mergeCells(headerRow1.number, 2, headerRow1.number+1, 2); // วัน/เดือน/ปี
-sheet.mergeCells(headerRow1.number, 9, headerRow1.number+1, 9); // ชม.ทำงาน
-sheet.mergeCells(headerRow1.number, 10, headerRow1.number+1, 10); // ชม.OT
-sheet.mergeCells(headerRow1.number, 11, headerRow1.number+1, 11); // หมายเหตุ
+sheet.mergeCells(headerRow1.number, 1, headerRow1.number+2, 1); // วัน
+sheet.mergeCells(headerRow1.number, 2, headerRow1.number+2, 2); // วัน/เดือน/ปี
+sheet.mergeCells(headerRow1.number, 9, headerRow1.number+2, 9); // ชม.ทำงาน
+sheet.mergeCells(headerRow1.number, 10, headerRow1.number+2, 10); // ชม.OT
+sheet.mergeCells(headerRow1.number, 11, headerRow1.number+2, 11); // หมายเหตุ
 
 const subHeader = ["", "", "เข้า","ออก","เข้า","ออก","เข้า","ออก","","",""];
 const headerRow2 = sheet.addRow(subHeader);
