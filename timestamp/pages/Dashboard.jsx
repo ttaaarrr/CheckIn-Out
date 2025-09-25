@@ -252,7 +252,7 @@ const logoRightId = workbook.addImage({
 
 // วางโลโก้ซ้าย
 sheet.addImage(logoLeftId, {
-  tl: { col: 0, row: 1 }, // top-left cell
+  tl: { col: 1, row: 0 }, // top-left cell
   br: { col: 3, row: 4 }, // bottom-right cell (ครอบคลุมหลาย cell)
   editAs: 'oneCell'
 });
