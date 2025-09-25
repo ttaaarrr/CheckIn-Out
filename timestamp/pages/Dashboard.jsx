@@ -259,7 +259,7 @@ sheet.addImage(logoLeftId, {
 
 // วางโลโก้ขวา
 sheet.addImage(logoRightId, {
-  tl: { col: 6, row: 1 },
+  tl: { col: 6, row: 0 },
   br: { col: 8, row: 4 },
   editAs: 'oneCell'
 });
@@ -297,8 +297,8 @@ sheet.mergeCells("B7:C7"); sheet.getCell("B7").value = `ชื่อ: ${emp.name
 sheet.mergeCells("B8:C8"); sheet.getCell("B8").value = `รหัส: ${emp.em_code}`;
 sheet.mergeCells("B9:C9"); sheet.getCell("B9").value = `บริษัท: BPIT Holdings`;
 sheet.mergeCells("B10:C10"); sheet.getCell("B10").value = `ตำแหน่ง: ${emp.position || "-"}`;
-sheet.mergeCells("E10:F10"); sheet.getCell("E10").value = `สังกัดบริษัทลูกค้า: ${emp.company_name || selectedCompany}`;
-sheet.mergeCells("H10:I10"); sheet.getCell("H10").value = `ชื่อหน่วยงานสังกัด:`;
+sheet.mergeCells("E10:G10"); sheet.getCell("E10").value = `สังกัดบริษัทลูกค้า: ${emp.company_name || selectedCompany}`;
+sheet.mergeCells("I10:K10"); sheet.getCell("H10").value = `ชื่อหน่วยงานสังกัด:`;
 sheet.getCell("B11").value = ` `;
 
 // Two-level grouped header
@@ -318,7 +318,7 @@ const headerRow2 = sheet.addRow(subHeader);
 
 // Style headers
 [headerRow1, headerRow2].forEach(row => {
-  row.eachCell(cell => {
+  row.eachCell({ includeEmpty: true }, cell => {
     cell.font = { bold: true, color: { argb: "FFFFFFFF" }, size: 10 };
     cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1F4E78" } };
     cell.alignment = { vertical: "middle", horizontal: "center", wrapText: true };
@@ -326,6 +326,11 @@ const headerRow2 = sheet.addRow(subHeader);
   });
 });
 
+sheet.eachRow({ includeEmpty: false }, row => {
+  row.eachCell({ includeEmpty: true }, cell => {
+    cell.alignment = { vertical: "middle", horizontal: "center", wrapText: true };
+  });
+});
 // Adjust column width for A4
 sheet.columns = [
   { width: 10}, {width:12},
