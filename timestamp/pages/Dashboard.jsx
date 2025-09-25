@@ -318,7 +318,7 @@ const headerRow2 = sheet.addRow(subHeader);
 
 // Style headers
 [headerRow1, headerRow2].forEach(row => {
-  row.eachCell({ includeEmpty: true }, cell => {
+  row.eachCell(cell => {
     cell.font = { bold: true, color: { argb: "FFFFFFFF" }, size: 10 };
     cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1F4E78" } };
     cell.alignment = { vertical: "middle", horizontal: "center", wrapText: true };
@@ -326,11 +326,6 @@ const headerRow2 = sheet.addRow(subHeader);
   });
 });
 
-sheet.eachRow({ includeEmpty: false }, row => {
-  row.eachCell({ includeEmpty: true }, cell => {
-    cell.alignment = { vertical: "middle", horizontal: "center", wrapText: true };
-  });
-});
 // Adjust column width for A4
 sheet.columns = [
   { width: 10}, {width:12},
