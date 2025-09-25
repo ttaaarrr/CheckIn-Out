@@ -343,8 +343,7 @@ sheet.getCell('E14').value = 'เข้า';
 sheet.getCell('F14').value = 'ออก';
 sheet.getCell('G14').value = 'เข้า';
 sheet.getCell('H14').value = 'ออก';
-sheet.getCell('J14').value = 'เข้า';
-sheet.getCell('K14').value = 'ออก';
+
 
 // จัดสไตล์หัวตาราง
 ['A13','B13','C13','E13','G13','I13','J13','L13',
