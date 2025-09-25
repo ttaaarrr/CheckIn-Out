@@ -256,7 +256,7 @@ const logoRightId = workbook.addImage({
   extension: 'jpg'
 });
 
-const periodText = `บันทึกเวลาทำงานประจำช่วง ${formatDateTH(startDate)} - ${formatDateTH(endDate)}`;
+const periodText = `บันทึกเวลาประจำวันที่ ${formatDateTH(startDate)} - ${formatDateTH(endDate)}`;
 // วางโลโก้ซ้าย
 sheet.addImage(logoLeftId, {
   tl: { col: 1, row: 0 }, // top-left cell
@@ -266,8 +266,8 @@ sheet.addImage(logoLeftId, {
 
 // วางโลโก้ขวา
 sheet.addImage(logoRightId, {
-  tl: { col: 6, row: 0 },
-  br: { col: 8, row: 4 },
+  tl: { col: 7, row: 0 },
+  br: { col: 9, row: 4 },
   editAs: 'oneCell'
 });
    // assume workbook and sheet ถูกสร้างแล้ว
@@ -285,17 +285,17 @@ sheet.pageSetup = {
 };
 
 // Header
-sheet.mergeCells("D2:F2");
+sheet.mergeCells("D2:G2");
 sheet.getCell("D2").value = "BPIT Holdings CO.,LTD.";
 sheet.getCell("D2").font = { bold: true, size: 14 };
 sheet.getCell("D2").alignment = { horizontal: "center" };
 
-sheet.mergeCells("D3:F3");
+sheet.mergeCells("D3:G3");
 sheet.getCell("D3").value = "TIME RECORD REPORT";
 sheet.getCell("D3").font = { bold: true, size: 12 };
 sheet.getCell("D3").alignment = { horizontal: "center" };
 
-sheet.mergeCells("D4:F4");
+sheet.mergeCells("D4:G4");
 sheet.getCell("D4").value = periodText;
 sheet.getCell("D4").alignment = { horizontal: "center" };
 
