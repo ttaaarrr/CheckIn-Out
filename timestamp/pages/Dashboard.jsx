@@ -256,7 +256,7 @@ const logoRightId = workbook.addImage({
   extension: 'jpg'
 });
 
-const periodText = `บันทึกเวลาประจำวันที่ ${formatDateTH(startDate)} - ${formatDateTH(endDate)}`;
+const periodText = `บันทึกเวลาวันที่ ${formatDateTH(startDate)} - ${formatDateTH(endDate)}`;
 // วางโลโก้ซ้าย
 sheet.addImage(logoLeftId, {
   tl: { col: 1, row: 0 }, // top-left cell
@@ -303,9 +303,9 @@ sheet.getCell("D4").alignment = { horizontal: "center" };
 sheet.mergeCells("B7:C7"); sheet.getCell("B7").value = `ชื่อ: ${emp.name}`;
 sheet.mergeCells("B8:C8"); sheet.getCell("B8").value = `รหัส: ${emp.em_code}`;
 sheet.mergeCells("B9:C9"); sheet.getCell("B9").value = `บริษัท: BPIT Holdings`;
+sheet.mergeCells("E9:G9"); sheet.getCell("E9").value = `สังกัดบริษัทลูกค้า: ${emp.company_name || selectedCompany}`;
+sheet.mergeCells("I9:K9"); sheet.getCell("I9").value = `ชื่อหน่วยงานสังกัด:`;
 sheet.mergeCells("B10:C10"); sheet.getCell("B10").value = `ตำแหน่ง: ${emp.position || "-"}`;
-sheet.mergeCells("E10:G10"); sheet.getCell("E10").value = `สังกัดบริษัทลูกค้า: ${emp.company_name || selectedCompany}`;
-sheet.mergeCells("I10:K10"); sheet.getCell("I10").value = `ชื่อหน่วยงานสังกัด:`;
 sheet.getCell("B11").value = ` `;
 
 // Two-level grouped header
