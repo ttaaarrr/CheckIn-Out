@@ -309,17 +309,26 @@ sheet.mergeCells("B10:C10"); sheet.getCell("B10").value = `ตำแหน่ง
 sheet.getCell("B11").value = ` `;
 
 // Two-level grouped header
-const topHeader = ["วัน","วัน/เดือน/ปี","เวลางานปกติ","","OT ก่อนเข้างาน","","OT หลังเลิกงาน","","ชม.ทำงาน","ชม. OT","หมายเหตุ"];
+const topHeader = [
+  "วัน", "วัน/เดือน/ปี", 
+  "เวลางานปกติ", "OT ก่อนเข้างาน", "OT หลังเลิกงาน", 
+  "ชม.ทำงาน", "ชม. OT", "หมายเหตุ"
+];
 const headerRow1 = sheet.addRow(topHeader);
-sheet.mergeCells(headerRow1.number, 3, headerRow1.number+1, 4); // เวลางานปกติ
-sheet.mergeCells(headerRow1.number, 5, headerRow1.number+1, 6); // OT ก่อนเข้างาน
-sheet.mergeCells(headerRow1.number, 7, headerRow1.number+1, 8); // OT หลังเลิกงาน
-sheet.mergeCells(headerRow1.number, 1, headerRow1.number+1, 1); // วัน
-sheet.mergeCells(headerRow1.number, 2, headerRow1.number+1, 2); // วัน/เดือน/ปี
-sheet.mergeCells(headerRow1.number, 9, headerRow1.number+1, 9); // ชม.ทำงาน
-sheet.mergeCells(headerRow1.number, 10, headerRow1.number+1, 10); // ชม.OT
-sheet.mergeCells(headerRow1.number, 11, headerRow1.number+1, 11); // หมายเหตุ
 
+// Merge สำหรับหัวข้อหลักที่มี sub-header
+sheet.mergeCells(headerRow1.number, 1, headerRow1.number+1, 1);  // วัน
+sheet.mergeCells(headerRow1.number, 2, headerRow1.number+1, 2);  // วัน/เดือน/ปี
+
+sheet.mergeCells(headerRow1.number, 3, headerRow1.number, 4);    // เวลางานปกติ
+sheet.mergeCells(headerRow1.number, 5, headerRow1.number, 6);    // OT ก่อนเข้างาน
+sheet.mergeCells(headerRow1.number, 7, headerRow1.number, 8);    // OT หลังเลิกงาน
+
+sheet.mergeCells(headerRow1.number, 9, headerRow1.number+1, 9);  // ชม.ทำงาน
+sheet.mergeCells(headerRow1.number, 10, headerRow1.number+1, 10);// ชม.OT
+sheet.mergeCells(headerRow1.number, 11, headerRow1.number+1, 11);// หมายเหตุ
+
+// Header row 2 (sub-header)
 const subHeader = ["", "", "เข้า","ออก","เข้า","ออก","เข้า","ออก","","",""];
 const headerRow2 = sheet.addRow(subHeader);
 
@@ -333,7 +342,7 @@ const headerRow2 = sheet.addRow(subHeader);
   });
 });
 
-// Adjust column width for A4
+// Column width
 sheet.columns = [
   { width: 10}, {width:12},
   {width:10}, {width:10},
