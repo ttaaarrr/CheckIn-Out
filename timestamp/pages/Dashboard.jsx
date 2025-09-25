@@ -385,17 +385,17 @@ sheet.getCell(`H${footerStartRow}`).alignment = { vertical:'bottom', horizontal:
 
 // ลายเซ็นเจ้าหน้าที่BPIT
 sheet.mergeCells(`B${footerStartRow+2}:C${footerStartRow+3}`);
-sheet.getCell(`B${footerStartRow+2}`).value = "(...........................................)";
+sheet.getCell(`B${footerStartRow+2}`).value = "(.....................................)";
 sheet.getCell(`B${footerStartRow+2}`).alignment = { vertical:'bottom', horizontal:'center' };
 
 // ลายเซ็นพนักงาน
 sheet.mergeCells(`E${footerStartRow+2}:F${footerStartRow+3}`);
-sheet.getCell(`E${footerStartRow+2}`).value = "(...........................................)";
+sheet.getCell(`E${footerStartRow+2}`).value = "(.....................................)";
 sheet.getCell(`E${footerStartRow+2}`).alignment = { vertical:'bottom', horizontal:'center' };
 
 // ลายเซ็นผู้อนุมัติ
 sheet.mergeCells(`H${footerStartRow+2}:I${footerStartRow+3}`);
-sheet.getCell(`H${footerStartRow+2}`).value = "(...........................................)";
+sheet.getCell(`H${footerStartRow+2}`).value = "(.....................................)";
 sheet.getCell(`H${footerStartRow+2}`).alignment = { vertical:'bottom', horizontal:'center' };
 
 // Row height footer
