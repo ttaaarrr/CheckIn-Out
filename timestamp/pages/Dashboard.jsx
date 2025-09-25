@@ -301,24 +301,42 @@ sheet.mergeCells("E10:F10"); sheet.getCell("E10").value = `สังกัดบ
 sheet.mergeCells("H10:I10"); sheet.getCell("H10").value = `ชื่อหน่วยงานสังกัด:`;
 sheet.getCell("B11").value = ` `;
 
-// Two-level grouped header
-const topHeader = ["วัน","วัน/เดือน/ปี","เวลางานปกติ","","OT ก่อนเข้างาน","","OT หลังเลิกงาน","","ชม.ทำงาน","ชม. OT","หมายเหตุ"];
+// Top Header - ไม่มีช่องว่าง
+const topHeader = [
+  "วัน",             // col 1
+  "วัน/เดือน/ปี",    // col 2
+  "เวลางานปกติ",    // col 3-4
+  "OT ก่อนเข้างาน",  // col 5-6
+  "OT หลังเลิกงาน",  // col 7-8
+  "ชม.ทำงาน",        // col 9
+  "ชม. OT",          // col 10
+  "หมายเหตุ"         // col 11
+];
 const headerRow1 = sheet.addRow(topHeader);
-sheet.mergeCells(headerRow1.number, 3, headerRow1.number+1, 4); // เวลางานปกติ
-sheet.mergeCells(headerRow1.number, 5, headerRow1.number+1, 6); // OT ก่อนเข้างาน
-sheet.mergeCells(headerRow1.number, 7, headerRow1.number+1, 8); // OT หลังเลิกงาน
+
+// Merge cells
 sheet.mergeCells(headerRow1.number, 1, headerRow1.number+1, 1); // วัน
 sheet.mergeCells(headerRow1.number, 2, headerRow1.number+1, 2); // วัน/เดือน/ปี
+sheet.mergeCells(headerRow1.number, 3, headerRow1.number, 4);   // เวลางานปกติ
+sheet.mergeCells(headerRow1.number, 5, headerRow1.number, 6);   // OT ก่อนเข้างาน
+sheet.mergeCells(headerRow1.number, 7, headerRow1.number, 8);   // OT หลังเลิกงาน
 sheet.mergeCells(headerRow1.number, 9, headerRow1.number+1, 9); // ชม.ทำงาน
 sheet.mergeCells(headerRow1.number, 10, headerRow1.number+1, 10); // ชม.OT
 sheet.mergeCells(headerRow1.number, 11, headerRow1.number+1, 11); // หมายเหตุ
 
-const subHeader = ["", "", "เข้า","ออก","เข้า","ออก","เข้า","ออก","","",""];
+// Sub Header - 11 columns
+const subHeader = [
+  "", "",   // วัน, วัน/เดือน/ปี
+  "เข้า","ออก",    // เวลางานปกติ
+  "เข้า","ออก",    // OT ก่อนเข้างาน
+  "เข้า","ออก",    // OT หลังเลิกงาน
+  "", "", ""       // ชม.ทำงาน, ชม. OT, หมายเหตุ
+];
 const headerRow2 = sheet.addRow(subHeader);
 
-// Style headers
+// Style แยก row
 [headerRow1, headerRow2].forEach(row => {
-  row.eachCell(cell => {
+  row.eachCell({ includeEmpty: true }, cell => {
     cell.font = { bold: true, color: { argb: "FFFFFFFF" }, size: 10 };
     cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1F4E78" } };
     cell.alignment = { vertical: "middle", horizontal: "center", wrapText: true };
@@ -372,9 +390,9 @@ sheet.getCell(`E${footerStartRow}`).value = "พนักงาน:";
 sheet.getCell(`E${footerStartRow}`).alignment = { vertical:'bottom', horizontal:'left' };
 
 // ผู้อนุมัติ
-sheet.mergeCells(`I${footerStartRow}:J${footerStartRow+1}`);
-sheet.getCell(`I${footerStartRow}`).value = "ผู้อนุมัติ:";
-sheet.getCell(`I${footerStartRow}`).alignment = { vertical:'bottom', horizontal:'left' };
+sheet.mergeCells(`H${footerStartRow}:I${footerStartRow+1}`);
+sheet.getCell(`H${footerStartRow}`).value = "ผู้อนุมัติ:";
+sheet.getCell(`H${footerStartRow}`).alignment = { vertical:'bottom', horizontal:'left' };
 
 // ลายเซ็นเจ้าหน้าที่BPIT
 sheet.mergeCells(`B${footerStartRow+2}:C${footerStartRow+3}`);
@@ -387,9 +405,9 @@ sheet.getCell(`E${footerStartRow+2}`).value = "(................................
 sheet.getCell(`E${footerStartRow+2}`).alignment = { vertical:'bottom', horizontal:'center' };
 
 // ลายเซ็นผู้อนุมัติ
-sheet.mergeCells(`I${footerStartRow+2}:J${footerStartRow+3}`);
-sheet.getCell(`I${footerStartRow+2}`).value = "(...........................................)";
-sheet.getCell(`I${footerStartRow+2}`).alignment = { vertical:'bottom', horizontal:'center' };
+sheet.mergeCells(`H${footerStartRow+2}:I${footerStartRow+3}`);
+sheet.getCell(`H${footerStartRow+2}`).value = "(...........................................)";
+sheet.getCell(`H${footerStartRow+2}`).alignment = { vertical:'bottom', horizontal:'center' };
 
 // Row height footer
 for(let i=footerStartRow; i<=footerStartRow+3; i++) sheet.getRow(i).height = 25;
