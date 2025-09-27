@@ -304,17 +304,9 @@ sheet.mergeCells("B7:C7"); sheet.getCell("B7").value = `ชื่อ: ${emp.name
 sheet.mergeCells("B8:C8"); sheet.getCell("B8").value = `รหัส: ${emp.em_code}`;
 sheet.mergeCells("B9:C9"); sheet.getCell("B9").value = `บริษัท: BPIT Holdings`;
 sheet.mergeCells("E9:G9"); sheet.getCell("E9").value = `สังกัดบริษัทลูกค้า: ${emp.company_name || selectedCompany}`;
-sheet.mergeCells("I9:K9"); sheet.getCell("I9").value = `ชื่อหน่วยงานสังกัด:`;
+sheet.mergeCells("I9:K9"); sheet.getCell("I9").value = `ชื่อหน่วยงานสังกัด: ${emp.department || "-"}`;
 sheet.mergeCells("B10:C10"); sheet.getCell("B10").value = `ตำแหน่ง: ${emp.position || "-"}`;
 sheet.getCell("B11").value = ` `;
-
-// Two-level grouped header
-// const topHeader = [
-//   "วัน", "วัน/เดือน/ปี", 
-//   "เวลางานปกติ", "OT ก่อนเข้างาน", "OT หลังเลิกงาน", 
-//   "ชม.ทำงาน", "ชม. OT", "หมายเหตุ"
-// ];
-// const headerRow1 = sheet.addRow(topHeader);
 
 // สร้างหัวตาราง (2 แถว)
 sheet.mergeCells('A13:A14'); // วัน
