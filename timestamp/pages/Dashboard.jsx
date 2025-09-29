@@ -440,37 +440,52 @@ dayList.forEach((dateStr, idx) => {
   row.height = 18; // ตั้ง row height ให้ uniform
 });
 
-// Footer
-const footerStartRow = sheet.lastRow.number + 2;
+const summaryRow = sheet.lastRow.number + 2;
+
+// สรุป OT
+sheet.mergeCells(`A${summaryRow}:I${summaryRow}`);
+sheet.getCell(`A${summaryRow}`).value = "สรุป: OT 1 = ……...... ชม./ OT 1.5 เท่า = ……........ ชม./ OT 2 เท่า = ……......... ชม./ OT 3 เท่า = …............ ชม.";
+sheet.getCell(`A${summaryRow}`).alignment = { horizontal: "left", vertical: "middle" };
+sheet.getCell(`A${summaryRow}`).font = { bold: true };
+
+sheet.mergeCells(`J${summaryRow}:N${summaryRow}`);
+sheet.getCell(`J${summaryRow}`).value = "เบี้ยขยัน; (     ) ได้รับ     (     ) ไม่ได้";
+sheet.getCell(`J${summaryRow}`).alignment = { horizontal: "left", vertical: "middle" };
+sheet.getCell(`J${summaryRow}`).font = { bold: true };
+
+sheet.getRow(summaryRow).height = 20;
+
+// Footer เริ่มหลัง summaryRow
+const footerStartRow = summaryRow + 2;
 
 // เจ้าหน้าที่BPIT
 sheet.mergeCells(`B${footerStartRow}:C${footerStartRow+1}`);
-sheet.getCell(`B${footerStartRow}`).value = "เจ้าหน้าที่BPIT:";
+sheet.getCell(`B${footerStartRow}`).value = "...........................................";
 sheet.getCell(`B${footerStartRow}`).alignment = { vertical:'bottom', horizontal:'left' };
 
 // พนักงาน
 sheet.mergeCells(`E${footerStartRow}:F${footerStartRow+1}`);
-sheet.getCell(`E${footerStartRow}`).value = "พนักงาน:";
+sheet.getCell(`E${footerStartRow}`).value = "...........................................";
 sheet.getCell(`E${footerStartRow}`).alignment = { vertical:'bottom', horizontal:'left' };
 
 // ผู้อนุมัติ
 sheet.mergeCells(`H${footerStartRow}:I${footerStartRow+1}`);
-sheet.getCell(`H${footerStartRow}`).value = "ผู้อนุมัติ:";
+sheet.getCell(`H${footerStartRow}`).value = "...........................................";
 sheet.getCell(`H${footerStartRow}`).alignment = { vertical:'bottom', horizontal:'left' };
 
 // ลายเซ็นเจ้าหน้าที่BPIT
 sheet.mergeCells(`B${footerStartRow+2}:C${footerStartRow+3}`);
-sheet.getCell(`B${footerStartRow+2}`).value = "(...........................................)";
+sheet.getCell(`B${footerStartRow+2}`).value = "...........................................";
 sheet.getCell(`B${footerStartRow+2}`).alignment = { vertical:'bottom', horizontal:'center' };
 
 // ลายเซ็นพนักงาน
 sheet.mergeCells(`E${footerStartRow+2}:F${footerStartRow+3}`);
-sheet.getCell(`E${footerStartRow+2}`).value = "(...........................................)";
+sheet.getCell(`E${footerStartRow+2}`).value = "...........................................";
 sheet.getCell(`E${footerStartRow+2}`).alignment = { vertical:'bottom', horizontal:'center' };
 
 // ลายเซ็นผู้อนุมัติ
 sheet.mergeCells(`H${footerStartRow+2}:I${footerStartRow+3}`);
-sheet.getCell(`H${footerStartRow+2}`).value = "(...........................................)";
+sheet.getCell(`H${footerStartRow+2}`).value = "...........................................";
 sheet.getCell(`H${footerStartRow+2}`).alignment = { vertical:'bottom', horizontal:'center' };
 
 // Row height footer
