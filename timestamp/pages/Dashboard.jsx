@@ -322,7 +322,7 @@ sheet.getCell("E7").value = {
     { text: emp.company_name || selectedCompany }
   ]
 };
- sheet.getCell("I6").value = `บริษัท: BPIT Holdings`;
+ sheet.getCell("I6").value = `บริษัท:บีพีไอที โฮลดิ้งส์ จำกัด`;
  sheet.getCell("I6").font = { bold: true};
 sheet.getCell("I7").value = {
   richText: [
@@ -444,7 +444,7 @@ const summaryRow = sheet.lastRow.number + 2;
 
 // สรุป OT
 sheet.mergeCells(`A${summaryRow}:I${summaryRow}`);
-sheet.getCell(`A${summaryRow}`).value = "สรุป: OT 1 = ……...... ชม./ OT 1.5 เท่า = ……........ ชม./ OT 2 เท่า = ……......... ชม./ OT 3 เท่า = …............ ชม.";
+sheet.getCell(`A${summaryRow}`).value = "สรุป: OT 1 เท่า = ……...... ชม./ OT 1.5 เท่า = ……........ ชม./ OT 2 เท่า = ……......... ชม./ OT 3 เท่า = …............ ชม.";
 sheet.getCell(`A${summaryRow}`).alignment = { horizontal: "left", vertical: "middle" };
 sheet.getCell(`A${summaryRow}`).font = { bold: true };
 
