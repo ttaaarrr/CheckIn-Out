@@ -483,8 +483,8 @@ const nameRow = footerStartRow + 2;
 sheet.mergeCells(`B${nameRow}:C${nameRow}`);
 sheet.getCell(`B${nameRow}`).value = {
   richText: [
-    { text: "เจ้าหน้าที่ ", font: { bold: false } },
-    { text: "BPIT", font: { italic: true } }
+    { text: "เจ้าหน้าที่ ", font: { bold: true } },
+    { text: "BPIT", font: { italic: true ,bold: true } }
   ]
 };
 sheet.getCell(`B${nameRow}`).alignment = { vertical: 'middle', horizontal: 'center' };
