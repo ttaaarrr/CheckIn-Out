@@ -300,11 +300,11 @@ sheet.mergeCells("I7:L7"); sheet.getCell("I7").value = `ชื่อหน่ว
 // สร้างหัวตาราง (2 แถว)
 sheet.mergeCells('A9:A10'); // วัน
 sheet.mergeCells('B9:B10'); // วัน/เดือน/ปี
-sheet.mergeCells('C9:D10'); // เวลางานปกติ
-sheet.mergeCells('E9:F10'); // OT ก่อนเริ่มงาน
-sheet.mergeCells('G9:H10'); // OT หลังเลิกงาน
+sheet.mergeCells('C9:D9'); // เวลางานปกติ
+sheet.mergeCells('E9:F9'); // OT ก่อนเริ่มงาน
+sheet.mergeCells('G9:H9'); // OT หลังเลิกงาน
 sheet.mergeCells('I9:I10'); // ชม.ทำงาน
-sheet.mergeCells('J9:M10'); // ชม.OT
+sheet.mergeCells('J9:M9'); // ชม.OT
 sheet.mergeCells('N9:N10'); // หมายเหตุ
 
 // ตั้งค่าหัวแถวหลัก
