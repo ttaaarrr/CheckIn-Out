@@ -278,8 +278,8 @@ sheet.pageSetup = {
 
 sheet.getCell("E2").value = {
   richText: [
-    { text: "BPIT", font: { italic: true, color: { argb: "0000FF" }, bold: true, size: 14 } },
-    { text: " Holdings CO.,LTD; www.bpit.co.th", font: { color: { argb: "0000FF" }, bold: true, size: 14 } }
+    { text: "BPIT", font: { italic: true, color: { argb: "000080" }, bold: true, size: 14 } },
+    { text: " Holdings CO.,LTD; www.bpit.co.th", font: { color: { argb: "000080" }, bold: true, size: 14 } }
   ]
 };
 sheet.getCell("E2").alignment = { horizontal: "left" };
@@ -287,23 +287,49 @@ sheet.getCell("E2").alignment = { horizontal: "left" };
 // Cell E3
 
 sheet.getCell("E3").value = "TIME RECORD REPORT";
-sheet.getCell("E3").font = { bold: true, size: 12, color: { argb: "0000FF" },  underline: true  }; 
+sheet.getCell("E3").font = { bold: true, size: 12, color: { argb: "000080" },  underline: true  }; 
 sheet.getCell("E3").alignment = { horizontal: "left" };
 
 // Cell E4
 
 sheet.getCell("E4").value = periodText;
-sheet.getCell("E4").font = { color: { argb: "0000FF" } }; 
+sheet.getCell("E4").font = { bold: true, size: 12, color: { argb: "000080" } }; 
 sheet.getCell("E4").alignment = { horizontal: "left" };
 
 
 // Employee info
- sheet.getCell("B6").value = `ชื่อ: ${emp.name}`;
- sheet.getCell("B7").value = `ตำแหน่ง: ${emp.position || "-"}`;
- sheet.getCell("E6").value = `รหัส: ${emp.em_code}`;
- sheet.getCell("E7").value = `สังกัดลูกค้า: ${emp.company_name || selectedCompany}`;
+sheet.getCell("B6").value = {
+  richText: [
+    { text: "ชื่อ: ", font: { bold: true } }, 
+    { text: emp.name }                       
+  ]
+};
+sheet.getCell("B7").value = {
+  richText: [
+    { text: "ตำแหน่ง: ", font: { bold: true } },
+    { text: emp.position || "-" }
+  ]
+};
+sheet.getCell("E6").value = {
+  richText: [
+    { text: "รหัส: ", font: { bold: true } },
+    { text: emp.em_code }
+  ]
+};
+sheet.getCell("E7").value = {
+  richText: [
+    { text: "สังกัดลูกค้า: ", font: { bold: true } },
+    { text: emp.company_name || selectedCompany }
+  ]
+};
  sheet.getCell("I6").value = `บริษัท: BPIT Holdings`;
- sheet.getCell("I7").value = `ชื่อหน่วยงานสังกัด: ${emp.department || "-"}`;
+ sheet.getCell("I6").font = { bold: true};
+sheet.getCell("I7").value = {
+  richText: [
+    { text: "ชื่อหน่วยงานสังกัด: ", font: { bold: true } },
+    { text: emp.department || "-" }
+  ]
+};
 
 // สร้างหัวตาราง (2 แถว)
 sheet.mergeCells('A9:A10'); // วัน
@@ -358,18 +384,20 @@ sheet.getCell('M10').value = '3เท่า';
 
 // จัดความกว้างคอลัมน์
 sheet.columns = [
-  { key: 'day', width: 8 },
-  { key: 'date', width: 15 },
+  { key: 'day', width: 10 },
+  { key: 'date', width: 12 },
   { key: 'in', width: 10 },
   { key: 'out', width: 10 },
-  { key: 'ot_before_in', width: 10 },
-  { key: 'ot_before_out', width: 10 },
-  { key: 'ot_after_in', width: 10 },
-  { key: 'ot_after_out', width: 10 },
-  { key: 'work_hours', width: 12 },
-  { key: 'ot_hours_in', width: 10 },
-  { key: 'ot_hours_out', width: 10 },
-  { key: 'note', width: 20 }
+  { key: 'ot_before_in', width: 12 },
+  { key: 'ot_before_out', width: 12 },
+  { key: 'ot_after_in', width: 12 },
+  { key: 'ot_after_out', width: 12 },
+  { key: 'work_hours', width: 10 },
+  { key: 'ot_1', width: 10 },
+  { key: 'ot_1_5', width: 10 },
+  { key: 'ot_2', width: 10 },
+  { key: 'ot_3', width: 10 },
+  { key: 'note', width: 12 }
 ];
 // Column width
 sheet.columns = [
