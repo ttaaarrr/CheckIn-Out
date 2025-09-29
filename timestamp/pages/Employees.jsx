@@ -356,8 +356,8 @@ export default function Employees() {
                 <tr>
                   <th className="px-6 py-3 text-left text-gray-700 font-medium">รหัส</th>
                   <th className="px-6 py-3 text-left text-gray-700 font-medium">ชื่อ</th>
-                  <th className="px-6 py-3 text-left text-gray-700 font-medium">ตำแหน่ง</th>
                   <th className="px-6 py-3 text-left text-gray-700 font-medium">แผนก</th>
+                  <th className="px-6 py-3 text-left text-gray-700 font-medium">ตำแหน่ง</th>
                   <th className="px-6 py-3 text-center text-gray-700 font-medium">จัดการ</th>
                 </tr>
               </thead>
