@@ -458,35 +458,31 @@ sheet.getRow(summaryRow).height = 20;
 // Footer เริ่มหลัง summaryRow
 const footerStartRow = summaryRow + 2;
 
-// เจ้าหน้าที่BPIT
-sheet.mergeCells(`B${footerStartRow}:C${footerStartRow+1}`);
+// Merge แนวนอนเฉพาะแถว footerStartRow
+sheet.mergeCells(`B${footerStartRow}:C${footerStartRow}`);
 sheet.getCell(`B${footerStartRow}`).value = "...........................................";
-sheet.getCell(`B${footerStartRow}`).alignment = { vertical:'bottom', horizontal:'left' };
+sheet.getCell(`B${footerStartRow}`).alignment = { vertical:'bottom', horizontal:'center' };
 
-// พนักงาน
-sheet.mergeCells(`E${footerStartRow}:F${footerStartRow+1}`);
+sheet.mergeCells(`E${footerStartRow}:F${footerStartRow}`);
 sheet.getCell(`E${footerStartRow}`).value = "...........................................";
-sheet.getCell(`E${footerStartRow}`).alignment = { vertical:'bottom', horizontal:'left' };
+sheet.getCell(`E${footerStartRow}`).alignment = { vertical:'bottom', horizontal:'center' };
 
-// ผู้อนุมัติ
-sheet.mergeCells(`H${footerStartRow}:I${footerStartRow+1}`);
+sheet.mergeCells(`H${footerStartRow}:I${footerStartRow}`);
 sheet.getCell(`H${footerStartRow}`).value = "...........................................";
-sheet.getCell(`H${footerStartRow}`).alignment = { vertical:'bottom', horizontal:'left' };
+sheet.getCell(`H${footerStartRow}`).alignment = { vertical:'bottom', horizontal:'center' };
 
-// ลายเซ็นเจ้าหน้าที่BPIT
-sheet.mergeCells(`B${footerStartRow+2}:C${footerStartRow+3}`);
-sheet.getCell(`B${footerStartRow+2}`).value = "...........................................";
-sheet.getCell(`B${footerStartRow+2}`).alignment = { vertical:'bottom', horizontal:'center' };
+// ถัดไปแถวสำหรับลายเซ็น
+sheet.mergeCells(`B${footerStartRow+1}:C${footerStartRow+1}`);
+sheet.getCell(`B${footerStartRow+1}`).value = "(...........................................)";
+sheet.getCell(`B${footerStartRow+1}`).alignment = { vertical:'bottom', horizontal:'center' };
 
-// ลายเซ็นพนักงาน
-sheet.mergeCells(`E${footerStartRow+2}:F${footerStartRow+3}`);
-sheet.getCell(`E${footerStartRow+2}`).value = "...........................................";
-sheet.getCell(`E${footerStartRow+2}`).alignment = { vertical:'bottom', horizontal:'center' };
+sheet.mergeCells(`E${footerStartRow+1}:F${footerStartRow+1}`);
+sheet.getCell(`E${footerStartRow+1}`).value = "(...........................................)";
+sheet.getCell(`E${footerStartRow+1}`).alignment = { vertical:'bottom', horizontal:'center' };
 
-// ลายเซ็นผู้อนุมัติ
-sheet.mergeCells(`H${footerStartRow+2}:I${footerStartRow+3}`);
-sheet.getCell(`H${footerStartRow+2}`).value = "...........................................";
-sheet.getCell(`H${footerStartRow+2}`).alignment = { vertical:'bottom', horizontal:'center' };
+sheet.mergeCells(`H${footerStartRow+1}:I${footerStartRow+1}`);
+sheet.getCell(`H${footerStartRow+1}`).value = "(...........................................)";
+sheet.getCell(`H${footerStartRow+1}`).alignment = { vertical:'bottom', horizontal:'center' };
 
 // Row height footer
 for(let i=footerStartRow; i<=footerStartRow+3; i++) sheet.getRow(i).height = 25;
