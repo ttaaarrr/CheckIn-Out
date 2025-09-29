@@ -286,16 +286,16 @@ sheet.getCell("E3").font = { bold: true, size: 12 };
 sheet.getCell("E3").alignment = { horizontal: "left" };
 
 sheet.mergeCells("E4:J4");
-sheet.getCell("D4").value = periodText;
-sheet.getCell("D4").alignment = { horizontal: "left" };
+sheet.getCell("E4").value = periodText;
+sheet.getCell("E4").alignment = { horizontal: "left" };
 
 // Employee info
-sheet.mergeCells("B6:C6"); sheet.getCell("B7").value = `ชื่อ: ${emp.name}`;
-sheet.mergeCells("B7:D7"); sheet.getCell("B10").value = `ตำแหน่ง: ${emp.position || "-"}`;
-sheet.mergeCells("E6:F6"); sheet.getCell("B8").value = `รหัส: ${emp.em_code}`;
-sheet.mergeCells("E7:G7"); sheet.getCell("E9").value = `สังกัดลูกค้า: ${emp.company_name || selectedCompany}`;
-sheet.mergeCells("I6:L9"); sheet.getCell("B9").value = `บริษัท: BPIT Holdings`;
-sheet.mergeCells("I7"); sheet.getCell("I9").value = `ชื่อหน่วยงานสังกัด: ${emp.department || "-"}`;
+sheet.mergeCells("B6:C6"); sheet.getCell("B6").value = `ชื่อ: ${emp.name}`;
+sheet.mergeCells("B7:D7"); sheet.getCell("B7").value = `ตำแหน่ง: ${emp.position || "-"}`;
+sheet.mergeCells("E6:F6"); sheet.getCell("E6").value = `รหัส: ${emp.em_code}`;
+sheet.mergeCells("E7:G7"); sheet.getCell("E7").value = `สังกัดลูกค้า: ${emp.company_name || selectedCompany}`;
+sheet.mergeCells("I6:L9"); sheet.getCell("I6").value = `บริษัท: BPIT Holdings`;
+sheet.mergeCells("I7:L7"); sheet.getCell("I7").value = `ชื่อหน่วยงานสังกัด: ${emp.department || "-"}`;
 
 // สร้างหัวตาราง (2 แถว)
 sheet.mergeCells('A9:A10'); // วัน
