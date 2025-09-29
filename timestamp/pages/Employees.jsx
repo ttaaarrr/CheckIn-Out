@@ -366,8 +366,8 @@ export default function Employees() {
                   <tr key={emp.id} className="border-b hover:bg-gray-50 transition">
                     <td className="px-6 py-3">{emp.em_code}</td>
                     <td className="px-6 py-3">{emp.name}</td>
-                    <td className="px-6 py-3">{emp.position}</td>
                     <td className="px-6 py-3">{emp.department}</td>
+                    <td className="px-6 py-3">{emp.position}</td>
                     <td className="px-6 py-3 text-center">
                       <button
                         onClick={() => deleteEmployee(emp.em_code)}
