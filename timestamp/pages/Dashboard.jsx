@@ -458,49 +458,50 @@ sheet.getRow(summaryRow).height = 20;
 // Footer เริ่มหลัง summaryRow
 const footerStartRow = summaryRow + 2;
 
-// Merge แนวนอนเฉพาะแถว footerStartRow
-sheet.mergeCells(`B${footerStartRow}:C${footerStartRow}`);
-sheet.getCell(`B${footerStartRow}`).value = "...........................................";
-sheet.getCell(`B${footerStartRow}`).alignment = { vertical:'bottom', horizontal:'center' };
+// Footer แถว 1-2 (เส้นสำหรับเซ็น)
+for (let i = 0; i < 2; i++) {  // 2 บรรทัด
+  const rowNum = footerStartRow + i;
 
-sheet.mergeCells(`E${footerStartRow}:F${footerStartRow}`);
-sheet.getCell(`E${footerStartRow}`).value = "...........................................";
-sheet.getCell(`E${footerStartRow}`).alignment = { vertical:'bottom', horizontal:'center' };
+  sheet.mergeCells(`B${rowNum}:C${rowNum}`);
+  sheet.getCell(`B${rowNum}`).value = "...........................................";
+  sheet.getCell(`B${rowNum}`).alignment = { vertical: 'bottom', horizontal: 'center' };
 
-sheet.mergeCells(`H${footerStartRow}:I${footerStartRow}`);
-sheet.getCell(`H${footerStartRow}`).value = "...........................................";
-sheet.getCell(`H${footerStartRow}`).alignment = { vertical:'bottom', horizontal:'center' };
+  sheet.mergeCells(`E${rowNum}:F${rowNum}`);
+  sheet.getCell(`E${rowNum}`).value = "...........................................";
+  sheet.getCell(`E${rowNum}`).alignment = { vertical: 'bottom', horizontal: 'center' };
 
-// Footer แถว 2 (แถวสำหรับลายเซ็น)
-sheet.mergeCells(`B${footerStartRow+1}:C${footerStartRow+1}`);
-sheet.getCell(`B${footerStartRow+1}`).value = {
+  sheet.mergeCells(`H${rowNum}:I${rowNum}`);
+  sheet.getCell(`H${rowNum}`).value = "...........................................";
+  sheet.getCell(`H${rowNum}`).alignment = { vertical: 'bottom', horizontal: 'center' };
+
+  sheet.getRow(rowNum).height = 18; // ความสูงแถว
+}
+
+// Footer แถวสำหรับชื่อผู้เซ็น (แถวที่ 3)
+const nameRow = footerStartRow + 2;
+
+sheet.mergeCells(`B${nameRow}:C${nameRow}`);
+sheet.getCell(`B${nameRow}`).value = {
   richText: [
     { text: "เจ้าหน้าที่ ", font: { bold: false } },
     { text: "BPIT", font: { italic: true } }
   ]
 };
-sheet.getCell(`B${footerStartRow+1}`).alignment = { vertical:'bottom', horizontal:'center' };
+sheet.getCell(`B${nameRow}`).alignment = { vertical: 'middle', horizontal: 'center' };
 
-sheet.getCell(`E${footerStartRow+1}`).value = {
+sheet.mergeCells(`E${nameRow}:F${nameRow}`);
+sheet.getCell(`E${nameRow}`).value = {
   richText: [{ text: "พนักงาน ", font: { bold: true } }]
 };
-sheet.getCell(`H${footerStartRow+1}`).value = {
+sheet.getCell(`E${nameRow}`).alignment = { vertical: 'middle', horizontal: 'center' };
+
+sheet.mergeCells(`H${nameRow}:I${nameRow}`);
+sheet.getCell(`H${nameRow}`).value = {
   richText: [{ text: "ผู้อนุมัติ(ลูกค้า) ", font: { bold: true } }]
 };
-sheet.getCell(`H${footerStartRow+1}`).alignment = { vertical:'bottom', horizontal:'center' };
+sheet.getCell(`H${nameRow}`).alignment = { vertical: 'middle', horizontal: 'center' };
 
-sheet.mergeCells(`E${footerStartRow+1}:F${footerStartRow+1}`);
-sheet.getCell(`B${footerStartRow+1}`).value = {
-  richText: [
-    { text: "พนักงาน ", font: { bold: true } }
-  ]
-};
-sheet.mergeCells(`H${footerStartRow+1}:I${footerStartRow+1}`);
-sheet.getCell(`B${footerStartRow+1}`).value = {
-  richText: [
-    { text: "ผู้อนุมัติ(ลูกค้า) ", font: { bold: true } }
-  ]
-};
+
 // Row height footer
 for(let i=footerStartRow; i<=footerStartRow+3; i++) sheet.getRow(i).height = 25;
 
