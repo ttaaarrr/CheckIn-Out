@@ -471,19 +471,7 @@ sheet.mergeCells(`H${footerStartRow}:I${footerStartRow}`);
 sheet.getCell(`H${footerStartRow}`).value = "...........................................";
 sheet.getCell(`H${footerStartRow}`).alignment = { vertical:'bottom', horizontal:'center' };
 
-// ถัดไปแถวสำหรับลายเซ็น
-sheet.mergeCells(`B${footerStartRow+1}:C${footerStartRow+1}`);
-sheet.getCell(`B${footerStartRow+1}`).value = "...........................................";
-sheet.getCell(`B${footerStartRow+1}`).alignment = { vertical:'bottom', horizontal:'center' };
-
-sheet.mergeCells(`E${footerStartRow+1}:F${footerStartRow+1}`);
-sheet.getCell(`E${footerStartRow+1}`).value = "...........................................";
-sheet.getCell(`E${footerStartRow+1}`).alignment = { vertical:'bottom', horizontal:'center' };
-
-sheet.mergeCells(`H${footerStartRow+1}:I${footerStartRow+1}`);
-sheet.getCell(`H${footerStartRow+1}`).value = "...........................................";
-sheet.getCell(`H${footerStartRow+1}`).alignment = { vertical:'bottom', horizontal:'center' };
-
+// Footer แถว 2 (แถวสำหรับลายเซ็น)
 sheet.mergeCells(`B${footerStartRow+1}:C${footerStartRow+1}`);
 sheet.getCell(`B${footerStartRow+1}`).value = {
   richText: [
@@ -492,6 +480,14 @@ sheet.getCell(`B${footerStartRow+1}`).value = {
   ]
 };
 sheet.getCell(`B${footerStartRow+1}`).alignment = { vertical:'bottom', horizontal:'center' };
+
+sheet.getCell(`E${footerStartRow+1}`).value = {
+  richText: [{ text: "พนักงาน ", font: { bold: true } }]
+};
+sheet.getCell(`H${footerStartRow+1}`).value = {
+  richText: [{ text: "ผู้อนุมัติ(ลูกค้า) ", font: { bold: true } }]
+};
+sheet.getCell(`H${footerStartRow+1}`).alignment = { vertical:'bottom', horizontal:'center' };
 
 sheet.mergeCells(`E${footerStartRow+1}:F${footerStartRow+1}`);
 sheet.getCell(`B${footerStartRow+1}`).value = {
