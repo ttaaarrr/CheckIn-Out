@@ -423,7 +423,7 @@ dayList.forEach((dateStr, idx) => {
     r.otInBefore, r.otOutBefore,
     r.otInAfter, r.otOutAfter,
     calcDuration(r.checkIn, r.checkOut),
-    calcTotalOT(r),
+    calcTotalOT(r),"","","",
     r.note || ""
   ]);
 
