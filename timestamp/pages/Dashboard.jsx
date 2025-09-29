@@ -310,24 +310,33 @@ sheet.mergeCells('N9:N10'); // หมายเหตุ
 // ตั้งค่าหัวแถวหลัก
 sheet.getCell('A9').value = 'วัน';
 sheet.getCell('B9').value = 'วัน/เดือน/ปี';
+sheet.mergeCells('C9:D9'); // เวลางานปกติ (main header)
 sheet.getCell('C9').value = 'เวลางานปกติ';
-sheet.getCell('E9').value = 'OT ก่อนเริ่มงาน';
-sheet.getCell('G9').value = 'OT หลังเลิกงาน';
-sheet.getCell('I9').value = 'ชม.ทำงาน';
-sheet.getCell('J9').value = 'ชม. OT';
-sheet.getCell('N9').value = 'หมายเหตุ';
-
-// ตั้งค่าหัวแถวรอง (แถว 2)
 sheet.getCell('C10').value = 'เข้า';
 sheet.getCell('D10').value = 'ออก';
+
+sheet.mergeCells('E9:F9'); // OT ก่อนเริ่มงาน
+sheet.getCell('E9').value = 'OT ก่อนเริ่มงาน';
 sheet.getCell('E10').value = 'เข้า';
 sheet.getCell('F10').value = 'ออก';
+
+sheet.mergeCells('G9:H9'); // OT หลังเลิกงาน
+sheet.getCell('G9').value = 'OT หลังเลิกงาน';
 sheet.getCell('G10').value = 'เข้า';
 sheet.getCell('H10').value = 'ออก';
+
+sheet.mergeCells('I9:I10'); // ชั่วโมงทำงาน
+sheet.getCell('I9').value = 'ชั่วโมงทำงาน';
+
+sheet.mergeCells('J9:M9'); // ชม. OT
+sheet.getCell('J9').value = 'ชม. OT';
 sheet.getCell('J10').value = '1เท่า';
 sheet.getCell('K10').value = '1.5เท่า';
 sheet.getCell('L10').value = '2เท่า';
 sheet.getCell('M10').value = '3เท่า';
+
+sheet.mergeCells('N9:N10'); // หมายเหตุ
+sheet.getCell('N9').value = 'หมายเหตุ';
 
 // จัดสไตล์หัวตาราง
 ['A9','B9','C9','E9','G9','I9','J9','N9',
