@@ -484,6 +484,27 @@ sheet.mergeCells(`H${footerStartRow+1}:I${footerStartRow+1}`);
 sheet.getCell(`H${footerStartRow+1}`).value = "...........................................";
 sheet.getCell(`H${footerStartRow+1}`).alignment = { vertical:'bottom', horizontal:'center' };
 
+sheet.mergeCells(`B${footerStartRow+1}:C${footerStartRow+1}`);
+sheet.getCell(`B${footerStartRow+1}`).value = {
+  richText: [
+    { text: "เจ้าหน้าที่ ", font: { bold: false } },
+    { text: "BPIT", font: { italic: true } }
+  ]
+};
+sheet.getCell(`B${footerStartRow+1}`).alignment = { vertical:'bottom', horizontal:'center' };
+
+sheet.mergeCells(`E${footerStartRow+1}:F${footerStartRow+1}`);
+sheet.getCell(`B${footerStartRow+1}`).value = {
+  richText: [
+    { text: "พนักงาน ", font: { bold: true } }
+  ]
+};
+sheet.mergeCells(`H${footerStartRow+1}:I${footerStartRow+1}`);
+sheet.getCell(`B${footerStartRow+1}`).value = {
+  richText: [
+    { text: "ผู้อนุมัติ(ลูกค้า) ", font: { bold: true } }
+  ]
+};
 // Row height footer
 for(let i=footerStartRow; i<=footerStartRow+3; i++) sheet.getRow(i).height = 25;
 
