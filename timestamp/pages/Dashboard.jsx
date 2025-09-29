@@ -275,27 +275,35 @@ sheet.pageSetup = {
 };
 
 // Header
-sheet.mergeCells("E2:H2");
-sheet.getCell("E2").value = "BPIT Holdings CO.,LTD.";
-sheet.getCell("E2").font = { bold: true, size: 14 };
+
+sheet.getCell("E2").value = {
+  richText: [
+    { text: "BPIT", font: { italic: true, color: { argb: "0000FF" }, bold: true, size: 14 } },
+    { text: " Holdings CO.,LTD; www.bpit.co.th", font: { color: { argb: "0000FF" }, bold: true, size: 14 } }
+  ]
+};
 sheet.getCell("E2").alignment = { horizontal: "left" };
 
-sheet.mergeCells("E3:H3");
+// Cell E3
+
 sheet.getCell("E3").value = "TIME RECORD REPORT";
-sheet.getCell("E3").font = { bold: true, size: 12 };
+sheet.getCell("E3").font = { bold: true, size: 12, color: { argb: "0000FF" },  underline: true  }; 
 sheet.getCell("E3").alignment = { horizontal: "left" };
 
-sheet.mergeCells("E4:J4");
+// Cell E4
+
 sheet.getCell("E4").value = periodText;
+sheet.getCell("E4").font = { color: { argb: "0000FF" } }; 
 sheet.getCell("E4").alignment = { horizontal: "left" };
 
+
 // Employee info
-sheet.mergeCells("B6:C6"); sheet.getCell("B6").value = `ชื่อ: ${emp.name}`;
-sheet.mergeCells("B7:D7"); sheet.getCell("B7").value = `ตำแหน่ง: ${emp.position || "-"}`;
-sheet.mergeCells("E6:F6"); sheet.getCell("E6").value = `รหัส: ${emp.em_code}`;
-sheet.mergeCells("E7:G7"); sheet.getCell("E7").value = `สังกัดลูกค้า: ${emp.company_name || selectedCompany}`;
-sheet.mergeCells("I6:L6"); sheet.getCell("I6").value = `บริษัท: BPIT Holdings`;
-sheet.mergeCells("I7:L7"); sheet.getCell("I7").value = `ชื่อหน่วยงานสังกัด: ${emp.department || "-"}`;
+ sheet.getCell("B6").value = `ชื่อ: ${emp.name}`;
+ sheet.getCell("B7").value = `ตำแหน่ง: ${emp.position || "-"}`;
+ sheet.getCell("E6").value = `รหัส: ${emp.em_code}`;
+ sheet.getCell("E7").value = `สังกัดลูกค้า: ${emp.company_name || selectedCompany}`;
+ sheet.getCell("I6").value = `บริษัท: BPIT Holdings`;
+ sheet.getCell("I7").value = `ชื่อหน่วยงานสังกัด: ${emp.department || "-"}`;
 
 // สร้างหัวตาราง (2 แถว)
 sheet.mergeCells('A9:A10'); // วัน
@@ -369,7 +377,9 @@ sheet.columns = [
   {width:10}, {width:10},
   {width:12}, {width:12},
   {width:12}, {width:12},
-  {width:10}, {width:10}, {width:12}
+  {width:10}, {width:10},
+  {width:10}, {width:10},
+  {width:10}, {width:12}
 ];
 
 // Fill data
