@@ -294,7 +294,7 @@ sheet.mergeCells("B6:C6"); sheet.getCell("B6").value = `ชื่อ: ${emp.name
 sheet.mergeCells("B7:D7"); sheet.getCell("B7").value = `ตำแหน่ง: ${emp.position || "-"}`;
 sheet.mergeCells("E6:F6"); sheet.getCell("E6").value = `รหัส: ${emp.em_code}`;
 sheet.mergeCells("E7:G7"); sheet.getCell("E7").value = `สังกัดลูกค้า: ${emp.company_name || selectedCompany}`;
-sheet.mergeCells("I6:L9"); sheet.getCell("I6").value = `บริษัท: BPIT Holdings`;
+sheet.mergeCells("I6:L6"); sheet.getCell("I6").value = `บริษัท: BPIT Holdings`;
 sheet.mergeCells("I7:L7"); sheet.getCell("I7").value = `ชื่อหน่วยงานสังกัด: ${emp.department || "-"}`;
 
 // สร้างหัวตาราง (2 แถว)
@@ -403,7 +403,7 @@ dayList.forEach((dateStr, idx) => {
 });
 
 // Footer
-const footerStartRow = sheet.lastRow.number + 3;
+const footerStartRow = sheet.lastRow.number + 2;
 
 // เจ้าหน้าที่BPIT
 sheet.mergeCells(`B${footerStartRow}:C${footerStartRow+1}`);
