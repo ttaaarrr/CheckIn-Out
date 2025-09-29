@@ -241,9 +241,8 @@ const formatDateTH = (dateStr) => {
     const res = await fetch(url);
     return await res.arrayBuffer();
   };
-  const logoLeftBuffer = await fetchLogoBuffer('/logo_black.png'); // public/logo_black.png
-  const logoRightBuffer = await fetchLogoBuffer('/logo.jpg');       // public/logo.jpg
-
+  const logoLeftBuffer = await fetchLogoBuffer('/log.png'); 
+ 
   empList.forEach((emp) => {
   const sheet = workbook.addWorksheet(emp.name || emp.em_code);
 
@@ -251,12 +250,9 @@ const formatDateTH = (dateStr) => {
   buffer: logoLeftBuffer,
   extension: 'png'
 });
-const logoRightId = workbook.addImage({
-  buffer: logoRightBuffer,
-  extension: 'jpg'
-});
 
-const periodText = `บันทึกเวลาวันที่ ${formatDateTH(startDate)} - ${formatDateTH(endDate)}`;
+
+const periodText = `บันทึกเวลา; วันที่ ${formatDateTH(startDate)} - ${formatDateTH(endDate)}`;
 // วางโลโก้ซ้าย
 sheet.addImage(logoLeftId, {
   tl: { col: 1, row: 0 }, // top-left cell
@@ -264,12 +260,6 @@ sheet.addImage(logoLeftId, {
   editAs: 'oneCell'
 });
 
-// วางโลโก้ขวา
-sheet.addImage(logoRightId, {
-  tl: { col: 7, row: 0 },
-  br: { col: 9, row: 4 },
-  editAs: 'oneCell'
-});
    // assume workbook and sheet ถูกสร้างแล้ว
 sheet.pageSetup = {
   paperSize: 9,           // A4
@@ -285,61 +275,63 @@ sheet.pageSetup = {
 };
 
 // Header
-sheet.mergeCells("D2:G2");
-sheet.getCell("D2").value = "BPIT Holdings CO.,LTD.";
-sheet.getCell("D2").font = { bold: true, size: 14 };
-sheet.getCell("D2").alignment = { horizontal: "center" };
+sheet.mergeCells("E2:H2");
+sheet.getCell("E2").value = "BPIT Holdings CO.,LTD.";
+sheet.getCell("E2").font = { bold: true, size: 14 };
+sheet.getCell("E2").alignment = { horizontal: "left" };
 
-sheet.mergeCells("D3:G3");
-sheet.getCell("D3").value = "TIME RECORD REPORT";
-sheet.getCell("D3").font = { bold: true, size: 12 };
-sheet.getCell("D3").alignment = { horizontal: "center" };
+sheet.mergeCells("E3:H3");
+sheet.getCell("E3").value = "TIME RECORD REPORT";
+sheet.getCell("E3").font = { bold: true, size: 12 };
+sheet.getCell("E3").alignment = { horizontal: "left" };
 
-sheet.mergeCells("D4:G4");
+sheet.mergeCells("E4:J4");
 sheet.getCell("D4").value = periodText;
-sheet.getCell("D4").alignment = { horizontal: "center" };
+sheet.getCell("D4").alignment = { horizontal: "left" };
 
 // Employee info
-sheet.mergeCells("B7:C7"); sheet.getCell("B7").value = `ชื่อ: ${emp.name}`;
-sheet.mergeCells("B8:C8"); sheet.getCell("B8").value = `รหัส: ${emp.em_code}`;
-sheet.mergeCells("B9:C9"); sheet.getCell("B9").value = `บริษัท: BPIT Holdings`;
-sheet.mergeCells("E9:G9"); sheet.getCell("E9").value = `สังกัดบริษัทลูกค้า: ${emp.company_name || selectedCompany}`;
-sheet.mergeCells("I9:K9"); sheet.getCell("I9").value = `ชื่อหน่วยงานสังกัด: ${emp.department || "-"}`;
-sheet.mergeCells("B10:C10"); sheet.getCell("B10").value = `ตำแหน่ง: ${emp.position || "-"}`;
-sheet.getCell("B11").value = ` `;
+sheet.mergeCells("B6:C6"); sheet.getCell("B7").value = `ชื่อ: ${emp.name}`;
+sheet.mergeCells("B7:D7"); sheet.getCell("B10").value = `ตำแหน่ง: ${emp.position || "-"}`;
+sheet.mergeCells("E6:F6"); sheet.getCell("B8").value = `รหัส: ${emp.em_code}`;
+sheet.mergeCells("E7:G7"); sheet.getCell("E9").value = `สังกัดลูกค้า: ${emp.company_name || selectedCompany}`;
+sheet.mergeCells("I6:L9"); sheet.getCell("B9").value = `บริษัท: BPIT Holdings`;
+sheet.mergeCells("I7"); sheet.getCell("I9").value = `ชื่อหน่วยงานสังกัด: ${emp.department || "-"}`;
 
 // สร้างหัวตาราง (2 แถว)
-sheet.mergeCells('A13:A14'); // วัน
-sheet.mergeCells('B13:B14'); // วัน/เดือน/ปี
-sheet.mergeCells('C13:D13'); // เวลางานปกติ
-sheet.mergeCells('E13:F13'); // OT ก่อนเริ่มงาน
-sheet.mergeCells('G13:H13'); // OT หลังเลิกงาน
-sheet.mergeCells('I13:I14'); // ชม.ทำงาน
-sheet.mergeCells('J13:J14'); // ชม.OT
-sheet.mergeCells('K13:K14'); // หมายเหตุ
+sheet.mergeCells('A9:A10'); // วัน
+sheet.mergeCells('B9:B10'); // วัน/เดือน/ปี
+sheet.mergeCells('C9:D10'); // เวลางานปกติ
+sheet.mergeCells('E9:F10'); // OT ก่อนเริ่มงาน
+sheet.mergeCells('G9:H10'); // OT หลังเลิกงาน
+sheet.mergeCells('I9:I10'); // ชม.ทำงาน
+sheet.mergeCells('J9:M10'); // ชม.OT
+sheet.mergeCells('N9:N10'); // หมายเหตุ
 
 // ตั้งค่าหัวแถวหลัก
-sheet.getCell('A13').value = 'วัน';
-sheet.getCell('B13').value = 'วัน/เดือน/ปี';
-sheet.getCell('C13').value = 'เวลางานปกติ';
-sheet.getCell('E13').value = 'OT ก่อนเริ่มงาน';
-sheet.getCell('G13').value = 'OT หลังเลิกงาน';
-sheet.getCell('I13').value = 'ชม.ทำงาน';
-sheet.getCell('J13').value = 'ชม. OT';
-sheet.getCell('K13').value = 'หมายเหตุ';
+sheet.getCell('A9').value = 'วัน';
+sheet.getCell('B9').value = 'วัน/เดือน/ปี';
+sheet.getCell('C9').value = 'เวลางานปกติ';
+sheet.getCell('E9').value = 'OT ก่อนเริ่มงาน';
+sheet.getCell('G9').value = 'OT หลังเลิกงาน';
+sheet.getCell('I9').value = 'ชม.ทำงาน';
+sheet.getCell('J9').value = 'ชม. OT';
+sheet.getCell('N9').value = 'หมายเหตุ';
 
 // ตั้งค่าหัวแถวรอง (แถว 2)
-sheet.getCell('C14').value = 'เข้า';
-sheet.getCell('D14').value = 'ออก';
-sheet.getCell('E14').value = 'เข้า';
-sheet.getCell('F14').value = 'ออก';
-sheet.getCell('G14').value = 'เข้า';
-sheet.getCell('H14').value = 'ออก';
-
+sheet.getCell('C10').value = 'เข้า';
+sheet.getCell('D10').value = 'ออก';
+sheet.getCell('E10').value = 'เข้า';
+sheet.getCell('F10').value = 'ออก';
+sheet.getCell('G10').value = 'เข้า';
+sheet.getCell('H10').value = 'ออก';
+sheet.getCell('J10').value = '1เท่า';
+sheet.getCell('K10').value = '1.5เท่า';
+sheet.getCell('L10').value = '2เท่า';
+sheet.getCell('M10').value = '3เท่า';
 
 // จัดสไตล์หัวตาราง
-['A13','B13','C13','E13','G13','I13','J13','K13',
- 'C14','D14','E14','F14','G14','H14','J14','K14'].forEach(cell => {
+['A9','B9','C9','E9','G9','I9','J9','N9',
+ 'C10','D10','E10','F10','G10','H10','J10','K10','L10','M10'].forEach(cell => {
   sheet.getCell(cell).alignment = { vertical: 'middle', horizontal: 'center' };
   sheet.getCell(cell).font = { bold: true };
   sheet.getCell(cell).fill = {
