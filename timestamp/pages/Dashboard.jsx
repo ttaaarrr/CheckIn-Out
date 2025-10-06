@@ -38,7 +38,8 @@ export default function Dashboard({ user }) {
             ? "https://api-checkin-out.bpit-staff.com/api/employees?company_name=A"
             : `https://api-checkin-out.bpit-staff.com/api/employees?company_name=${selectedCompany}`;
         const res = await axios.get(url);
-        if (res.data.success) setEmployees(res.data.employees);
+        if (res.data.success) 
+          setEmployees(res.data.employees.filter(e => e.company_name === selectedCompany));
       } catch (err) {
         console.error(err);
       }
@@ -111,27 +112,30 @@ export default function Dashboard({ user }) {
   };
   // สร้าง tableData หน้าเว็บ
   const tableData = {};
-  records.forEach((r) => {
-    if (selectedCompany !== "all" && r.company_name !== selectedCompany) return;
-    if (!r.type || !r.em_code) return;
-    const key = `${r.em_code}_${getLocalDateStr(selectedDate)}`;
-    if (!tableData[key]) {
-      const emp = employees.find(e => e.em_code.toString() === r.em_code.toString());
-      tableData[key] = {
-        em_code: r.em_code,
-        name: emp ? emp.name : r.name || "-",
-        company: r.company_name || selectedCompany,
-        checkIn: "-",
-        checkOut: "-",
-        otInBefore: "-",
-        otOutBefore: "-",
-        otInAfter: "-",
-        otOutAfter: "-",
-      };
-    }
-    const field = typeMap[r.type.toLowerCase()];
-    if (field) tableData[key][field] = r.time || "-";
-  });
+ records.forEach((r) => {
+  if (!r.type || !r.em_code) return;
+  
+  // ตรวจสอบบริษัทก่อน
+  if (selectedCompany !== "all" && r.company_name !== selectedCompany) return;
+
+  const key = `${r.em_code}_${getLocalDateStr(selectedDate)}`;
+  if (!tableData[key]) {
+    const emp = employees.find(e => e.em_code.toString() === r.em_code.toString());
+    tableData[key] = {
+      em_code: r.em_code,
+      name: emp ? emp.name : r.name || "-",
+      company: r.company_name || selectedCompany,
+      checkIn: "-",
+      checkOut: "-",
+      otInBefore: "-",
+      otOutBefore: "-",
+      otInAfter: "-",
+      otOutAfter: "-",
+    };
+  }
+  const field = typeMap[r.type.toLowerCase()];
+  if (field) tableData[key][field] = r.time || "-";
+});
 
  const exportExcel = async () => {
   if (!selectedCompany || selectedCompany === "all" || !startDate || !endDate) {
