@@ -212,14 +212,25 @@ console.log("employees for export:", empList); // ต้องมีข้อม
     });
   });
 
-  // เติมข้อมูลจริงจาก dailyRows
+// เติมข้อมูลจริงจาก dailyRows
 dailyRows.forEach((r) => {
-  // หา employee จากชื่อ
-  const emp = employees.find(e => e.name === r.em_code);
-  if (!emp) return; // ถ้าไม่เจอข้าม
+  // ตัดคำนำหน้าออกจากชื่อใน employees แล้วลองเทียบกับ dailyRows.em_code
+  const emp = employees.find(e => {
+    const cleanName = e.name.replace(/^(นางสาว|นาย|นาง)\s*/g, '').trim();
+    return cleanName.includes(r.em_code.trim());
+  });
 
-  const key = `${emp.em_code}_${r.date}`; // ใช้ em_code จริงของ employee
-  if (!groupedRecords[key]) return;
+  if (!emp) {
+    console.warn("ไม่พบพนักงานที่ตรงกับ:", r.em_code);
+    return;
+  }
+
+  const dateStr = r.date;
+  const key = `${emp.em_code}_${dateStr}`;
+  if (!groupedRecords[key]) {
+    console.warn("ไม่พบ key:", key);
+    return;
+  }
 
   const type = (r.type || '').toLowerCase();
   if (type === 'in') groupedRecords[key].checkIn = r.time || '-';
@@ -228,6 +239,7 @@ dailyRows.forEach((r) => {
   else if (type === 'ot_out_before') groupedRecords[key].otOutBefore = r.time || '-';
   else if (type === 'ot_in_after') groupedRecords[key].otInAfter = r.time || '-';
   else if (type === 'ot_out_after') groupedRecords[key].otOutAfter = r.time || '-';
+
   if (r.note) groupedRecords[key].note = r.note;
 });
 
