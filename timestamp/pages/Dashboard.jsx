@@ -112,6 +112,7 @@ export default function Dashboard({ user }) {
   // สร้าง tableData หน้าเว็บ
   const tableData = {};
   records.forEach((r) => {
+    if (selectedCompany !== "all" && r.company_name !== selectedCompany) return;
     if (!r.type || !r.em_code) return;
     const key = `${r.em_code}_${getLocalDateStr(selectedDate)}`;
     if (!tableData[key]) {
