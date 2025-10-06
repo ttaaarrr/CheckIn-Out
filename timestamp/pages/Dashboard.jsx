@@ -214,11 +214,8 @@ console.log("employees for export:", empList); // ต้องมีข้อม
 
 // เติมข้อมูลจริงจาก dailyRows
 dailyRows.forEach((r) => {
-  // ตัดคำนำหน้าออกจากชื่อใน employees แล้วลองเทียบกับ dailyRows.em_code
-  const emp = employees.find(e => {
-    const cleanName = e.name.replace(/^(นางสาว|นาย|นาง)\s*/g, '').trim();
-    return cleanName.includes(r.em_code.trim());
-  });
+
+   const emp = employees.find(e => e.name.trim().includes(r.em_code.trim()));
 
   if (!emp) {
     console.warn("ไม่พบพนักงานที่ตรงกับ:", r.em_code);
