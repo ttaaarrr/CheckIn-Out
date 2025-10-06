@@ -182,6 +182,12 @@ const exportExcel = async () => {
   // แปลง em_code เป็น string
   empList.forEach(e => { if (e && e.em_code !== undefined && e.em_code !== null) e.em_code = e.em_code.toString(); });
 
+  // หลังจากดึง dailyRows จาก API เสร็จ
+console.log("dailyRows:", dailyRows); // ดูว่ามีข้อมูลรึเปล่า
+
+// ตรวจสอบ employees
+console.log("employees:", employees);
+
   // สร้าง groupedRecords: key = em_code + date
   const groupedRecords = {};
   empList.forEach((emp) => {
