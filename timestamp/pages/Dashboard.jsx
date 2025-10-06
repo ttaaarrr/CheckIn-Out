@@ -214,18 +214,21 @@ console.log("employees for export:", empList); // ต้องมีข้อม
 
   // เติมข้อมูลจริงจากแถวรายวัน
   dailyRows.forEach((r) => {
-    const dateStr = r.date;
-    const key = `${r.em_code}_${dateStr}`;
-    if (!groupedRecords[key]) return;
+  // หา employee ที่ตรงกับชื่อ
+  const emp = employees.find(e => e.name === r.em_code);
+  if (!emp) return; // ไม่เจอ
+  const dateStr = r.date;
+  const key = `${emp.em_code}_${dateStr}`; // ใช้ em_code ของ employees จริง
+  if (!groupedRecords[key]) return;
 
-    const type = (r.type || '').toLowerCase();
-    if (type === 'in') groupedRecords[key].checkIn = r.time || '-';
-    else if (type === 'out') groupedRecords[key].checkOut = r.time || '-';
-    else if (type === 'ot_in_before') groupedRecords[key].otInBefore = r.time || '-';
-    else if (type === 'ot_out_before') groupedRecords[key].otOutBefore = r.time || '-';
-    else if (type === 'ot_in_after') groupedRecords[key].otInAfter = r.time || '-';
-    else if (type === 'ot_out_after') groupedRecords[key].otOutAfter = r.time || '-';
-  });
+  const type = (r.type || '').toLowerCase();
+  if (type === 'in') groupedRecords[key].checkIn = r.time || '-';
+  else if (type === 'out') groupedRecords[key].checkOut = r.time || '-';
+  else if (type === 'ot_in_before') groupedRecords[key].otInBefore = r.time || '-';
+  else if (type === 'ot_out_before') groupedRecords[key].otOutBefore = r.time || '-';
+  else if (type === 'ot_in_after') groupedRecords[key].otInAfter = r.time || '-';
+  else if (type === 'ot_out_after') groupedRecords[key].otOutAfter = r.time || '-';
+});
 
   // สร้าง Excel
   const workbook = new ExcelJS.Workbook();
