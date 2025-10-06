@@ -113,6 +113,7 @@ export default function Dashboard({ user }) {
   const tableData = {};
   records.forEach((r) => {
     if (!r.type || !r.em_code) return;
+     if (selectedCompany !== "all" && r.company_name !== selectedCompany) return;
     const key = `${r.em_code}_${getLocalDateStr(selectedDate)}`;
     if (!tableData[key]) {
       const emp = employees.find(e => e.em_code.toString() === r.em_code.toString());
@@ -339,7 +340,7 @@ sheet.mergeCells('E9:F9'); // OT ก่อนเริ่มงาน
 sheet.mergeCells('G9:H9'); // OT หลังเลิกงาน
 sheet.mergeCells('I9:I10'); // ชม.ทำงาน
 sheet.mergeCells('J9:M9'); // ชม.OT
-sheet.mergeCells('N9:N10'); // หมายเหตุ
+// sheet.mergeCells('N9:N10'); // หมายเหตุ
 
 // ตั้งค่าหัวแถวหลัก
 sheet.getCell('A9').value = 'วัน';
@@ -362,10 +363,11 @@ sheet.getCell('J10').value = '1เท่า';
 sheet.getCell('K10').value = '1.5เท่า';
 sheet.getCell('L10').value = '2เท่า';
 sheet.getCell('M10').value = '3เท่า';
+sheet.getCell('N10').value = '(ป่วย/กิจ/พักร้อน)'; 
 
 // จัดสไตล์หัวตาราง
 ['A9','B9','C9','E9','G9','I9','J9','N9',
- 'C10','D10','E10','F10','G10','H10','J10','K10','L10','M10'].forEach(cell => {
+ 'C10','D10','E10','F10','G10','H10','J10','K10','L10','M10','N10'].forEach(cell => {
   sheet.getCell(cell).alignment = { vertical: 'middle', horizontal: 'center' };
   sheet.getCell(cell).font = { bold: true };
   sheet.getCell(cell).fill = {
