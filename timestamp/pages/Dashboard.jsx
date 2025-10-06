@@ -362,24 +362,26 @@ sheet.getCell('J10').value = '1เท่า';
 sheet.getCell('K10').value = '1.5เท่า';
 sheet.getCell('L10').value = '2เท่า';
 sheet.getCell('M10').value = '3เท่า';
+sheet.getCell('N10').value = '(ป่วย/กิจ/พักร้อน)'; 
 
 // จัดสไตล์หัวตาราง
 ['A9','B9','C9','E9','G9','I9','J9','N9',
- 'C10','D10','E10','F10','G10','H10','J10','K10','L10','M10'].forEach(cell => {
+ 'C10','D10','E10','F10','G10','H10','J10','K10','L10','M10','N10'].forEach(cell => {
+
   sheet.getCell(cell).alignment = { vertical: 'middle', horizontal: 'center' };
-  sheet.getCell(cell).font = { bold: true };
-  sheet.getCell(cell).fill = {
-    type: 'pattern',
-    pattern: 'solid',
-    fgColor: { argb: '1F4E78' } // น้ำเงินเข้ม
-  };
-  sheet.getCell(cell).font = { color: { argb: 'FFFFFF' }, bold: true }; // ตัวอักษรขาว
-  sheet.getCell(cell).border = {
-    top: {style:'thin'},
-    left: {style:'thin'},
-    bottom: {style:'thin'},
-    right: {style:'thin'}
-  };
+  
+  if(cell === 'N10') {
+    sheet.getCell(cell).font = { color: { argb: 'FFFFFF' }, bold: true, size: 8 };
+  } else {
+    sheet.getCell(cell).font = { color: { argb: 'FFFFFF' }, bold: true }; 
+  }
+
+  sheet.getCell(cell).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '1F4E78' } };
+  sheet.getCell(cell).border = { 
+   top: {style:'thin'},
+   left: {style:'thin'}, 
+   bottom: {style:'thin'}, 
+   right: {style:'thin'} };
 });
 
 // จัดความกว้างคอลัมน์
