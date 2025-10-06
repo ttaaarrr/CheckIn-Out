@@ -212,13 +212,13 @@ console.log("employees for export:", empList); // ต้องมีข้อม
     });
   });
 
-  // เติมข้อมูลจริงจากแถวรายวัน
-  dailyRows.forEach((r) => {
-  // หา employee ที่ตรงกับชื่อ
+  // เติมข้อมูลจริงจาก dailyRows
+dailyRows.forEach((r) => {
+  // หา employee จากชื่อ
   const emp = employees.find(e => e.name === r.em_code);
-  if (!emp) return; // ไม่เจอ
-  const dateStr = r.date;
-  const key = `${emp.em_code}_${dateStr}`; // ใช้ em_code ของ employees จริง
+  if (!emp) return; // ถ้าไม่เจอข้าม
+
+  const key = `${emp.em_code}_${r.date}`; // ใช้ em_code จริงของ employee
   if (!groupedRecords[key]) return;
 
   const type = (r.type || '').toLowerCase();
@@ -228,6 +228,7 @@ console.log("employees for export:", empList); // ต้องมีข้อม
   else if (type === 'ot_out_before') groupedRecords[key].otOutBefore = r.time || '-';
   else if (type === 'ot_in_after') groupedRecords[key].otInAfter = r.time || '-';
   else if (type === 'ot_out_after') groupedRecords[key].otOutAfter = r.time || '-';
+  if (r.note) groupedRecords[key].note = r.note;
 });
 
   // สร้าง Excel
