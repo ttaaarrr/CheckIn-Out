@@ -368,19 +368,27 @@ sheet.getCell('N10').value = '(ป่วย/กิจ/พักร้อน)';
 // จัดสไตล์หัวตาราง
 ['A9','B9','C9','E9','G9','I9','J9','N9',
  'C10','D10','E10','F10','G10','H10','J10','K10','L10','M10','N10'].forEach(cell => {
+  
   sheet.getCell(cell).alignment = { vertical: 'middle', horizontal: 'center' };
-  sheet.getCell(cell).font = { bold: true };
+  
+  // กำหนด font แยกเฉพาะ N10
+  if(cell === 'N10') {
+    sheet.getCell(cell).font = { color: { argb: 'FFFFFF' }, bold: true, size: 8 };
+  } else {
+    sheet.getCell(cell).font = { color: { argb: 'FFFFFF' }, bold: true }; // ตัวอักษรขาว default
+  }
+
   sheet.getCell(cell).fill = {
     type: 'pattern',
     pattern: 'solid',
     fgColor: { argb: '1F4E78' } // น้ำเงินเข้ม
   };
-  sheet.getCell(cell).font = { color: { argb: 'FFFFFF' }, bold: true }; // ตัวอักษรขาว
+
   sheet.getCell(cell).border = {
-    top: {style:'thin'},
-    left: {style:'thin'},
-    bottom: {style:'thin'},
-    right: {style:'thin'}
+    top: { style:'thin' },
+    left: { style:'thin' },
+    bottom: { style:'thin' },
+    right: { style:'thin' }
   };
 });
 
