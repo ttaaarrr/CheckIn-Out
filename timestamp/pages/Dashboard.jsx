@@ -211,18 +211,23 @@ console.log("employees:", employees);
   });
 
   // เติมข้อมูลจริงจาก dailyRows
-  dailyRows.forEach((r) => {
-    const key = `${r.em_code}_${r.date}`;
-    if (!groupedRecords[key]) return;
-    const type = (r.type || '').toLowerCase();
-    if (type === 'in') groupedRecords[key].checkIn = r.time || '-';
-    else if (type === 'out') groupedRecords[key].checkOut = r.time || '-';
-    else if (type === 'ot_in_before') groupedRecords[key].otInBefore = r.time || '-';
-    else if (type === 'ot_out_before') groupedRecords[key].otOutBefore = r.time || '-';
-    else if (type === 'ot_in_after') groupedRecords[key].otInAfter = r.time || '-';
-    else if (type === 'ot_out_after') groupedRecords[key].otOutAfter = r.time || '-';
-    if (r.note) groupedRecords[key].note = r.note;
-  });
+dailyRows.forEach((r) => {
+  // หา employee จากชื่อ
+  const emp = employees.find(e => e.name === r.em_code);
+  if (!emp) return; // ถ้าไม่เจอข้าม
+
+  const key = `${emp.em_code}_${r.date}`; // ใช้ em_code จริงของ employee
+  if (!groupedRecords[key]) return;
+
+  const type = (r.type || '').toLowerCase();
+  if (type === 'in') groupedRecords[key].checkIn = r.time || '-';
+  else if (type === 'out') groupedRecords[key].checkOut = r.time || '-';
+  else if (type === 'ot_in_before') groupedRecords[key].otInBefore = r.time || '-';
+  else if (type === 'ot_out_before') groupedRecords[key].otOutBefore = r.time || '-';
+  else if (type === 'ot_in_after') groupedRecords[key].otInAfter = r.time || '-';
+  else if (type === 'ot_out_after') groupedRecords[key].otOutAfter = r.time || '-';
+  if (r.note) groupedRecords[key].note = r.note;
+});
 
   // สร้าง workbook
   const workbook = new ExcelJS.Workbook();
