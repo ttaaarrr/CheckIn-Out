@@ -125,7 +125,7 @@ export default function Dashboard({ user }) {
   e.name.trim() === r.em_code.trim()
 );
     tableData[key] = {
-      em_code: emp ? emp.em_code : r.em_code,
+      em_code: emp ? emp.em_code.toString() : r.em_code.toString(),
       name: emp ? emp.name : r.name || "-",
       company: r.company_name || selectedCompany,
       checkIn: "-",
