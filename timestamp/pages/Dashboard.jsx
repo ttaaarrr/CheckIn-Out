@@ -136,26 +136,28 @@ if (selectedCompany === "all") {
   const tableData = {};
  records.forEach((r) => {
   if (!r.type || !r.em_code) return;
-  
+
   // ตรวจสอบบริษัทก่อน
   if (selectedCompany !== "all" && r.company_name !== selectedCompany) return;
 
-  const key = `${r.em_code}_${getLocalDateStr(selectedDate)}`;
-  if (!tableData[key]) {
-const emp = employees.find(e => e.em_code?.toString() === r.em_code?.toString());
+  // lookup r.em_code หรือ r.name ใน master map
+  const emp = empListMap[r.em_code] || empListMap[r.name];
 
-tableData[key] = {
-  em_code: (emp?.em_code || r.em_code)?.toString() || "-",
-  name: emp?.name || r.name || "-",
-  company: r.company_name || selectedCompany,
-  checkIn: "-",
-  checkOut: "-",
-  otInBefore: "-",
-  otOutBefore: "-",
-  otInAfter: "-",
-  otOutAfter: "-",
-};
+  const key = `${emp ? emp.em_code : r.em_code}_${getLocalDateStr(selectedDate)}`;
+  if (!tableData[key]) {
+    tableData[key] = {
+      em_code: emp ? emp.em_code : r.em_code,
+      name: emp ? emp.name : r.name || "-",
+      company: emp ? emp.company_name : r.company_name || selectedCompany,
+      checkIn: "-",
+      checkOut: "-",
+      otInBefore: "-",
+      otOutBefore: "-",
+      otInAfter: "-",
+      otOutAfter: "-",
+    };
   }
+
   const field = typeMap[r.type.toLowerCase()];
   if (field) tableData[key][field] = r.time || "-";
 });
@@ -237,14 +239,13 @@ groupedRecords[key] = {
 
 // เติมข้อมูลจริงจาก dailyRows
 dailyRows.forEach((r) => {
-  const emCode = r.em_code?.toString() || "-";
-const emp = empList.find(e => e.em_code === r.em_code);
-const key = `${r.em_code}_${r.date}`;
+  const emp = empListMap[r.em_code] || empListMap[r.name];
+  const key = `${emp ? emp.em_code : r.em_code}_${r.date}`;
 
   if (!groupedRecords[key]) {
     groupedRecords[key] = {
-      em_code: emCode,               // รหัสพนักงาน = รหัสจริง
-      name: emp?.name || r.name || "-", // ชื่อพนักงาน = ชื่อจริง fallback จาก r.name
+      em_code: emp ? emp.em_code : r.em_code,
+      name: emp ? emp.name : r.name || "-",
       date: r.date,
       checkIn: "-",
       checkOut: "-",
@@ -252,7 +253,7 @@ const key = `${r.em_code}_${r.date}`;
       otOutBefore: "-",
       otInAfter: "-",
       otOutAfter: "-",
-      company_name: emp?.company_name || r.company_name || selectedCompany,
+      company_name: emp ? emp.company_name : r.company_name || selectedCompany,
     };
   }
 
