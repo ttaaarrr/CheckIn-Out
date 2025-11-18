@@ -38,8 +38,13 @@ export default function Dashboard({ user }) {
             ? "https://api-checkin-out.bpit-staff.com/api/employees?company_name=A"
             : `https://api-checkin-out.bpit-staff.com/api/employees?company_name=${selectedCompany}`;
         const res = await axios.get(url);
-        if (res.data.success) 
-          setEmployees(res.data.employees.filter(e => e.company_name === selectedCompany));
+       if (res.data.success) {
+  if (selectedCompany === "all") {
+    setEmployees(res.data.employees); // เอาทุกบริษัท
+  } else {
+    setEmployees(res.data.employees.filter(e => e.company_name === selectedCompany));
+  }
+}
       } catch (err) {
         console.error(err);
       }
@@ -123,8 +128,8 @@ export default function Dashboard({ user }) {
 const emp = employees.find(e => e.em_code?.toString() === r.em_code?.toString());
 
 tableData[key] = {
-  em_code: (emp?.em_code || r.em_code || r.name || "-").toString(),
-  name: (emp?.name || r.name || r.em_code || "-").toString(),
+  em_code: (emp?.em_code || r.em_code)?.toString() || "-",
+  name: emp?.name || r.name || "-",
   company: r.company_name || selectedCompany,
   checkIn: "-",
   checkOut: "-",
@@ -146,9 +151,9 @@ tableData[key] = {
 
   // เตรียมรายการวันในช่วง
   const dayList = [];
-  for (let d = new Date(startDate); d <= new Date(endDate); d.setDate(d.getDate() + 1)) {
-    dayList.push(d.toISOString().split("T")[0]);
-  }
+  for (let ts = new Date(startDate).getTime(); ts <= new Date(endDate).getTime(); ts += 86400000) {
+  dayList.push(new Date(ts).toISOString().split("T")[0]);
+}
 
   // ดึงข้อมูลรายวันทั้งหมดแบบขนาน แล้วรวมเป็นแถวที่มี date
   let dailyRows = [];
@@ -198,27 +203,26 @@ console.log("employees for export:", empList); // ต้องมีข้อม
   empList.forEach((emp) => {
     dayList.forEach((dateStr) => {
       const key = `${emp.em_code}_${dateStr}`;
-      groupedRecords[key] = {
-        em_code: emp.em_code,
-        name: emp.name,
-        date: dateStr,
-        checkIn: "-",
-        checkOut: "-",
-        otInBefore: "-",
-        otOutBefore: "-",
-        otInAfter: "-",
-        otOutAfter: "-",
-        company_name: emp.company_name || selectedCompany,
-      };
+groupedRecords[key] = {
+  em_code: emp.em_code,
+  name: emp.name,
+  date: dateStr,
+  checkIn: "-",
+  checkOut: "-",
+  otInBefore: "-",
+  otOutBefore: "-",
+  otInAfter: "-",
+  otOutAfter: "-",
+  company_name: emp.company_name || selectedCompany,
+};
     });
   });
 
 // เติมข้อมูลจริงจาก dailyRows
 dailyRows.forEach((r) => {
   const emCode = r.em_code?.toString() || "-";
-  const emp = empList.find(e => e.em_code?.toString() === emCode) || null;
-
-  const key = `${emCode}_${r.date}`;
+const emp = empList.find(e => e.em_code === r.em_code);
+const key = `${r.em_code}_${r.date}`;
 
   if (!groupedRecords[key]) {
     groupedRecords[key] = {
