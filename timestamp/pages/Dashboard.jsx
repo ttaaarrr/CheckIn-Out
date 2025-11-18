@@ -215,24 +215,15 @@ console.log("employees for export:", empList); // ต้องมีข้อม
 
 // เติมข้อมูลจริงจาก dailyRows
 dailyRows.forEach((r) => {
-  let emCode = r.em_code?.toString() || "";
-  let emp;
+  const emCode = r.em_code?.toString() || "-";
+  const emp = empList.find(e => e.em_code?.toString() === emCode) || null;
 
-  // ตรวจสอบว่า em_code เป็นเลขหรือไม่
-  if (/^\d+$/.test(emCode)) {
-    emp = empList.find(e => e.em_code?.toString() === emCode);
-  }
+  const key = `${emCode}_${r.date}`;
 
-  // ถ้าไม่เจอ emp หรือ em_code ไม่ใช่เลข ให้ fallback ใช้ r.name
-  if (!emp) {
-    emp = { em_code: emCode || "-", name: r.name || "-" };
-  }
-
-  const key = `${emp.em_code}_${r.date}`;
   if (!groupedRecords[key]) {
     groupedRecords[key] = {
-      em_code: emp.em_code,
-      name: emp.name,
+      em_code: emCode,               // รหัสพนักงาน = รหัสจริง
+      name: emp?.name || r.name || "-", // ชื่อพนักงาน = ชื่อจริง fallback จาก r.name
       date: r.date,
       checkIn: "-",
       checkOut: "-",
@@ -240,7 +231,7 @@ dailyRows.forEach((r) => {
       otOutBefore: "-",
       otInAfter: "-",
       otOutAfter: "-",
-      company_name: r.company_name || selectedCompany,
+      company_name: emp?.company_name || r.company_name || selectedCompany,
     };
   }
 
