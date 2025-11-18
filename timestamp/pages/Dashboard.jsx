@@ -218,37 +218,44 @@ console.log("employees for export:", empList); // ต้องมีข้อม
 
 // เติมข้อมูลจริงจาก dailyRows
 dailyRows.forEach((r) => {
- const emp = empList.find(e => 
-  e.em_code?.toString() === r.em_code?.toString()
-);
+  let emCode = r.em_code?.toString() || "";
+  let emp;
 
-const emCode = emp ? emp.em_code : r.em_code || "-";
-const name = emp ? emp.name : r.name || "-";
+  // ตรวจสอบว่า em_code เป็นเลขหรือไม่
+  if (/^\d+$/.test(emCode)) {
+    emp = empList.find(e => e.em_code?.toString() === emCode);
+  }
 
-const dateStr = r.date;
-const key = `${emCode}_${dateStr}`;
-if (!groupedRecords[key]) groupedRecords[key] = { 
-  em_code: emCode,
-  name: name,
-  date: dateStr,
-  checkIn: "-",
-  checkOut: "-",
-  otInBefore: "-",
-  otOutBefore: "-",
-  otInAfter: "-",
-  otOutAfter: "-",
-  company_name: r.company_name || selectedCompany,
-};
+  // ถ้าไม่เจอ emp หรือ em_code ไม่ใช่เลข ให้ fallback ใช้ r.name
+  if (!emp) {
+    emp = { em_code: emCode || "-", name: r.name || "-" };
+  }
 
-const type = (r.type || '').toLowerCase();
-if (type === 'in') groupedRecords[key].checkIn = r.time || '-';
-else if (type === 'out') groupedRecords[key].checkOut = r.time || '-';
-else if (type === 'ot_in_before') groupedRecords[key].otInBefore = r.time || '-';
-else if (type === 'ot_out_before') groupedRecords[key].otOutBefore = r.time || '-';
-else if (type === 'ot_in_after') groupedRecords[key].otInAfter = r.time || '-';
-else if (type === 'ot_out_after') groupedRecords[key].otOutAfter = r.time || '-';
+  const key = `${emp.em_code}_${r.date}`;
+  if (!groupedRecords[key]) {
+    groupedRecords[key] = {
+      em_code: emp.em_code,
+      name: emp.name,
+      date: r.date,
+      checkIn: "-",
+      checkOut: "-",
+      otInBefore: "-",
+      otOutBefore: "-",
+      otInAfter: "-",
+      otOutAfter: "-",
+      company_name: r.company_name || selectedCompany,
+    };
+  }
 
-if (r.note) groupedRecords[key].note = r.note;
+  const type = (r.type || "").toLowerCase();
+  if (type === "in") groupedRecords[key].checkIn = r.time || "-";
+  else if (type === "out") groupedRecords[key].checkOut = r.time || "-";
+  else if (type === "ot_in_before") groupedRecords[key].otInBefore = r.time || "-";
+  else if (type === "ot_out_before") groupedRecords[key].otOutBefore = r.time || "-";
+  else if (type === "ot_in_after") groupedRecords[key].otInAfter = r.time || "-";
+  else if (type === "ot_out_after") groupedRecords[key].otOutAfter = r.time || "-";
+
+  if (r.note) groupedRecords[key].note = r.note;
 });
 
   // สร้าง Excel
