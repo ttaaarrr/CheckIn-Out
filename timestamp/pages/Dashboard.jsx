@@ -277,7 +277,7 @@ sheet.addImage(logoLeftId, {
   br: { col: 3, row: 4 }, // bottom-right cell (ครอบคลุมหลาย cell)
   editAs: 'oneCell'
 });
-
+  
    // assume workbook and sheet ถูกสร้างแล้ว
 sheet.pageSetup = {
   paperSize: 9,           // A4
