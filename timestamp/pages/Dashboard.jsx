@@ -39,7 +39,7 @@ export default function Dashboard({ user }) {
             : `https://api-checkin-out.bpit-staff.com/api/employees?company_name=${selectedCompany}`;
         const res = await axios.get(url);
         if (res.data.success) 
-          setEmployees(res.data.employees.filter(e => e.company_name === selectedCompany));
+          setEmployees(res.data.employees);
       } catch (err) {
         console.error(err);
       }
@@ -120,21 +120,29 @@ export default function Dashboard({ user }) {
 
   const key = `${r.em_code}_${getLocalDateStr(selectedDate)}`;
   if (!tableData[key]) {
-    const emp = employees.find(e => 
-  e.em_code.toString() === r.em_code.toString() || 
-  e.name.trim() === r.em_code.trim()
-);
-    tableData[key] = {
-      em_code: emp ? emp.em_code.toString() : r.em_code.toString(),
-      name: emp ? emp.name : r.name || "-",
-      company: r.company_name || selectedCompany,
-      checkIn: "-",
-      checkOut: "-",
-      otInBefore: "-",
-      otOutBefore: "-",
-      otInAfter: "-",
-      otOutAfter: "-",
-    };
+   const emp = employees.find(e => {
+  const codeMatch =
+    e.em_code && r.em_code && e.em_code.toString().trim() === r.em_code.toString().trim();
+
+  const nameMatch =
+    e.name &&
+    r.em_code &&
+    e.name.trim().toLowerCase() === r.em_code.trim().toLowerCase();
+
+  return codeMatch || nameMatch;
+});
+
+tableData[key] = {
+  em_code: emp ? emp.em_code : r.em_code, // ถ้าเจอพนักงาน จะเอา em_code จริงมาใส่
+  name: emp ? emp.name : r.name || "-",   // แสดงชื่อจริงเสมอ
+  company: r.company_name || selectedCompany,
+  checkIn: "-",
+  checkOut: "-",
+  otInBefore: "-",
+  otOutBefore: "-",
+  otInAfter: "-",
+  otOutAfter: "-",
+};
   }
   const field = typeMap[r.type.toLowerCase()];
   if (field) tableData[key][field] = r.time || "-";
