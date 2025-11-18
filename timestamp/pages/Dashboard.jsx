@@ -126,8 +126,8 @@ export default function Dashboard({ user }) {
 );
 
 tableData[key] = {
-  em_code: emp?.em_code || r.em_code || "-", // ใช้ em_code จาก employee หรือจาก record
-  name: emp?.name || r.name || "-",
+  em_code: (emp?.em_code || r.em_code || r.name || "-").toString(),
+  name: (emp?.name || r.name || r.em_code || "-").toString(),
   company: r.company_name || selectedCompany,
   checkIn: "-",
   checkOut: "-",
@@ -218,20 +218,18 @@ console.log("employees for export:", empList); // ต้องมีข้อม
 
 // เติมข้อมูลจริงจาก dailyRows
 dailyRows.forEach((r) => {
-
-   const emp = employees.find(e => e.name.trim().includes(r.em_code.trim()));
-
-  if (!emp) {
-    console.log("ไม่พบพนักงานที่ตรงกับ:", r.em_code);
-    return;
-  }
+  const emp = empList.find(e => 
+    (r.em_code && e.em_code?.toString() === r.em_code?.toString()) ||
+    (r.name && e.name?.toString() === r.name?.toString())
+  ) || { em_code: r.em_code || "-", name: r.name || "-" };
 
   const dateStr = r.date;
   const key = `${emp.em_code}_${dateStr}`;
-  if (!groupedRecords[key]) {
-    console.log("ไม่พบ key:", key);
-    return;
-  }
+  if (!groupedRecords[key]) groupedRecords[key] = { 
+    em_code: emp.em_code, name: emp.name, date: dateStr,
+    checkIn: "-", checkOut: "-", otInBefore: "-", otOutBefore: "-",
+    otInAfter: "-", otOutAfter: "-", company_name: r.company_name || selectedCompany,
+  };
 
   const type = (r.type || '').toLowerCase();
   if (type === 'in') groupedRecords[key].checkIn = r.time || '-';
@@ -589,8 +587,8 @@ saveAs(new Blob([buf]), `TimeRecords_${startDate}_${endDate}.xlsx`);
             <tbody>
               {Object.values(tableData).map((r, idx) => (
                 <tr key={idx} className={idx % 2 === 0 ? "bg-gray-50" : ""}>
-                  <td className="border px-2 py-1">{r.em_code}</td>
-                  <td className="border px-2 py-1">{r.name}</td>
+                  <td className="border px-2 py-1">{r.em_code || r.name || "-"}</td>
+                  <td className="border px-2 py-1">{r.name || r.em_code || "-"}</td>
                   <td className="border px-2 py-1">{r.checkIn}</td>
                   <td className="border px-2 py-1">{r.checkOut}</td>
                   <td className="border px-2 py-1">{r.otInBefore}</td>
