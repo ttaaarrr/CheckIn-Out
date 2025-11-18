@@ -32,12 +32,14 @@ export default function Dashboard({ user }) {
   useEffect(() => {
     if (!user) return;
     const fetchEmployees = async () => {
+       console.log("Fetching employees for company:", selectedCompany);
       try {
         const url =
           selectedCompany === "all"
             ? "https://api-checkin-out.bpit-staff.com/api/employees?company_name=A"
             : `https://api-checkin-out.bpit-staff.com/api/employees?company_name=${selectedCompany}`;
         const res = await axios.get(url);
+          console.log("Employees response:", res.data);
        if (res.data.success) {
  let empList = res.data.employees || [];
 // แปลง em_code เป็น string
@@ -46,11 +48,12 @@ empList.forEach(e => { if(e.em_code != null) e.em_code = e.em_code.toString(); }
 if (selectedCompany === "all") {
   setEmployees(empList); // เอาทุกบริษัท
 } else {
+   console.log("Processed employees:", empList);
   setEmployees(empList.filter(e => e.company_name === selectedCompany));
 }
 }
       } catch (err) {
-        console.error(err);
+        console.error("Error fetching employees:", err);
       }
     };
     fetchEmployees();
@@ -60,8 +63,10 @@ if (selectedCompany === "all") {
   useEffect(() => {
     if (!user) return;
     const fetchData = async () => {
+        console.log("Fetching companies and records for date:", selectedDate, "company:", selectedCompany);
       try {
         const compRes = await axios.get("https://api-checkin-out.bpit-staff.com/api/company");
+         console.log("Companies response:", compRes.data);
         if (compRes.data.success) {
           setCompanies(
             compRes.data.companies.map((c, index) => ({ id: index, name: c.name }))
@@ -73,13 +78,15 @@ if (selectedCompany === "all") {
             selectedCompany !== "all" ? `&company=${selectedCompany}` : ""
           }`
         );
+             console.log("Records response:", recRes.data);
         if (recRes.data.success) {
   let recList = recRes.data.records || [];
   recList.forEach(r => { if(r.em_code != null) r.em_code = r.em_code.toString(); });
   setRecords(recList);
+  console.log("Processed records:", recList);
 }
       } catch (err) {
-        console.error(err);
+         console.error("Error fetching data:", err);
       }
     };
     fetchData();
@@ -94,7 +101,8 @@ if (selectedCompany === "all") {
     if (diffMs <= 0) return "-";
     const hrs = Math.floor(diffMs / (1000 * 60 * 60));
     const mins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-    return `${hrs}ชม. ${mins}นาที`;
+     console.log(`calcDuration: start=${start}, end=${end}, result=${hrs}ชม.${mins}นาที`);
+  return `${hrs}ชม. ${mins}นาที`;
   };
 
   const calcTotalOT = (r) => {
@@ -114,7 +122,8 @@ if (selectedCompany === "all") {
     if (totalMinutes === 0) return "-";
     const hrs = Math.floor(totalMinutes / 60);
     const mins = Math.round(totalMinutes % 60);
-    return `${hrs}ชม. ${mins}นาที`;
+     console.log(`calcTotalOT for ${r.em_code}: ${hrs}ชม.${mins}นาที`);
+  return `${hrs}ชม. ${mins}นาที`;
   };
  const getLocalDateStr = (dateStr) => {
     const d = new Date(dateStr);
