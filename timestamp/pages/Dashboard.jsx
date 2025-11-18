@@ -587,7 +587,7 @@ saveAs(new Blob([buf]), `TimeRecords_${startDate}_${endDate}.xlsx`);
             <tbody>
               {Object.values(tableData).map((r, idx) => (
                 <tr key={idx} className={idx % 2 === 0 ? "bg-gray-50" : ""}>
-                  <td className="border px-2 py-1">{r.em_code || r.name || "-"}</td>
+                  <td className="border px-2 py-1">{r.em_code || "-"}</td>
                   <td className="border px-2 py-1">{r.name || r.em_code || "-"}</td>
                   <td className="border px-2 py-1">{r.checkIn}</td>
                   <td className="border px-2 py-1">{r.checkOut}</td>
