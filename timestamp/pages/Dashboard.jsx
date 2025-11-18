@@ -120,10 +120,7 @@ export default function Dashboard({ user }) {
 
   const key = `${r.em_code}_${getLocalDateStr(selectedDate)}`;
   if (!tableData[key]) {
-    const emp = employees.find(e =>
-  (r.em_code && e.em_code.toString() === r.em_code.toString()) ||
-  (r.name && e.name.toString() === r.name.toString())
-);
+const emp = employees.find(e => e.em_code?.toString() === r.em_code?.toString());
 
 tableData[key] = {
   em_code: (emp?.em_code || r.em_code || r.name || "-").toString(),
