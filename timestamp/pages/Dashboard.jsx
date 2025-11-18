@@ -39,7 +39,7 @@ export default function Dashboard({ user }) {
             : `https://api-checkin-out.bpit-staff.com/api/employees?company_name=${selectedCompany}`;
         const res = await axios.get(url);
         if (res.data.success) 
-          setEmployees(res.data.employees);
+          setEmployees(res.data.employees.filter(e => e.company_name === selectedCompany));
       } catch (err) {
         console.error(err);
       }
@@ -71,23 +71,7 @@ export default function Dashboard({ user }) {
     };
     fetchData();
   }, [user, selectedDate, selectedCompany]);
-  const findEmployee = (r, empList) => {
-    if (!r) return null;
 
-    const code = r.em_code?.toString().trim() || "";
-    const name = r.name?.trim() || "";
-
-    return (
-      empList.find(e =>
-        e.em_code?.toString().trim() === code
-      ) ||
-      empList.find(e =>
-        e.name?.trim() === code ||
-        e.name?.trim() === name
-      ) ||
-      null
-    );
-  };
   // คำนวณเวลา
   const calcDuration = (start, end) => {
     if (!start || !end || start === "-" || end === "-") return "-";
@@ -136,29 +120,18 @@ export default function Dashboard({ user }) {
 
   const key = `${r.em_code}_${getLocalDateStr(selectedDate)}`;
   if (!tableData[key]) {
-   const emp = employees.find(e => {
-  const codeMatch =
-    e.em_code && r.em_code && e.em_code.toString().trim() === r.em_code.toString().trim();
-
-  const nameMatch =
-    e.name &&
-    r.em_code &&
-    e.name.trim().toLowerCase() === r.em_code.trim().toLowerCase();
-
-  return codeMatch || nameMatch;
-});
-
-tableData[key] = {
-  em_code: emp ? emp.em_code : r.em_code, // ถ้าเจอพนักงาน จะเอา em_code จริงมาใส่
-  name: emp ? emp.name : r.name || "-",   // แสดงชื่อจริงเสมอ
-  company: r.company_name || selectedCompany,
-  checkIn: "-",
-  checkOut: "-",
-  otInBefore: "-",
-  otOutBefore: "-",
-  otInAfter: "-",
-  otOutAfter: "-",
-};
+    const emp = employees.find(e => e.em_code.toString() === r.em_code.toString());
+    tableData[key] = {
+      em_code: r.em_code,
+      name: emp ? emp.name : r.name || "-",
+      company: r.company_name || selectedCompany,
+      checkIn: "-",
+      checkOut: "-",
+      otInBefore: "-",
+      otOutBefore: "-",
+      otInAfter: "-",
+      otOutAfter: "-",
+    };
   }
   const field = typeMap[r.type.toLowerCase()];
   if (field) tableData[key][field] = r.time || "-";
@@ -240,18 +213,21 @@ console.log("employees for export:", empList); // ต้องมีข้อม
   });
 
 // เติมข้อมูลจริงจาก dailyRows
- dailyRows.forEach((r) => {
-      const emp = findEmployee(r, employees); // <-- ใช้ตรงนี้
-      if (!emp) {
-        console.log("ไม่พบพนักงานที่ตรงกับ:", r.em_code, r.name);
-        return;
-      }
-      const dateStr = r.date;
-      const key = `${emp.em_code}_${dateStr}`;
-      if (!groupedRecords[key]) {
-        console.warn("ไม่พบ key:", key);
-        return;
-      }
+dailyRows.forEach((r) => {
+
+   const emp = employees.find(e => e.name.trim().includes(r.em_code.trim()));
+
+  if (!emp) {
+    console.log("ไม่พบพนักงานที่ตรงกับ:", r.em_code);
+    return;
+  }
+
+  const dateStr = r.date;
+  const key = `${emp.em_code}_${dateStr}`;
+  if (!groupedRecords[key]) {
+    console.log("ไม่พบ key:", key);
+    return;
+  }
 
   const type = (r.type || '').toLowerCase();
   if (type === 'in') groupedRecords[key].checkIn = r.time || '-';
@@ -276,8 +252,11 @@ console.log("employees for export:", empList); // ต้องมีข้อม
 const formatDateTH = (dateStr) => {
   const d = new Date(dateStr);
    if (isNaN(d)) return "-";
-  return `${d.getDate()} ${monthNames[d.getMonth()]} ${d.getFullYear()}`;
-}
+  const day = d.getDate();
+  const month = d.getMonth() + 1;
+  const year = d.getFullYear();
+  return `${day}-${month}-${year}`;
+};
   // โหลดโลโก้เป็น ArrayBuffer (Browser-compatible)
   const fetchLogoBuffer = async (url) => {
     const res = await fetch(url);
@@ -301,7 +280,7 @@ sheet.addImage(logoLeftId, {
   br: { col: 3, row: 4 }, // bottom-right cell (ครอบคลุมหลาย cell)
   editAs: 'oneCell'
 });
-  
+
    // assume workbook and sheet ถูกสร้างแล้ว
 sheet.pageSetup = {
   paperSize: 9,           // A4
@@ -460,16 +439,16 @@ dayList.forEach((dateStr, idx) => {
   const r = groupedRecords[key];
   if (!r) return;
 
-  const row = sheet.addRow([
-    dayNames[new Date(dateStr).getDay()],
-    dateStr,
-    r.checkIn, r.checkOut,
-    r.otInBefore, r.otOutBefore,
-    r.otInAfter, r.otOutAfter,
-    calcDuration(r.checkIn, r.checkOut),
-    "","","","",
-    r.note || ""
-  ]);
+const row = sheet.addRow([
+  dayNames[new Date(dateStr).getDay()],
+  formatDateTH(dateStr), 
+  r.checkIn, r.checkOut,
+  r.otInBefore, r.otOutBefore,
+  r.otInAfter, r.otOutAfter,
+  calcDuration(r.checkIn, r.checkOut),
+  "","","","",
+  r.note || ""
+]);
 
   row.eachCell({ includeEmpty: true }, cell => {
     cell.alignment = { horizontal: "center", vertical: "middle" }; 
