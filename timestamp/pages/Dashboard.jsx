@@ -39,11 +39,15 @@ export default function Dashboard({ user }) {
             : `https://api-checkin-out.bpit-staff.com/api/employees?company_name=${selectedCompany}`;
         const res = await axios.get(url);
        if (res.data.success) {
-  if (selectedCompany === "all") {
-    setEmployees(res.data.employees); // เอาทุกบริษัท
-  } else {
-    setEmployees(res.data.employees.filter(e => e.company_name === selectedCompany));
-  }
+ let empList = res.data.employees || [];
+// แปลง em_code เป็น string
+empList.forEach(e => { if(e.em_code != null) e.em_code = e.em_code.toString(); });
+
+if (selectedCompany === "all") {
+  setEmployees(empList); // เอาทุกบริษัท
+} else {
+  setEmployees(empList.filter(e => e.company_name === selectedCompany));
+}
 }
       } catch (err) {
         console.error(err);
@@ -69,7 +73,11 @@ export default function Dashboard({ user }) {
             selectedCompany !== "all" ? `&company=${selectedCompany}` : ""
           }`
         );
-        if (recRes.data.success) setRecords(recRes.data.records || []);
+        if (recRes.data.success) {
+  let recList = recRes.data.records || [];
+  recList.forEach(r => { if(r.em_code != null) r.em_code = r.em_code.toString(); });
+  setRecords(recList);
+}
       } catch (err) {
         console.error(err);
       }
@@ -596,7 +604,7 @@ saveAs(new Blob([buf]), `TimeRecords_${startDate}_${endDate}.xlsx`);
               {Object.values(tableData).map((r, idx) => (
                 <tr key={idx} className={idx % 2 === 0 ? "bg-gray-50" : ""}>
                   <td className="border px-2 py-1">{r.em_code || "-"}</td>
-                  <td className="border px-2 py-1">{r.name || r.em_code || "-"}</td>
+                  <td className="border px-2 py-1">{r.name || "-"}</td>
                   <td className="border px-2 py-1">{r.checkIn}</td>
                   <td className="border px-2 py-1">{r.checkOut}</td>
                   <td className="border px-2 py-1">{r.otInBefore}</td>
