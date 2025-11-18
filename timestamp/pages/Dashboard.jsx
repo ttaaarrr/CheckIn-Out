@@ -71,7 +71,23 @@ export default function Dashboard({ user }) {
     };
     fetchData();
   }, [user, selectedDate, selectedCompany]);
+  const findEmployee = (r, empList) => {
+    if (!r) return null;
 
+    const code = r.em_code?.toString().trim() || "";
+    const name = r.name?.trim() || "";
+
+    return (
+      empList.find(e =>
+        e.em_code?.toString().trim() === code
+      ) ||
+      empList.find(e =>
+        e.name?.trim() === code ||
+        e.name?.trim() === name
+      ) ||
+      null
+    );
+  };
   // คำนวณเวลา
   const calcDuration = (start, end) => {
     if (!start || !end || start === "-" || end === "-") return "-";
@@ -224,19 +240,18 @@ console.log("employees for export:", empList); // ต้องมีข้อม
   });
 
 // เติมข้อมูลจริงจาก dailyRows
-dailyRows.forEach((r) => {
-  const emp = employees.find(e => e.em_code.toString() === r.em_code.toString());
-  if (!emp) {
-    console.log("ไม่พบพนักงานที่ตรงกับ:", r.em_code);
-    return;
-  }
-
-  const dateStr = r.date;
-  const key = `${emp.em_code}_${dateStr}`;
-  if (!groupedRecords[key]) {
-    console.warn("ไม่พบ key:", key);
-    return;
-  }
+ dailyRows.forEach((r) => {
+      const emp = findEmployee(r, employees); // <-- ใช้ตรงนี้
+      if (!emp) {
+        console.log("ไม่พบพนักงานที่ตรงกับ:", r.em_code, r.name);
+        return;
+      }
+      const dateStr = r.date;
+      const key = `${emp.em_code}_${dateStr}`;
+      if (!groupedRecords[key]) {
+        console.warn("ไม่พบ key:", key);
+        return;
+      }
 
   const type = (r.type || '').toLowerCase();
   if (type === 'in') groupedRecords[key].checkIn = r.time || '-';
