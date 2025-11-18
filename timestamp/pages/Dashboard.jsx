@@ -214,11 +214,9 @@ console.log("employees for export:", empList); // ต้องมีข้อม
 
 // เติมข้อมูลจริงจาก dailyRows
 dailyRows.forEach((r) => {
-
-   const emp = employees.find(e => e.name.trim().includes(r.em_code.trim()));
-
+  const emp = employees.find(e => e.em_code.toString() === r.em_code.toString());
   if (!emp) {
-    console.warn("ไม่พบพนักงานที่ตรงกับ:", r.em_code);
+    console.log("ไม่พบพนักงานที่ตรงกับ:", r.em_code);
     return;
   }
 
