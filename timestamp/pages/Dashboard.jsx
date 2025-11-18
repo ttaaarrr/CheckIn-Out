@@ -58,7 +58,11 @@ if (selectedCompany === "all") {
     };
     fetchEmployees();
   }, [user, selectedCompany]);
-
+const empListMap = {};
+employees.forEach(e => {
+  if (e.em_code) empListMap[e.em_code] = e;
+  if (e.name) empListMap[e.name] = e;
+});
   // Fetch companies + records
   useEffect(() => {
     if (!user) return;
@@ -198,6 +202,7 @@ if (selectedCompany === "all") {
     console.error(err);
     return;
   }
+  
   // ดึง employees
  let empList = employees; // เอา state employees
 if (!empList.length) {
@@ -285,6 +290,11 @@ const formatDateTH = (dateStr) => {
   const year = d.getFullYear();
   return `${day}-${month}-${year}`;
 };
+const empListMap = {};
+empList.forEach(e => {
+  if(e.em_code) empListMap[e.em_code] = e;
+  if(e.name) empListMap[e.name] = e;
+});
   // โหลดโลโก้เป็น ArrayBuffer (Browser-compatible)
   const fetchLogoBuffer = async (url) => {
     const res = await fetch(url);
