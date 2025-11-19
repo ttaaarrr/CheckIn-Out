@@ -103,13 +103,7 @@ export default function Dashboard({ user }) {
     const mins = Math.round(totalMinutes % 60);
     return `${hrs}ชม. ${mins}นาที`;
   };
- const getLocalDateStr = (dateStr) => {
-    const d = new Date(dateStr);
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
-    return `${day}-${month}-${year}`;;
-  };
+ const getLocalDateStr = formatDateDMY;
   // สร้าง tableData หน้าเว็บ
   const tableData = {};
  records.forEach((r) => {
@@ -118,7 +112,7 @@ export default function Dashboard({ user }) {
   // ตรวจสอบบริษัทก่อน
   if (selectedCompany !== "all" && r.company_name !== selectedCompany) return;
 
-  const key = `${r.em_code}_${getLocalDateStr(selectedDate)}`;
+  const key = `${r.em_code}_${getLocalDateStr(r.date || selectedDate)}`;
   if (!tableData[key]) {
     const emp = employees.find(e => e.em_code.toString() === r.em_code.toString());
     tableData[key] = {
@@ -146,7 +140,7 @@ export default function Dashboard({ user }) {
   // เตรียมรายการวันในช่วง
   const dayList = [];
   for (let d = new Date(startDate); d <= new Date(endDate); d.setDate(d.getDate() + 1)) {
-    dayList.push(d.toISOString().split("T")[0]);
+    dayList.push(formatDateDMY(d.toISOString()));
   }
 
   // ดึงข้อมูลรายวันทั้งหมดแบบขนาน แล้วรวมเป็นแถวที่มี date
@@ -249,10 +243,13 @@ dailyRows.forEach((r) => {
     "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"
   ];
   
-const formatDateTH = (dateStr) => {
-  const d = new Date(dateStr);
-   if (isNaN(d)) return "-";
-  return `${d.getDate()} ${monthNames[d.getMonth()]} ${d.getFullYear()}`;
+const formatDateDMY = (input) => {
+  const d = input instanceof Date ? input : new Date(input);
+  if (isNaN(d)) return "-";
+  const day = String(d.getDate()).padStart(2,"0");
+  const month = String(d.getMonth()+1).padStart(2,"0");
+  const year = d.getFullYear();
+  return `${day}/${month}/${year}`;
 }
   // โหลดโลโก้เป็น ArrayBuffer (Browser-compatible)
   const fetchLogoBuffer = async (url) => {
