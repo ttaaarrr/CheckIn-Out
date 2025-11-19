@@ -63,7 +63,7 @@ export default function Employees() {
   const [newCompanyLat, setNewCompanyLat] = useState('');
   const [newCompanyLng, setNewCompanyLng] = useState('');
   const [companyFormVisible, setCompanyFormVisible] = useState(false);
-
+  const [editingCompany, setEditingCompany] = useState(null); 
   const { user } = useUser();
   const navigate = useNavigate();
 
@@ -103,21 +103,37 @@ export default function Employees() {
   //เพิ่มบริษัท
   const addCompany = async () => {
     if (!newCompanyName) return alert("กรอกชื่อบริษัท");
-    try {
-      const res = await axios.post('https://api-checkin-out.bpit-staff.com/api/company', {
-        name: newCompanyName,
-        address: newCompanyAddress,
-        latitude: newCompanyLat || null,
-        longitude: newCompanyLng || null,
-      });
-      if (res.data.success) {
-        fetchCompanies();
-        setNewCompanyName('');
-        setNewCompanyAddress('');
-        setNewCompanyLat('');
-        setNewCompanyLng('');
-        setCompanyFormVisible(false);
-      } else alert(res.data.message);
+    try {   
+       let res;
+if (editingCompany) {
+  res = await axios.put(
+    `https://api-checkin-out.bpit-staff.com/api/company/${editingCompany.name}`,
+    {
+      name: newCompanyName,
+      address: newCompanyAddress,
+      latitude: newCompanyLat || null,
+      longitude: newCompanyLng || null,
+    }
+  );
+  alert(`แก้ไขบริษัท ${newCompanyName} สำเร็จ`);
+  setEditingCompany(null);
+} else {
+  res = await axios.post('https://api-checkin-out.bpit-staff.com/api/company', {
+    name: newCompanyName,
+    address: newCompanyAddress,
+    latitude: newCompanyLat || null,
+    longitude: newCompanyLng || null,
+  });
+}
+if (res.data.success) {
+  fetchCompanies();
+  setNewCompanyName('');
+  setNewCompanyAddress('');
+  setNewCompanyLat('');
+  setNewCompanyLng('');
+  setCompanyFormVisible(false);
+} else alert(res.data.message);
+
     } catch (err) {
       console.error(err);
       alert('เกิดข้อผิดพลาด');
@@ -206,7 +222,24 @@ export default function Employees() {
           >
             เพิ่มบริษัท
           </button>
-
+          {/*แก้ไข*/}
+          <button
+          onClick={() => {
+            if (!selectedCompany) return alert("กรุณาเลือกบริษัทก่อนแก้ไข");
+            const company = companies.find(c => c.name === selectedCompany);
+            if (!company) return;
+            setEditingCompany(company);             // กำหนดบริษัทที่จะแก้ไข
+            setNewCompanyName(company.name);        // เติมชื่อบริษัทใน form
+            setNewCompanyAddress(company.address || '');
+            setNewCompanyLat(company.latitude || '');
+            setNewCompanyLng(company.longitude || '');
+            setCompanyFormVisible(true);            // เปิด form
+          }}
+          className="bg-yellow-400 text-white px-5 py-2 rounded-lg hover:bg-yellow-500"
+          >
+            แก้ไขบริษัท
+          </button>
+          {/*ลบ*/ }
           <button
             onClick={() => {
               if (!selectedCompany) return alert("กรุณาเลือกบริษัทก่อนลบ");
@@ -283,7 +316,8 @@ export default function Employees() {
 
     <div className="flex gap-2 justify-end">
       <button onClick={addCompany} className="bg-green-500 text-white px-4 py-2 rounded">บันทึก</button>
-      <button onClick={() => setCompanyFormVisible(false)} className="bg-red-500 text-white px-4 py-2 rounded">ยกเลิก</button>
+      <button onClick={() => {setCompanyFormVisible(false); setEditingCompany(null);}}
+       className="bg-red-500 text-white px-4 py-2 rounded">ยกเลิก</button>
     </div>
   </div>
 )}
