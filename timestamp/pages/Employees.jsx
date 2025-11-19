@@ -203,7 +203,7 @@ if (res.data.success) {
         <select
           value={selectedCompany}
           onChange={e => {
-            const companyId = e.target.value;
+           const companyId = Number(e.target.value);
             setSelectedCompany(companyId);
             fetchEmployees(companyId);
           }}
@@ -226,7 +226,7 @@ if (res.data.success) {
           <button
           onClick={() => {
             if (!selectedCompany) return alert("กรุณาเลือกบริษัทก่อนแก้ไข");
-            const company = companies.find(c => c.id === selectedCompany);
+             const company = companies.find(c => c.id === Number(selectedCompany));
             if (!company) return;
             setEditingCompany(company);             // กำหนดบริษัทที่จะแก้ไข
             setNewCompanyName(company.name);        // เติมชื่อบริษัทใน form
