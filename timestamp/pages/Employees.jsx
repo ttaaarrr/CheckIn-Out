@@ -78,7 +78,7 @@ export default function Employees() {
     try {
       const res = await axios.get('https://api-checkin-out.bpit-staff.com/api/company');
       if (res.data.success) {
-        setCompanies(res.data.companies.map(c => ({ id: c.name, name: c.name })));
+        setCompanies(res.data.companies);
       }
     } catch (err) {
       console.error(err);
@@ -107,7 +107,7 @@ export default function Employees() {
        let res;
 if (editingCompany) {
   res = await axios.put(
-    `https://api-checkin-out.bpit-staff.com/api/company/${editingCompany.name}`,
+    `https://api-checkin-out.bpit-staff.com/api/company/${editingCompany.id}`,
     {
       name: newCompanyName,
       address: newCompanyAddress,
@@ -226,7 +226,7 @@ if (res.data.success) {
           <button
           onClick={() => {
             if (!selectedCompany) return alert("กรุณาเลือกบริษัทก่อนแก้ไข");
-            const company = companies.find(c => c.name === selectedCompany);
+            const company = companies.find(c => c.id === selectedCompany);
             if (!company) return;
             setEditingCompany(company);             // กำหนดบริษัทที่จะแก้ไข
             setNewCompanyName(company.name);        // เติมชื่อบริษัทใน form
