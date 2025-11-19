@@ -291,10 +291,10 @@ const formatDateTH = (dateStr) => {
   const year = d.getFullYear();
   return `${day}-${month}-${year}`;
 };
-const empListMap = {};
+const empListMapex = {};
 empList.forEach(e => {
-  if(e.em_code) empListMap[e.em_code] = e;
-  if(e.name) empListMap[e.name] = e;
+  if(e.em_code) empListMapex[e.em_code] = e;
+  if(e.name) empListMapex[e.name] = e;
 });
   // โหลดโลโก้เป็น ArrayBuffer (Browser-compatible)
   const fetchLogoBuffer = async (url) => {
