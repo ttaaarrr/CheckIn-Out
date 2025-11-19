@@ -32,45 +32,27 @@ export default function Dashboard({ user }) {
   useEffect(() => {
     if (!user) return;
     const fetchEmployees = async () => {
-       console.log("Fetching employees for company:", selectedCompany);
       try {
         const url =
           selectedCompany === "all"
             ? "https://api-checkin-out.bpit-staff.com/api/employees?company_name=A"
             : `https://api-checkin-out.bpit-staff.com/api/employees?company_name=${selectedCompany}`;
         const res = await axios.get(url);
-          console.log("Employees response:", res.data);
-       if (res.data.success) {
- let empList = res.data.employees || [];
-// แปลง em_code เป็น string
-empList.forEach(e => { if(e.em_code != null) e.em_code = e.em_code.toString(); });
-
-if (selectedCompany === "all") {
-  setEmployees(empList); // เอาทุกบริษัท
-} else {
-   console.log("Processed employees:", empList);
-  setEmployees(empList.filter(e => e.company_name === selectedCompany));
-}
-}
+        if (res.data.success) 
+          setEmployees(res.data.employees.filter(e => e.company_name === selectedCompany));
       } catch (err) {
-        console.error("Error fetching employees:", err);
+        console.error(err);
       }
     };
     fetchEmployees();
   }, [user, selectedCompany]);
-const empListMap = {};
-employees.forEach(e => {
-  if (e.em_code) empListMap[e.em_code] = e;
-  if (e.name) empListMap[e.name] = e;
-});
+
   // Fetch companies + records
   useEffect(() => {
     if (!user) return;
     const fetchData = async () => {
-        console.log("Fetching companies and records for date:", selectedDate, "company:", selectedCompany);
       try {
         const compRes = await axios.get("https://api-checkin-out.bpit-staff.com/api/company");
-        
         if (compRes.data.success) {
           setCompanies(
             compRes.data.companies.map((c, index) => ({ id: index, name: c.name }))
@@ -82,15 +64,9 @@ employees.forEach(e => {
             selectedCompany !== "all" ? `&company=${selectedCompany}` : ""
           }`
         );
-             console.log("Records response:", recRes.data);
-        if (recRes.data.success) {
-  let recList = recRes.data.records || [];
-  recList.forEach(r => { if(r.em_code != null) r.em_code = r.em_code.toString(); });
-  setRecords(recList);
-  console.log("Processed records:", recList);
-}
+        if (recRes.data.success) setRecords(recRes.data.records || []);
       } catch (err) {
-         console.error("Error fetching data:", err);
+        console.error(err);
       }
     };
     fetchData();
@@ -105,8 +81,7 @@ employees.forEach(e => {
     if (diffMs <= 0) return "-";
     const hrs = Math.floor(diffMs / (1000 * 60 * 60));
     const mins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-     console.log(`calcDuration: start=${start}, end=${end}, result=${hrs}ชม.${mins}นาที`);
-  return `${hrs}ชม. ${mins}นาที`;
+    return `${hrs}ชม. ${mins}นาที`;
   };
 
   const calcTotalOT = (r) => {
@@ -126,8 +101,7 @@ employees.forEach(e => {
     if (totalMinutes === 0) return "-";
     const hrs = Math.floor(totalMinutes / 60);
     const mins = Math.round(totalMinutes % 60);
-     console.log(`calcTotalOT for ${r.em_code}: ${hrs}ชม.${mins}นาที`);
-  return `${hrs}ชม. ${mins}นาที`;
+    return `${hrs}ชม. ${mins}นาที`;
   };
  const getLocalDateStr = (dateStr) => {
     const d = new Date(dateStr);
@@ -140,19 +114,17 @@ employees.forEach(e => {
   const tableData = {};
  records.forEach((r) => {
   if (!r.type || !r.em_code) return;
-
+  
   // ตรวจสอบบริษัทก่อน
   if (selectedCompany !== "all" && r.company_name !== selectedCompany) return;
 
-  // lookup r.em_code หรือ r.name ใน master map
-  const emp = empListMap[r.em_code] || empListMap[r.name];
-
-  const key = `${emp ? emp.em_code : r.em_code}_${getLocalDateStr(selectedDate)}`;
+  const key = `${r.em_code}_${getLocalDateStr(selectedDate)}`;
   if (!tableData[key]) {
+    const emp = employees.find(e => e.em_code.toString() === r.em_code.toString());
     tableData[key] = {
-      em_code: emp ? emp.em_code : r.em_code,
+      em_code: r.em_code,
       name: emp ? emp.name : r.name || "-",
-      company: emp ? emp.company_name : r.company_name || selectedCompany,
+      company: r.company_name || selectedCompany,
       checkIn: "-",
       checkOut: "-",
       otInBefore: "-",
@@ -161,13 +133,11 @@ employees.forEach(e => {
       otOutAfter: "-",
     };
   }
-
   const field = typeMap[r.type.toLowerCase()];
   if (field) tableData[key][field] = r.time || "-";
 });
 
  const exportExcel = async () => {
-  console.log("EMPLOYEES STATE HERE:", employees);
   if (!selectedCompany || selectedCompany === "all" || !startDate || !endDate) {
     alert("กรุณาเลือกบริษัทและช่วงวันที่ก่อน export Excel");
     return;
@@ -175,9 +145,9 @@ employees.forEach(e => {
 
   // เตรียมรายการวันในช่วง
   const dayList = [];
-  for (let ts = new Date(startDate).getTime(); ts <= new Date(endDate).getTime(); ts += 86400000) {
-  dayList.push(new Date(ts).toISOString().split("T")[0]);
-}
+  for (let d = new Date(startDate); d <= new Date(endDate); d.setDate(d.getDate() + 1)) {
+    dayList.push(d.toISOString().split("T")[0]);
+  }
 
   // ดึงข้อมูลรายวันทั้งหมดแบบขนาน แล้วรวมเป็นแถวที่มี date
   let dailyRows = [];
@@ -203,7 +173,6 @@ employees.forEach(e => {
     console.error(err);
     return;
   }
-  
   // ดึง employees
  let empList = employees; // เอา state employees
 if (!empList.length) {
@@ -228,48 +197,45 @@ console.log("employees for export:", empList); // ต้องมีข้อม
   empList.forEach((emp) => {
     dayList.forEach((dateStr) => {
       const key = `${emp.em_code}_${dateStr}`;
-groupedRecords[key] = {
-  em_code: emp.em_code,
-  name: emp.name,
-  date: dateStr,
-  checkIn: "-",
-  checkOut: "-",
-  otInBefore: "-",
-  otOutBefore: "-",
-  otInAfter: "-",
-  otOutAfter: "-",
-  company_name: emp.company_name || selectedCompany,
-};
+      groupedRecords[key] = {
+        em_code: emp.em_code,
+        name: emp.name,
+        date: dateStr,
+        checkIn: "-",
+        checkOut: "-",
+        otInBefore: "-",
+        otOutBefore: "-",
+        otInAfter: "-",
+        otOutAfter: "-",
+        company_name: emp.company_name || selectedCompany,
+      };
     });
   });
 
 // เติมข้อมูลจริงจาก dailyRows
 dailyRows.forEach((r) => {
-  const emp = empListMap[r.em_code] || empListMap[r.name];
-  const key = `${emp ? emp.em_code : r.em_code}_${r.date}`;
 
-  if (!groupedRecords[key]) {
-    groupedRecords[key] = {
-      em_code: emp ? emp.em_code : r.em_code,
-      name: emp ? emp.name : r.name || "-",
-      date: r.date,
-      checkIn: "-",
-      checkOut: "-",
-      otInBefore: "-",
-      otOutBefore: "-",
-      otInAfter: "-",
-      otOutAfter: "-",
-      company_name: emp ? emp.company_name : r.company_name || selectedCompany,
-    };
+   const emp = employees.find(e => e.name.trim().includes(r.em_code.trim()));
+
+  if (!emp) {
+    console.warn("ไม่พบพนักงานที่ตรงกับ:", r.em_code);
+    return;
   }
 
-  const type = (r.type || "").toLowerCase();
-  if (type === "in") groupedRecords[key].checkIn = r.time || "-";
-  else if (type === "out") groupedRecords[key].checkOut = r.time || "-";
-  else if (type === "ot_in_before") groupedRecords[key].otInBefore = r.time || "-";
-  else if (type === "ot_out_before") groupedRecords[key].otOutBefore = r.time || "-";
-  else if (type === "ot_in_after") groupedRecords[key].otInAfter = r.time || "-";
-  else if (type === "ot_out_after") groupedRecords[key].otOutAfter = r.time || "-";
+  const dateStr = r.date;
+  const key = `${emp.em_code}_${dateStr}`;
+  if (!groupedRecords[key]) {
+    console.warn("ไม่พบ key:", key);
+    return;
+  }
+
+  const type = (r.type || '').toLowerCase();
+  if (type === 'in') groupedRecords[key].checkIn = r.time || '-';
+  else if (type === 'out') groupedRecords[key].checkOut = r.time || '-';
+  else if (type === 'ot_in_before') groupedRecords[key].otInBefore = r.time || '-';
+  else if (type === 'ot_out_before') groupedRecords[key].otOutBefore = r.time || '-';
+  else if (type === 'ot_in_after') groupedRecords[key].otInAfter = r.time || '-';
+  else if (type === 'ot_out_after') groupedRecords[key].otOutAfter = r.time || '-';
 
   if (r.note) groupedRecords[key].note = r.note;
 });
@@ -286,16 +252,8 @@ dailyRows.forEach((r) => {
 const formatDateTH = (dateStr) => {
   const d = new Date(dateStr);
    if (isNaN(d)) return "-";
-  const day = d.getDate();
-  const month = d.getMonth() + 1;
-  const year = d.getFullYear();
-  return `${day}-${month}-${year}`;
-};
-const empListMapex = {};
-empList.forEach(e => {
-  if(e.em_code) empListMapex[e.em_code] = e;
-  if(e.name) empListMapex[e.name] = e;
-});
+  return `${d.getDate()} ${monthNames[d.getMonth()]} ${d.getFullYear()}`;
+}
   // โหลดโลโก้เป็น ArrayBuffer (Browser-compatible)
   const fetchLogoBuffer = async (url) => {
     const res = await fetch(url);
@@ -319,7 +277,7 @@ sheet.addImage(logoLeftId, {
   br: { col: 3, row: 4 }, // bottom-right cell (ครอบคลุมหลาย cell)
   editAs: 'oneCell'
 });
-
+  
    // assume workbook and sheet ถูกสร้างแล้ว
 sheet.pageSetup = {
   paperSize: 9,           // A4
@@ -478,16 +436,16 @@ dayList.forEach((dateStr, idx) => {
   const r = groupedRecords[key];
   if (!r) return;
 
-const row = sheet.addRow([
-  dayNames[new Date(dateStr).getDay()],
-  formatDateTH(dateStr), 
-  r.checkIn, r.checkOut,
-  r.otInBefore, r.otOutBefore,
-  r.otInAfter, r.otOutAfter,
-  calcDuration(r.checkIn, r.checkOut),
-  "","","","",
-  r.note || ""
-]);
+  const row = sheet.addRow([
+    dayNames[new Date(dateStr).getDay()],
+    dateStr,
+    r.checkIn, r.checkOut,
+    r.otInBefore, r.otOutBefore,
+    r.otInAfter, r.otOutAfter,
+    calcDuration(r.checkIn, r.checkOut),
+    "","","","",
+    r.note || ""
+  ]);
 
   row.eachCell({ includeEmpty: true }, cell => {
     cell.alignment = { horizontal: "center", vertical: "middle" }; 
@@ -624,8 +582,8 @@ saveAs(new Blob([buf]), `TimeRecords_${startDate}_${endDate}.xlsx`);
             <tbody>
               {Object.values(tableData).map((r, idx) => (
                 <tr key={idx} className={idx % 2 === 0 ? "bg-gray-50" : ""}>
-                  <td className="border px-2 py-1">{r.em_code || "-"}</td>
-                  <td className="border px-2 py-1">{r.name || "-"}</td>
+                  <td className="border px-2 py-1">{r.em_code}</td>
+                  <td className="border px-2 py-1">{r.name}</td>
                   <td className="border px-2 py-1">{r.checkIn}</td>
                   <td className="border px-2 py-1">{r.checkOut}</td>
                   <td className="border px-2 py-1">{r.otInBefore}</td>
