@@ -264,6 +264,35 @@ const formatDateTH = (dateStr) => {
   empList.forEach((emp) => {
   const sheet = workbook.addWorksheet(emp.name || emp.em_code);
 
+  // Fill data
+dayList.forEach((dateStr, idx) => {
+  const key = `${emp.em_code}_${dateStr}`;
+  const r = groupedRecords[key];
+  if (!r) return;
+
+  const row = sheet.addRow([
+    dayNames[new Date(dateStr).getDay()],
+    dateStr,
+    r.checkIn, r.checkOut,
+    r.otInBefore, r.otOutBefore,
+    r.otInAfter, r.otOutAfter,
+    calcDuration(r.checkIn, r.checkOut),
+    "","","","",
+    r.note || ""
+  ]);
+
+  row.eachCell({ includeEmpty: true }, cell => {
+    cell.alignment = { horizontal: "center", vertical: "middle" }; 
+    cell.border = { top:{style:"thin"}, left:{style:"thin"}, bottom:{style:"thin"}, right:{style:"thin"} };
+  });
+
+  // สลับสีแถว (optional)
+  if(idx % 2 === 0) row.eachCell({ includeEmpty: true }, cell => {
+    cell.fill = { type:"pattern", pattern:"solid", fgColor:{argb:"FFD9E1F2"} };
+  });
+
+  row.height = 18; // ตั้ง row height ให้ uniform
+});
   const logoLeftId = workbook.addImage({
   buffer: logoLeftBuffer,
   extension: 'png'
@@ -430,35 +459,7 @@ sheet.columns = [
   {width:10}, {width:12}
 ];
 
-// Fill data
-dayList.forEach((dateStr, idx) => {
-  const key = `${emp.em_code}_${dateStr}`;
-  const r = groupedRecords[key];
-  if (!r) return;
 
-  const row = sheet.addRow([
-    dayNames[new Date(dateStr).getDay()],
-    dateStr,
-    r.checkIn, r.checkOut,
-    r.otInBefore, r.otOutBefore,
-    r.otInAfter, r.otOutAfter,
-    calcDuration(r.checkIn, r.checkOut),
-    "","","","",
-    r.note || ""
-  ]);
-
-  row.eachCell({ includeEmpty: true }, cell => {
-    cell.alignment = { horizontal: "center", vertical: "middle" }; 
-    cell.border = { top:{style:"thin"}, left:{style:"thin"}, bottom:{style:"thin"}, right:{style:"thin"} };
-  });
-
-  // สลับสีแถว (optional)
-  if(idx % 2 === 0) row.eachCell({ includeEmpty: true }, cell => {
-    cell.fill = { type:"pattern", pattern:"solid", fgColor:{argb:"FFD9E1F2"} };
-  });
-
-  row.height = 18; // ตั้ง row height ให้ uniform
-});
 
 const summaryRow = sheet.lastRow.number + 2;
 
