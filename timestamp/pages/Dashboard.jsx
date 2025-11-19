@@ -115,11 +115,11 @@ export default function Dashboard({ user }) {
   if (!r.type || !r.em_code) return;
   
   // ตรวจสอบบริษัทก่อน
-  if (selectedCompany !== "all" && r.company_id !== selectedCompany) return;
+  if (selectedCompany !== "all" && r.company_id.toString() !== selectedCompany.toString()) return;
 
   const key = `${r.em_code}_${getLocalDateStr(selectedDate)}`;
   if (!tableData[key]) {
-     const emp = employees.find(e => e.em_code.toString() === r.em_code.toString());
+     const emp = empList.find(e => e.em_code.toString() === r.em_code.toString());
      const companyObj = companies.find(c => c.id === r.company_id);
     tableData[key] = {
       em_code: r.em_code,
