@@ -167,6 +167,7 @@ employees.forEach(e => {
 });
 
  const exportExcel = async () => {
+  console.log("EMPLOYEES STATE HERE:", employees);
   if (!selectedCompany || selectedCompany === "all" || !startDate || !endDate) {
     alert("กรุณาเลือกบริษัทและช่วงวันที่ก่อน export Excel");
     return;
