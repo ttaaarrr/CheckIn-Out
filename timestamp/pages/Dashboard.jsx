@@ -112,14 +112,17 @@ export default function Dashboard({ user }) {
   // สร้าง tableData หน้าเว็บ
  const tableData = {};
 records.forEach((r) => {
-  if (!r.type || !r.em_code) return;
+    if (!r || !r.type || r.em_code === undefined) return; 
   
   // ตรวจสอบบริษัทก่อน
   if (selectedCompany !== "all" && r.company_id.toString() !== selectedCompany.toString()) return;
 
   const key = `${r.em_code}_${getLocalDateStr(selectedDate)}`;
   if (!tableData[key]) {
-     const emp = employees.find(e => e.em_code.toString() === r.em_code.toString()); 
+     const emp = employees.find(
+  e => e?.em_code !== undefined && r.em_code !== undefined && e.em_code.toString() === r.em_code.toString()
+);
+
     const companyObj = companies.find(c => c.id === r.company_id);
     tableData[key] = {
       em_code: r.em_code,
