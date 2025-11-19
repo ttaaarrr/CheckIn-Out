@@ -142,7 +142,7 @@ export default function Dashboard({ user }) {
     alert("กรุณาเลือกบริษัทและช่วงวันที่ก่อน export Excel");
     return;
   }
-
+  let empList = [];
   // เตรียมรายการวันในช่วง
   const dayList = [];
   for (let d = new Date(startDate); d <= new Date(endDate); d.setDate(d.getDate() + 1)) {
@@ -174,7 +174,7 @@ export default function Dashboard({ user }) {
     return;
   }
   // ดึง employees
- let empList = employees; // เอา state employees
+  empList = employees.length ? employees : [];
 if (!empList.length) {
   try {
     const empRes = await axios.get(
@@ -214,11 +214,9 @@ console.log("employees for export:", empList); // ต้องมีข้อม
 
 // เติมข้อมูลจริงจาก dailyRows
 dailyRows.forEach((r) => {
-
-  const emp = employees.find(e => e.em_code.toString() === r.em_code.toString());
-
+  const emp = empList.find(e => e.em_code === r.em_code);
   if (!emp) {
-    console.warn("ไม่พบพนักงานที่ตรงกับ:", r.em_code);
+    console.log("ไม่พบพนักงานที่ตรงกับ:", r.em_code);
     return;
   }
 
