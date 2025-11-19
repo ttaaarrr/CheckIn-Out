@@ -38,9 +38,8 @@ export default function Dashboard({ user }) {
             ? "https://api-checkin-out.bpit-staff.com/api/employees?company_id=A"
             : `https://api-checkin-out.bpit-staff.com/api/employees?company_id=${selectedCompany}`;
         const res = await axios.get(url);
-        if (res.data.success) 
-          setEmployees(res.data.employees.filter(e => e.company_name === selectedCompany));
-      } catch (err) {
+     if (res.data.success) setEmployees(res.data.employees);
+    } catch (err) {
         console.error(err);
       }
     };
@@ -121,10 +120,11 @@ export default function Dashboard({ user }) {
   const key = `${r.em_code}_${getLocalDateStr(selectedDate)}`;
   if (!tableData[key]) {
     const emp = employees.find(e => e.em_code.toString() === r.em_code.toString());
+     const companyObj = companies.find(c => c.id === r.company_id);
     tableData[key] = {
       em_code: r.em_code,
       name: emp ? emp.name : r.name || "-",
-      company: r.company_name || selectedCompany,
+       company: companyObj ? companyObj.name : "-",
       checkIn: "-",
       checkOut: "-",
       otInBefore: "-",
@@ -541,10 +541,10 @@ saveAs(new Blob([buf]), `TimeRecords_${startDate}_${endDate}.xlsx`);
       <div className="flex flex-col md:flex-row gap-4 mb-6">
         <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)}
           className="px-4 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 focus:outline-none"/>
-        <select value={selectedCompany} onChange={(e) => setSelectedCompany(e.target.value)}
+        <select value={selectedCompany} onChange={e => setSelectedCompany(e.target.value)}
           className="px-4 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 focus:outline-none">
           <option value="all">เลือกบริษัท</option>
-          {companies.map((c) => <option key={c.id} value={c.name}>{c.name}</option>)}
+          {companies.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
         </select>
         <div className="flex items-center gap-2 ml-auto">
           <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)}
