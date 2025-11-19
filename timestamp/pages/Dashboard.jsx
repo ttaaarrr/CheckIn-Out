@@ -35,11 +35,12 @@ export default function Dashboard({ user }) {
       try {
         const url =
           selectedCompany === "all"
-            ? "https://api-checkin-out.bpit-staff.com/api/employees?company_id=A"
-            : `https://api-checkin-out.bpit-staff.com/api/employees?company_id=${selectedCompany}`;
+            ? "https://api-checkin-out.bpit-staff.com/api/employees?company_name=A"
+            : `https://api-checkin-out.bpit-staff.com/api/employees?company_name=${selectedCompany}`;
         const res = await axios.get(url);
-     if (res.data.success) setEmployees(res.data.employees);
-    } catch (err) {
+        if (res.data.success) 
+          setEmployees(res.data.employees.filter(e => e.company_name === selectedCompany));
+      } catch (err) {
         console.error(err);
       }
     };
@@ -110,24 +111,20 @@ export default function Dashboard({ user }) {
     return `${day}-${month}-${year}`;;
   };
   // สร้าง tableData หน้าเว็บ
- const tableData = {};
-records.forEach((r) => {
-    if (!r || !r.type || r.em_code === undefined) return; 
+  const tableData = {};
+ records.forEach((r) => {
+  if (!r.type || !r.em_code) return;
   
   // ตรวจสอบบริษัทก่อน
-  if (selectedCompany !== "all" && r.company_id.toString() !== selectedCompany.toString()) return;
+  if (selectedCompany !== "all" && r.company_name !== selectedCompany) return;
 
   const key = `${r.em_code}_${getLocalDateStr(selectedDate)}`;
   if (!tableData[key]) {
-     const emp = employees.find(
-  e => e?.em_code !== undefined && r.em_code !== undefined && e.em_code.toString() === r.em_code.toString()
-);
-
-    const companyObj = companies.find(c => c.id === r.company_id);
+    const emp = employees.find(e => e.em_code.toString() === r.em_code.toString());
     tableData[key] = {
       em_code: r.em_code,
       name: emp ? emp.name : r.name || "-",
-      company: companyObj ? companyObj.name : "-",
+      company: r.company_name || selectedCompany,
       checkIn: "-",
       checkOut: "-",
       otInBefore: "-",
@@ -177,11 +174,11 @@ records.forEach((r) => {
     return;
   }
   // ดึง employees
-  empList = employees.length ? employees : [];
+ let empList = employees; // เอา state employees
 if (!empList.length) {
   try {
     const empRes = await axios.get(
-      `https://api-checkin-out.bpit-staff.com/api/employees?company_id=${selectedCompany}`
+      `https://api-checkin-out.bpit-staff.com/api/employees?company_name=${selectedCompany}`
     );
     if (empRes.data.success) empList = empRes.data.employees || [];
   } catch (err) {
@@ -217,9 +214,11 @@ console.log("employees for export:", empList); // ต้องมีข้อม
 
 // เติมข้อมูลจริงจาก dailyRows
 dailyRows.forEach((r) => {
-  const emp = empList.find(e => e.em_code === r.em_code);
+
+   const emp = employees.find(e => e.name.trim().includes(r.em_code.trim()));
+
   if (!emp) {
-    console.log("ไม่พบพนักงานที่ตรงกับ:", r.em_code);
+    console.warn("ไม่พบพนักงานที่ตรงกับ:", r.em_code);
     return;
   }
 
@@ -265,35 +264,6 @@ const formatDateTH = (dateStr) => {
   empList.forEach((emp) => {
   const sheet = workbook.addWorksheet(emp.name || emp.em_code);
 
-  // Fill data
-dayList.forEach((dateStr, idx) => {
-  const key = `${emp.em_code}_${dateStr}`;
-  const r = groupedRecords[key];
-  if (!r) return;
-
-  const row = sheet.addRow([
-    dayNames[new Date(dateStr).getDay()],
-    dateStr,
-    r.checkIn, r.checkOut,
-    r.otInBefore, r.otOutBefore,
-    r.otInAfter, r.otOutAfter,
-    calcDuration(r.checkIn, r.checkOut),
-    "","","","",
-    r.note || ""
-  ]);
-
-  row.eachCell({ includeEmpty: true }, cell => {
-    cell.alignment = { horizontal: "center", vertical: "middle" }; 
-    cell.border = { top:{style:"thin"}, left:{style:"thin"}, bottom:{style:"thin"}, right:{style:"thin"} };
-  });
-
-  // สลับสีแถว (optional)
-  if(idx % 2 === 0) row.eachCell({ includeEmpty: true }, cell => {
-    cell.fill = { type:"pattern", pattern:"solid", fgColor:{argb:"FFD9E1F2"} };
-  });
-
-  row.height = 18; // ตั้ง row height ให้ uniform
-});
   const logoLeftId = workbook.addImage({
   buffer: logoLeftBuffer,
   extension: 'png'
@@ -460,7 +430,35 @@ sheet.columns = [
   {width:10}, {width:12}
 ];
 
+// Fill data
+dayList.forEach((dateStr, idx) => {
+  const key = `${emp.em_code}_${dateStr}`;
+  const r = groupedRecords[key];
+  if (!r) return;
 
+  const row = sheet.addRow([
+    dayNames[new Date(dateStr).getDay()],
+    dateStr,
+    r.checkIn, r.checkOut,
+    r.otInBefore, r.otOutBefore,
+    r.otInAfter, r.otOutAfter,
+    calcDuration(r.checkIn, r.checkOut),
+    "","","","",
+    r.note || ""
+  ]);
+
+  row.eachCell({ includeEmpty: true }, cell => {
+    cell.alignment = { horizontal: "center", vertical: "middle" }; 
+    cell.border = { top:{style:"thin"}, left:{style:"thin"}, bottom:{style:"thin"}, right:{style:"thin"} };
+  });
+
+  // สลับสีแถว (optional)
+  if(idx % 2 === 0) row.eachCell({ includeEmpty: true }, cell => {
+    cell.fill = { type:"pattern", pattern:"solid", fgColor:{argb:"FFD9E1F2"} };
+  });
+
+  row.height = 18; // ตั้ง row height ให้ uniform
+});
 
 const summaryRow = sheet.lastRow.number + 2;
 
@@ -543,10 +541,10 @@ saveAs(new Blob([buf]), `TimeRecords_${startDate}_${endDate}.xlsx`);
       <div className="flex flex-col md:flex-row gap-4 mb-6">
         <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)}
           className="px-4 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 focus:outline-none"/>
-        <select value={selectedCompany} onChange={e => setSelectedCompany(e.target.value)}
+        <select value={selectedCompany} onChange={(e) => setSelectedCompany(e.target.value)}
           className="px-4 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 focus:outline-none">
           <option value="all">เลือกบริษัท</option>
-          {companies.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+          {companies.map((c) => <option key={c.id} value={c.name}>{c.name}</option>)}
         </select>
         <div className="flex items-center gap-2 ml-auto">
           <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)}
