@@ -35,8 +35,8 @@ export default function Dashboard({ user }) {
       try {
         const url =
           selectedCompany === "all"
-            ? "https://api-checkin-out.bpit-staff.com/api/employees?company_name=A"
-            : `https://api-checkin-out.bpit-staff.com/api/employees?company_name=${selectedCompany}`;
+            ? "https://api-checkin-out.bpit-staff.com/api/employees?company_id=A"
+            : `https://api-checkin-out.bpit-staff.com/api/employees?company_id=${selectedCompany}`;
         const res = await axios.get(url);
         if (res.data.success) 
           setEmployees(res.data.employees.filter(e => e.company_name === selectedCompany));
@@ -178,7 +178,7 @@ export default function Dashboard({ user }) {
 if (!empList.length) {
   try {
     const empRes = await axios.get(
-      `https://api-checkin-out.bpit-staff.com/api/employees?company_name=${selectedCompany}`
+      `https://api-checkin-out.bpit-staff.com/api/employees?company_id=${selectedCompany}`
     );
     if (empRes.data.success) empList = empRes.data.employees || [];
   } catch (err) {

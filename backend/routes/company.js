@@ -42,7 +42,45 @@ router.post('/', async (req, res) => {
     if (conn) conn.release();
   }
 });
+// แก้ไขบริษัท
+router.put('/:name', async (req, res) => {
+  const oldName = req.params.name;  // ชื่อก่อนแก้
+  const { name, address, latitude, longitude } = req.body; // ข้อมูลใหม่
 
+  let conn;
+  try {
+    conn = await pool.getConnection();
+
+    // ถ้าชื่อใหม่ != ชื่อเดิม → ต้องตรวจสอบว่ามีซ้ำไหม
+    if (name && name !== oldName) {
+      const [exists] = await conn.execute(
+        'SELECT name FROM company WHERE name = ?', 
+        [name]
+      );
+      if (exists.length > 0) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'ชื่อบริษัทนี้มีอยู่แล้ว' 
+        });
+      }
+    }
+
+    await conn.execute(
+      `UPDATE company 
+       SET name = ?, address = ?, latitude = ?, longitude = ?
+       WHERE name = ?`,
+      [name, address, latitude, longitude, oldName]
+    );
+
+    res.json({ success: true });
+
+  } catch (err) {
+    console.error('PUT /api/company/:name error:', err);
+    res.status(500).json({ success: false, message: 'Database error' });
+  } finally {
+    if (conn) conn.release();
+  }
+});
 
 // ลบบริษัท
 router.delete('/:name', async (req, res) => {
