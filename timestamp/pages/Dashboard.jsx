@@ -70,7 +70,7 @@ employees.forEach(e => {
         console.log("Fetching companies and records for date:", selectedDate, "company:", selectedCompany);
       try {
         const compRes = await axios.get("https://api-checkin-out.bpit-staff.com/api/company");
-         console.log("Companies response:", compRes.data);
+        
         if (compRes.data.success) {
           setCompanies(
             compRes.data.companies.map((c, index) => ({ id: index, name: c.name }))
