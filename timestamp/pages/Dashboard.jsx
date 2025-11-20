@@ -569,6 +569,7 @@ saveAs(new Blob([buf]), `TimeRecords_${startDate}_${endDate}.xlsx`);
               <tr>
                 <th rowSpan={2} className="border border-gray-300 px-2 py-1">รหัสพนักงาน</th>
                 <th rowSpan={2} className="border border-gray-300 px-2 py-1">ชื่อ</th>
+                <th rowSpan={2} className="border border-gray-300 px-2 py-1">วันที่</th>
                 <th rowSpan={2} className="border border-gray-300 px-2 py-1">เวลาเข้า</th>
                 <th rowSpan={2} className="border border-gray-300 px-2 py-1">เวลาออก</th>
                 <th colSpan={4} className="border border-gray-300 px-2 py-1 text-center">OT</th>
@@ -587,6 +588,7 @@ saveAs(new Blob([buf]), `TimeRecords_${startDate}_${endDate}.xlsx`);
                 <tr key={idx} className={idx % 2 === 0 ? "bg-gray-50" : ""}>
                   <td className="border px-2 py-1">{r.em_code}</td>
                   <td className="border px-2 py-1">{r.name}</td>
+                  <td className="border px-2 py-1">{getLocalDateStr(selectedDate)}</td>
                   <td className="border px-2 py-1">{r.checkIn}</td>
                   <td className="border px-2 py-1">{r.checkOut}</td>
                   <td className="border px-2 py-1">{r.otInBefore}</td>
