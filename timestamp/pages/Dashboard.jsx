@@ -606,7 +606,8 @@ saveAs(new Blob([buf]), `TimeRecords_${formatDateForApi(startDate)}_${formatDate
  
       {selectedCompany === "all" ? (
         <div className="text-red-500 font-semibold text-lg flex justify-center items-center">กรุณาเลือกบริษัทก่อนแสดงข้อมูล</div>
-      ) : (
+      ) : (<>
+        {console.log("tableData สำหรับแสดงตาราง:", tableData)}
         <div className="bg-white shadow-md rounded-lg overflow-auto">
           <table className="min-w-full border border-gray-300 border-collapse">
             <thead className="bg-blue-50">
@@ -644,7 +645,8 @@ saveAs(new Blob([buf]), `TimeRecords_${formatDateForApi(startDate)}_${formatDate
             </tbody>
           </table>
         </div>
-      )}
+      </>
+    )}
     </div>
   );
 }
