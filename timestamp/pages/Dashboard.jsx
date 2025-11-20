@@ -542,18 +542,45 @@ saveAs(new Blob([buf]), `TimeRecords_${startDate}_${endDate}.xlsx`);
       <h1 className="text-2xl font-bold mb-6 text-gray-800">ตารางบันทึกการลงเวลา</h1>
 
       <div className="flex flex-col md:flex-row gap-4 mb-6">
-        <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)}
-          className="px-4 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 focus:outline-none"/>
+        <div className="flex flex-col">
+          <input
+            type="date"
+            value={selectedDate}
+            onChange={(e) => setSelectedDate(e.target.value)}
+            className="px-4 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 focus:outline-none"
+          />
+          <span className="text-xs text-gray-500 mt-1">
+            วันที่เลือก: {getLocalDateStr(selectedDate)}
+          </span>
+        </div>
         <select value={selectedCompany} onChange={(e) => setSelectedCompany(e.target.value)}
           className="px-4 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 focus:outline-none">
           <option value="all">เลือกบริษัท</option>
           {companies.map((c) => <option key={c.id} value={c.name}>{c.name}</option>)}
         </select>
         <div className="flex items-center gap-2 ml-auto">
-          <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)}
-            className="px-4 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 focus:outline-none"/>
-          <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)}
-            className="px-4 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 focus:outline-none"/>
+          <div className="flex flex-col">
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="px-4 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 focus:outline-none"
+            />
+            <span className="text-xs text-gray-500 mt-1">
+              วันที่เริ่ม: {getLocalDateStr(startDate)}
+            </span>
+          </div>
+          <div className="flex flex-col">
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="px-4 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 focus:outline-none"
+            />
+            <span className="text-xs text-gray-500 mt-1">
+              วันที่สิ้นสุด: {getLocalDateStr(endDate)}
+            </span>
+          </div>
           <button onClick={exportExcel} className="px-4 py-2 bg-blue-500 text-white rounded-lg shadow hover:bg-blue-600 transition">
             ดาวน์โหลด Excel
           </button>
