@@ -211,7 +211,7 @@ console.log("employees for export:", empList); // ต้องมีข้อม
         otOutBefore: "-",
         otInAfter: "-",
         otOutAfter: "-",
-        company_name: emp.company_name || selectedCompany,
+        company_name: emp.company_ || selectedCompany,
       };
     });
   });
