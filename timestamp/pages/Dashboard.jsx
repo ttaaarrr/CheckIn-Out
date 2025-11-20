@@ -39,7 +39,7 @@ export default function Dashboard({ user }) {
             : `https://api-checkin-out.bpit-staff.com/api/employees?company_name=${selectedCompany}`;
         const res = await axios.get(url);
         if (res.data.success) 
-          setEmployees(res.data.employees);
+          setEmployees(res.data.employees.filter(e => e.company_name === selectedCompany));
       } catch (err) {
         console.error(err);
       }
@@ -168,14 +168,13 @@ export default function Dashboard({ user }) {
 
     // ให้ชนิดข้อมูลของรหัสพนักงานเป็นสตริงทั้งหมดเพื่อให้จับคู่คีย์ได้
     dailyRows.forEach(r => { if (r.em_code !== undefined && r.em_code !== null) r.em_code = r.em_code.toString(); });
-
+    employees.forEach(e => { if (e.em_code !== undefined && e.em_code !== null) e.em_code = e.em_code.toString(); });
   } catch (err) {
     console.error(err);
     return;
   }
   // ดึง employees
  let empList = employees; // เอา state employees
- empList = empList.filter(e => e.company_name === selectedCompany);
 if (!empList.length) {
   try {
     const empRes = await axios.get(
@@ -216,7 +215,7 @@ console.log("employees for export:", empList); // ต้องมีข้อม
 // เติมข้อมูลจริงจาก dailyRows
 dailyRows.forEach((r) => {
 
-   const emp = empList.find(e => String(e.em_code) === String(r.em_code));
+   const emp = employees.find(e => e.name.trim().includes(r.em_code.trim()));
 
   if (!emp) {
     console.warn("ไม่พบพนักงานที่ตรงกับ:", r.em_code);
@@ -255,13 +254,6 @@ const formatDateTH = (dateStr) => {
    if (isNaN(d)) return "-";
   return `${d.getDate()} ${monthNames[d.getMonth()]} ${d.getFullYear()}`;
 }
-const toDMY = (dateStr) => {
-  const d = new Date(dateStr);
-  const day = String(d.getDate()).padStart(2, "0");
-  const month = String(d.getMonth() + 1).padStart(2, "0");
-  const year = d.getFullYear();
-  return `${day}-${month}-${year}`;
-};
   // โหลดโลโก้เป็น ArrayBuffer (Browser-compatible)
   const fetchLogoBuffer = async (url) => {
     const res = await fetch(url);
@@ -444,16 +436,16 @@ dayList.forEach((dateStr, idx) => {
   const r = groupedRecords[key];
   if (!r) return;
 
-const row = sheet.addRow([
-  dayNames[new Date(dateStr).getDay()],
-  toDMY(dateStr),
-  r.checkIn, r.checkOut,
-  r.otInBefore, r.otOutBefore,
-  r.otInAfter, r.otOutAfter,
-  calcDuration(r.checkIn, r.checkOut),
-  "","","","",
-  r.note || ""
-]);
+  const row = sheet.addRow([
+    dayNames[new Date(dateStr).getDay()],
+    dateStr,
+    r.checkIn, r.checkOut,
+    r.otInBefore, r.otOutBefore,
+    r.otInAfter, r.otOutAfter,
+    calcDuration(r.checkIn, r.checkOut),
+    "","","","",
+    r.note || ""
+  ]);
 
   row.eachCell({ includeEmpty: true }, cell => {
     cell.alignment = { horizontal: "center", vertical: "middle" }; 
