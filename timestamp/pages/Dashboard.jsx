@@ -596,7 +596,7 @@ saveAs(new Blob([buf]), `TimeRecords_${formatDateForApi(startDate)}_${formatDate
           </button>
         </div>
       </div>
-
+ 
       {selectedCompany === "all" ? (
         <div className="text-red-500 font-semibold text-lg flex justify-center items-center">กรุณาเลือกบริษัทก่อนแสดงข้อมูล</div>
       ) : (
