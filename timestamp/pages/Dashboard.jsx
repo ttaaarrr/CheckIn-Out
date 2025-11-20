@@ -108,7 +108,7 @@ export default function Dashboard({ user }) {
     const year = d.getFullYear();
     const month = String(d.getMonth() + 1).padStart(2, "0");
     const day = String(d.getDate()).padStart(2, "0");
-    return `${day}-${month}-${year}`;;
+    return `${day}/${month}/${year}`;
   };
   // สร้าง tableData หน้าเว็บ
   const tableData = {};
@@ -252,8 +252,8 @@ dailyRows.forEach((r) => {
 const formatDateTH = (dateStr) => {
   const d = new Date(dateStr);
    if (isNaN(d)) return "-";
-    const day = String(d.getDate()).padStart(2, '0');
-  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = String(d.getMonth() + 1).padStart(2, "0");
   const year = d.getFullYear();
   return `${day}/${month}/${year}`;
 }
@@ -441,7 +441,7 @@ dayList.forEach((dateStr, idx) => {
 
   const row = sheet.addRow([
     dayNames[new Date(dateStr).getDay()],
-    formatDateTH(dateStr),
+    formatDateTH(dateStr), 
     r.checkIn, r.checkOut,
     r.otInBefore, r.otOutBefore,
     r.otInAfter, r.otOutAfter,
