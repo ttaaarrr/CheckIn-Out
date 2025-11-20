@@ -40,8 +40,11 @@ export default function Dashboard({ user }) {
             ? "https://api-checkin-out.bpit-staff.com/api/employees?company_name=A"
             : `https://api-checkin-out.bpit-staff.com/api/employees?company_name=${selectedCompany}`;
         const res = await axios.get(url);
+
+         console.log("🟢 [EMPLOYEES API RESPONSE]:", res.data);
         if (res.data.success) 
           setEmployees(res.data.employees.filter(e => e.company_name === selectedCompany));
+          console.log("🟡 [FILTERED EMPLOYEES]", filtered);
       } catch (err) {
         console.error(err);
       }
