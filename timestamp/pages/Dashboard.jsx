@@ -32,18 +32,19 @@ export default function Dashboard({ user }) {
   useEffect(() => {
     if (!user) return;
     const fetchEmployees = async () => {
-      try {
-        const url =
-          selectedCompany === "all"
-            ? "https://api-checkin-out.bpit-staff.com/api/employees?company_name=A"
-            : `https://api-checkin-out.bpit-staff.com/api/employees?company_name=${selectedCompany}`;
-        const res = await axios.get(url);
-        if (res.data.success) 
-          setEmployees(res.data.employees.filter(e => e.company_name === selectedCompany));
-      } catch (err) {
-        console.error(err);
-      }
-    };
+  try {
+    const url =
+      selectedCompany === "all"
+        ? "https://api-checkin-out.bpit-staff.com/api/employees"
+        : `https://api-checkin-out.bpit-staff.com/api/employees?company_id=${selectedCompany}`;
+
+    const res = await axios.get(url);
+    if (res.data.success)
+      setEmployees(res.data.employees);
+  } catch (err) {
+    console.error(err);
+  }
+};
     fetchEmployees();
   }, [user, selectedCompany]);
 
@@ -53,17 +54,18 @@ export default function Dashboard({ user }) {
     const fetchData = async () => {
       try {
         const compRes = await axios.get("https://api-checkin-out.bpit-staff.com/api/company");
-        if (compRes.data.success) {
-          setCompanies(
-            compRes.data.companies.map((c, index) => ({ id: index, name: c.name }))
-          );
-        }
+if (compRes.data.success) {
+  setCompanies(compRes.data.companies.map(c => ({
+    id: c.company_id,
+    name: c.name
+  })));
+}
 
         const recRes = await axios.get(
-          `https://api-checkin-out.bpit-staff.com/api/time-record?date=${selectedDate}${
-            selectedCompany !== "all" ? `&company=${selectedCompany}` : ""
-          }`
-        );
+  `https://api-checkin-out.bpit-staff.com/api/time-record?date=${selectedDate}${
+    selectedCompany !== "all" ? `&company_id=${selectedCompany}` : ""
+  }`
+);
         if (recRes.data.success) setRecords(recRes.data.records || []);
       } catch (err) {
         console.error(err);
@@ -116,7 +118,8 @@ export default function Dashboard({ user }) {
   if (!r.type || !r.em_code) return;
   
   // ตรวจสอบบริษัทก่อน
-  if (selectedCompany !== "all" && r.company_name !== selectedCompany) return;
+  if (selectedCompany !== "all" && r.company_id?.toString() !== selectedCompany.toString()) 
+    return;
 
   const key = `${r.em_code}_${getLocalDateStr(selectedDate)}`;
   if (!tableData[key]) {
@@ -124,7 +127,7 @@ export default function Dashboard({ user }) {
     tableData[key] = {
       em_code: r.em_code,
       name: emp ? emp.name : r.name || "-",
-      company: r.company_name || selectedCompany,
+      company: r.company_id || selectedCompany,
       checkIn: "-",
       checkOut: "-",
       otInBefore: "-",
@@ -153,9 +156,10 @@ export default function Dashboard({ user }) {
   let dailyRows = [];
   try {
     const requests = dayList.map(dateStr =>
-      axios.get(
-        `https://api-checkin-out.bpit-staff.com/api/time-record?date=${dateStr}&company=${selectedCompany}`
-      ).then(res => ({ dateStr, data: res.data }))
+     axios.get(
+  `https://api-checkin-out.bpit-staff.com/api/time-record?date=${dateStr}&company_id=${selectedCompany}`
+)
+.then(res => ({ dateStr, data: res.data }))
     );
     const responses = await Promise.all(requests);
     responses.forEach(({ dateStr, data }) => {
@@ -174,20 +178,20 @@ export default function Dashboard({ user }) {
     return;
   }
   // ดึง employees
- let empList = employees; // เอา state employees
+ let empList = employees;
+
 if (!empList.length) {
   try {
     const empRes = await axios.get(
-      `https://api-checkin-out.bpit-staff.com/api/employees?company_name=${selectedCompany}`
+      `https://api-checkin-out.bpit-staff.com/api/employees?company_id=${selectedCompany}`
     );
-    if (empRes.data.success) empList = empRes.data.employees || [];
+    if (empRes.data.success) empList = empRes.data.employees;
   } catch (err) {
     console.error(err);
     alert("ไม่สามารถดึงข้อมูลพนักงานได้");
     return;
   }
 }
-
 // ทำให้ em_code เป็นสตริง เพื่อให้ key ตรงกัน
 empList.forEach(e => { if (e && e.em_code !== undefined && e.em_code !== null) e.em_code = e.em_code.toString(); });
 
@@ -215,7 +219,7 @@ console.log("employees for export:", empList); // ต้องมีข้อม
 // เติมข้อมูลจริงจาก dailyRows
 dailyRows.forEach((r) => {
 
-   const emp = employees.find(e => e.name.trim().includes(r.em_code.trim()));
+   const emp = empList.find(e => e.em_code.toString() === r.em_code.toString());
 
   if (!emp) {
     console.warn("ไม่พบพนักงานที่ตรงกับ:", r.em_code);
@@ -541,11 +545,16 @@ saveAs(new Blob([buf]), `TimeRecords_${startDate}_${endDate}.xlsx`);
       <div className="flex flex-col md:flex-row gap-4 mb-6">
         <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)}
           className="px-4 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 focus:outline-none"/>
-        <select value={selectedCompany} onChange={(e) => setSelectedCompany(e.target.value)}
-          className="px-4 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 focus:outline-none">
-          <option value="all">เลือกบริษัท</option>
-          {companies.map((c) => <option key={c.id} value={c.name}>{c.name}</option>)}
-        </select>
+       <select
+  value={selectedCompany}
+  onChange={(e) => setSelectedCompany(e.target.value)}
+  className="px-4 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 focus:outline-none"
+>
+  <option value="all">เลือกบริษัท</option>
+  {companies.map((c) => (
+    <option key={c.id} value={c.id}>{c.name}</option>
+  ))}
+</select>
         <div className="flex items-center gap-2 ml-auto">
           <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)}
             className="px-4 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 focus:outline-none"/>
