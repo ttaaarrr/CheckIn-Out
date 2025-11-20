@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 export default function Dashboard({ user }) {
   const navigate = useNavigate();
@@ -10,9 +12,9 @@ export default function Dashboard({ user }) {
   const [employees, setEmployees] = useState([]);
   const [companies, setCompanies] = useState([]);
   const [selectedCompany, setSelectedCompany] = useState("all");
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0]);
-  const [startDate, setStartDate] = useState(new Date().toISOString().split("T")[0]);
-  const [endDate, setEndDate] = useState(new Date().toISOString().split("T")[0]);
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [startDate, setStartDate] = useState(new Date());
+  const [endDate, setEndDate] = useState(new Date());
 
   const typeMap = {
     in: "checkIn",
@@ -60,7 +62,7 @@ export default function Dashboard({ user }) {
         }
 
         const recRes = await axios.get(
-          `https://api-checkin-out.bpit-staff.com/api/time-record?date=${selectedDate}${
+          `https://api-checkin-out.bpit-staff.com/api/time-record?date=${formatDateForApi(selectedDate)}${
             selectedCompany !== "all" ? `&company=${selectedCompany}` : ""
           }`
         );
@@ -103,8 +105,13 @@ export default function Dashboard({ user }) {
     const mins = Math.round(totalMinutes % 60);
     return `${hrs}ชม. ${mins}นาที`;
   };
- const getLocalDateStr = (dateStr) => {
-    const d = new Date(dateStr);
+ const toDate = (value) => (value instanceof Date ? value : new Date(value));
+ const formatDateForApi = (date) =>
+    date ? toDate(date).toISOString().split("T")[0] : "";
+
+ const getLocalDateStr = (value) => {
+    if (!value) return "-";
+    const d = toDate(value);
     const year = d.getFullYear();
     const month = String(d.getMonth() + 1).padStart(2, "0");
     const day = String(d.getDate()).padStart(2, "0");
@@ -145,8 +152,13 @@ export default function Dashboard({ user }) {
 
   // เตรียมรายการวันในช่วง
   const dayList = [];
-  for (let d = new Date(startDate); d <= new Date(endDate); d.setDate(d.getDate() + 1)) {
-    dayList.push(d.toISOString().split("T")[0]);
+  if (startDate && endDate) {
+    const current = new Date(startDate);
+    const last = new Date(endDate);
+    while (current <= last) {
+      dayList.push(formatDateForApi(current));
+      current.setDate(current.getDate() + 1);
+    }
   }
 
   // ดึงข้อมูลรายวันทั้งหมดแบบขนาน แล้วรวมเป็นแถวที่มี date
@@ -532,7 +544,7 @@ for(let i=footerStartRow; i<=footerStartRow+3; i++) sheet.getRow(i).height = 25;
 
 // Save file
 const buf = await workbook.xlsx.writeBuffer();
-saveAs(new Blob([buf]), `TimeRecords_${startDate}_${endDate}.xlsx`);
+saveAs(new Blob([buf]), `TimeRecords_${formatDateForApi(startDate)}_${formatDateForApi(endDate)}.xlsx`);
 };
 
   if (!user) return null;
@@ -543,10 +555,10 @@ saveAs(new Blob([buf]), `TimeRecords_${startDate}_${endDate}.xlsx`);
 
       <div className="flex flex-col md:flex-row gap-4 mb-6">
         <div className="flex flex-col">
-          <input
-            type="date"
-            value={selectedDate}
-            onChange={(e) => setSelectedDate(e.target.value)}
+          <DatePicker
+            selected={selectedDate}
+            onChange={(date) => date && setSelectedDate(date)}
+            dateFormat="dd/MM/yyyy"
             className="px-4 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 focus:outline-none"
           />
           <span className="text-xs text-gray-500 mt-1">
@@ -560,10 +572,13 @@ saveAs(new Blob([buf]), `TimeRecords_${startDate}_${endDate}.xlsx`);
         </select>
         <div className="flex items-center gap-2 ml-auto">
           <div className="flex flex-col">
-            <input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
+            <DatePicker
+              selected={startDate}
+              onChange={(date) => date && setStartDate(date)}
+              selectsStart
+              startDate={startDate}
+              endDate={endDate}
+              dateFormat="dd/MM/yyyy"
               className="px-4 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 focus:outline-none"
             />
             <span className="text-xs text-gray-500 mt-1">
@@ -571,10 +586,14 @@ saveAs(new Blob([buf]), `TimeRecords_${startDate}_${endDate}.xlsx`);
             </span>
           </div>
           <div className="flex flex-col">
-            <input
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
+            <DatePicker
+              selected={endDate}
+              onChange={(date) => date && setEndDate(date)}
+              selectsEnd
+              startDate={startDate}
+              endDate={endDate}
+              minDate={startDate}
+              dateFormat="dd/MM/yyyy"
               className="px-4 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 focus:outline-none"
             />
             <span className="text-xs text-gray-500 mt-1">
@@ -596,7 +615,7 @@ saveAs(new Blob([buf]), `TimeRecords_${startDate}_${endDate}.xlsx`);
               <tr>
                 <th rowSpan={2} className="border border-gray-300 px-2 py-1">รหัสพนักงาน</th>
                 <th rowSpan={2} className="border border-gray-300 px-2 py-1">ชื่อ</th>
-                <th rowSpan={2} className="border border-gray-300 px-2 py-1">วันที่</th>
+                {/* <th rowSpan={2} className="border border-gray-300 px-2 py-1">วันที่</th> */}
                 <th rowSpan={2} className="border border-gray-300 px-2 py-1">เวลาเข้า</th>
                 <th rowSpan={2} className="border border-gray-300 px-2 py-1">เวลาออก</th>
                 <th colSpan={4} className="border border-gray-300 px-2 py-1 text-center">OT</th>
@@ -615,7 +634,7 @@ saveAs(new Blob([buf]), `TimeRecords_${startDate}_${endDate}.xlsx`);
                 <tr key={idx} className={idx % 2 === 0 ? "bg-gray-50" : ""}>
                   <td className="border px-2 py-1">{r.em_code}</td>
                   <td className="border px-2 py-1">{r.name}</td>
-                  <td className="border px-2 py-1">{getLocalDateStr(selectedDate)}</td>
+                  {/* <td className="border px-2 py-1">{getLocalDateStr(selectedDate)}</td> */}
                   <td className="border px-2 py-1">{r.checkIn}</td>
                   <td className="border px-2 py-1">{r.checkOut}</td>
                   <td className="border px-2 py-1">{r.otInBefore}</td>
