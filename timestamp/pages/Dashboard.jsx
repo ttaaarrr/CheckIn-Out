@@ -252,7 +252,10 @@ dailyRows.forEach((r) => {
 const formatDateTH = (dateStr) => {
   const d = new Date(dateStr);
    if (isNaN(d)) return "-";
-  return `${d.getDate()} ${monthNames[d.getMonth()]} ${d.getFullYear()}`;
+    const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year = d.getFullYear();
+  return `${day}/${month}/${year}`;
 }
   // โหลดโลโก้เป็น ArrayBuffer (Browser-compatible)
   const fetchLogoBuffer = async (url) => {
@@ -438,7 +441,7 @@ dayList.forEach((dateStr, idx) => {
 
   const row = sheet.addRow([
     dayNames[new Date(dateStr).getDay()],
-    dateStr,
+    formatDateTH(dateStr),
     r.checkIn, r.checkOut,
     r.otInBefore, r.otOutBefore,
     r.otInAfter, r.otOutAfter,
