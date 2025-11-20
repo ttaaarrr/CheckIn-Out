@@ -42,12 +42,16 @@ export default function Dashboard({ user }) {
         const res = await axios.get(url);
 
          console.log("🟢 [EMPLOYEES API RESPONSE]:", res.data);
-        if (res.data.success) 
-          setEmployees(res.data.employees.filter(e => e.company_name === selectedCompany));
-          console.log("🟡 [FILTERED EMPLOYEES]", filtered);
-      } catch (err) {
-        console.error(err);
+        if (res.data.success) {
+        // กรองเฉพาะพนักงานที่มี company_name หรือ company_id
+        const filtered = res.data.employees.filter(
+          e => e.company_name || e.company_id
+        ); console.log("พนักงาน:", filtered);
+        setEmployees(filtered);
       }
+    } catch (err) {
+      console.error(err);
+    }
     };
     fetchEmployees();
   }, [user, selectedCompany]);
