@@ -561,9 +561,6 @@ saveAs(new Blob([buf]), `TimeRecords_${formatDateForApi(startDate)}_${formatDate
             dateFormat="dd/MM/yyyy"
             className="px-4 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 focus:outline-none"
           />
-          <span className="text-xs text-gray-500 mt-1">
-            วันที่เลือก: {getLocalDateStr(selectedDate)}
-          </span>
         </div>
         <select value={selectedCompany} onChange={(e) => setSelectedCompany(e.target.value)}
           className="px-4 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 focus:outline-none">
@@ -581,9 +578,6 @@ saveAs(new Blob([buf]), `TimeRecords_${formatDateForApi(startDate)}_${formatDate
               dateFormat="dd/MM/yyyy"
               className="px-4 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 focus:outline-none"
             />
-            <span className="text-xs text-gray-500 mt-1">
-              วันที่เริ่ม: {getLocalDateStr(startDate)}
-            </span>
           </div>
           <div className="flex flex-col">
             <DatePicker
@@ -596,10 +590,7 @@ saveAs(new Blob([buf]), `TimeRecords_${formatDateForApi(startDate)}_${formatDate
               dateFormat="dd/MM/yyyy"
               className="px-4 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 focus:outline-none"
             />
-            <span className="text-xs text-gray-500 mt-1">
-              วันที่สิ้นสุด: {getLocalDateStr(endDate)}
-            </span>
-          </div>
+         </div>
           <button onClick={exportExcel} className="px-4 py-2 bg-blue-500 text-white rounded-lg shadow hover:bg-blue-600 transition">
             ดาวน์โหลด Excel
           </button>
@@ -615,7 +606,6 @@ saveAs(new Blob([buf]), `TimeRecords_${formatDateForApi(startDate)}_${formatDate
               <tr>
                 <th rowSpan={2} className="border border-gray-300 px-2 py-1">รหัสพนักงาน</th>
                 <th rowSpan={2} className="border border-gray-300 px-2 py-1">ชื่อ</th>
-                {/* <th rowSpan={2} className="border border-gray-300 px-2 py-1">วันที่</th> */}
                 <th rowSpan={2} className="border border-gray-300 px-2 py-1">เวลาเข้า</th>
                 <th rowSpan={2} className="border border-gray-300 px-2 py-1">เวลาออก</th>
                 <th colSpan={4} className="border border-gray-300 px-2 py-1 text-center">OT</th>
@@ -634,7 +624,6 @@ saveAs(new Blob([buf]), `TimeRecords_${formatDateForApi(startDate)}_${formatDate
                 <tr key={idx} className={idx % 2 === 0 ? "bg-gray-50" : ""}>
                   <td className="border px-2 py-1">{r.em_code}</td>
                   <td className="border px-2 py-1">{r.name}</td>
-                  {/* <td className="border px-2 py-1">{getLocalDateStr(selectedDate)}</td> */}
                   <td className="border px-2 py-1">{r.checkIn}</td>
                   <td className="border px-2 py-1">{r.checkOut}</td>
                   <td className="border px-2 py-1">{r.otInBefore}</td>
