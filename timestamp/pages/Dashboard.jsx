@@ -135,10 +135,14 @@ export default function Dashboard({ user }) {
   const key = `${r.em_code}_${getLocalDateStr(selectedDate)}`;
   if (!tableData[key]) {
     const emp = employees.find(e => e.em_code.toString() === r.em_code.toString());
+
+    // หา company_id จาก companies
+    const company = companies.find(c => c.name === (emp?.company_name || r.company_name));
+
     tableData[key] = {
       em_code: r.em_code,
       name: emp ? emp.name : r.name || "-",
-      company_id: emp ? emp.company_id : undefined,
+      company_id: company ? company.id : null, // <- map company_id
       company: r.company_name || selectedCompany,
       checkIn: "-",
       checkOut: "-",
