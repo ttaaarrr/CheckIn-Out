@@ -46,7 +46,7 @@ useEffect(() => {
       // 2. fetch employees
       let url = "https://api-checkin-out.bpit-staff.com/api/employees?company_name=A";
       if (selectedCompanyId !== "all") {
-        const selectedCompany = companiesData.find(c => c.id === selectedCompanyId);
+        const selectedCompany = companiesData.find(c => String(c.id) === String(selectedCompanyId));
         if (selectedCompany) {
           url = `https://api-checkin-out.bpit-staff.com/api/employees?company_name=${selectedCompany.name}`;
         }
@@ -87,7 +87,7 @@ useEffect(() => {
         let url = `https://api-checkin-out.bpit-staff.com/api/time-record?date=${formatDateForApi(selectedDate)}`;
         if (selectedCompanyId !== "all") {
           const selectedCompany = compRes.data.success 
-            ? compRes.data.companies.find(c => c.id === selectedCompanyId)
+            ? compRes.data.companies.find(c => String(c.id) === String(selectedCompanyId))
             : null;
           if (selectedCompany) {
             url += `&company=${selectedCompany.name}`;
@@ -148,11 +148,23 @@ useEffect(() => {
   // สร้าง tableData หน้าเว็บ
 const tableData = {};
 
-records.forEach((r) => {
+// Map company_id ให้ records จาก company_name
+const recordsWithCompanyId = records.map(r => {
+  if (!r.company_name) return { ...r, company_id: null };
+  const company = companies.find(c => c.name === r.company_name);
+  return { ...r, company_id: company ? company.id : null };
+});
+
+recordsWithCompanyId.forEach((r) => {
   if (!r.type || !r.em_code) return;
 
   // ตรวจสอบบริษัทก่อน (ใช้ ID โดยตรง)
-  if (selectedCompanyId !== "all" && r.company_id !== selectedCompanyId) return;
+  // แปลงเป็น string เพื่อเปรียบเทียบให้แน่ใจว่า type ตรงกัน
+  if (selectedCompanyId !== "all") {
+    const recordCompanyId = r.company_id ? String(r.company_id) : null;
+    const selectedId = String(selectedCompanyId);
+    if (recordCompanyId !== selectedId) return;
+  }
 
   const key = `${r.em_code}_${getLocalDateStr(selectedDate)}`;
   if (!tableData[key]) {
@@ -161,8 +173,8 @@ records.forEach((r) => {
     tableData[key] = {
       em_code: r.em_code,
       name: emp ? emp.name : r.name || "-",
-      company_id: emp ? emp.company_id : null,  // ใช้ company_id จาก employee
-      company: companies.find(c => c.id === emp?.company_id)?.name || r.company_name,
+      company_id: r.company_id || (emp ? emp.company_id : null),  // ใช้ company_id จาก record ก่อน ถ้าไม่มีค่อยใช้จาก employee
+      company: companies.find(c => c.id === (r.company_id || emp?.company_id))?.name || r.company_name,
       checkIn: "-",
       checkOut: "-",
       otInBefore: "-",
@@ -183,7 +195,7 @@ records.forEach((r) => {
   }
 
   // หาชื่อบริษัทจาก ID
-  const selectedCompany = companies.find(c => c.id === selectedCompanyId);
+  const selectedCompany = companies.find(c => String(c.id) === String(selectedCompanyId));
   if (!selectedCompany) {
     alert("ไม่พบข้อมูลบริษัท");
     return;
@@ -645,13 +657,21 @@ saveAs(new Blob([buf]), `TimeRecords_${formatDateForApi(startDate)}_${formatDate
         <div className="text-red-500 font-semibold text-lg flex justify-center items-center">กรุณาเลือกบริษัทก่อนแสดงข้อมูล</div>
       ) : (<>
          {console.log(
-      "tableData สำหรับแสดงตาราง:",
-      Object.values(tableData).map(r => ({
-        em_code: r.em_code,
-        name: r.name,
-        company_id: r.company_id,   // เพิ่มตรงนี้
-        company_name: r.company      // และชื่อบริษัท
-      }))
+      "Debug Info:",
+      {
+        selectedCompanyId,
+        recordsCount: records.length,
+        recordsWithCompanyIdCount: recordsWithCompanyId.length,
+        employeesCount: employees.length,
+        companiesCount: companies.length,
+        tableDataCount: Object.keys(tableData).length,
+        tableData: Object.values(tableData).map(r => ({
+          em_code: r.em_code,
+          name: r.name,
+          company_id: r.company_id,
+          company_name: r.company
+        }))
+      }
     )}
         <div className="bg-white shadow-md rounded-lg overflow-auto">
           <table className="min-w-full border border-gray-300 border-collapse">
