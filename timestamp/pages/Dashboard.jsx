@@ -64,7 +64,7 @@ export default function Dashboard({ user }) {
         const compRes = await axios.get("https://api-checkin-out.bpit-staff.com/api/company");
         if (compRes.data.success) {
           setCompanies(
-            compRes.data.companies.map((c, index) => ({ id: index, name: c.name }))
+            compRes.data.companies.map(c => ({ id: c.id, name: c.name }))
           );
         }
 
@@ -142,7 +142,7 @@ export default function Dashboard({ user }) {
     tableData[key] = {
       em_code: r.em_code,
       name: emp ? emp.name : r.name || "-",
-      company_id: company ? company.id : null, // <- map company_id
+      company_id: company ? company.id : null, 
       company: r.company_name || selectedCompany,
       checkIn: "-",
       checkOut: "-",
