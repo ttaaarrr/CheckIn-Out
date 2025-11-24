@@ -29,7 +29,12 @@ export default function Dashboard({ user }) {
   useEffect(() => {
     if (!user) navigate("/login");
   }, [user, navigate]);
-
+  
+// mapping ชื่อเก่า -> ชื่อใหม่
+const companyNameMap = {
+"บริษัทเก่า": "ชื่อใหม่",
+"OldCo": "NewCo"
+};
   // Fetch employees
   useEffect(() => {
     if (!user) return;
@@ -124,6 +129,7 @@ export default function Dashboard({ user }) {
     const day = String(d.getDate()).padStart(2, "0");
     return `${day}/${month}/${year}`;
   };
+  
   // สร้าง tableData หน้าเว็บ
   const tableData = {};
  records.forEach((r) => {
