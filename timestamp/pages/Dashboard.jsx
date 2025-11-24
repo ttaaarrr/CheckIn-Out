@@ -47,13 +47,22 @@ const companyNameMap = {
         const res = await axios.get(url);
 
          console.log("🟢 [EMPLOYEES API RESPONSE]:", res.data);
-        if (res.data.success) {
-        // กรองเฉพาะพนักงานที่มี company_name หรือ company_id
-        const filtered = res.data.employees.filter(
-          e => e.company_name || e.company_id
-        ); console.log("พนักงาน:", filtered);
-        setEmployees(filtered);
-      }
+       if (res.data.success) {
+  const companyMap = {
+    "BPIT Holding": 1,
+    "Other Company": 2
+  };
+
+  const employeesWithId = res.data.employees
+    .map(emp => ({
+      ...emp,
+      company_id: companyMap[emp.company_name] || null
+    }))
+    .filter(emp => emp.company_name || emp.company_id); // กรองตรงนี้เลย
+
+  setEmployees(employeesWithId);
+  console.log("พนักงาน:", employeesWithId);
+}
     } catch (err) {
       console.error(err);
     }
@@ -241,7 +250,7 @@ console.log("employees for export:", empList); // ต้องมีข้อม
 // เติมข้อมูลจริงจาก dailyRows
 dailyRows.forEach((r) => {
 
-   const emp = employees.find(e => e.name.trim().includes(r.em_code.trim()));
+   const emp = employees.find(e => e.em_code.toString() === r.em_code.toString());
 
   if (!emp) {
     console.warn("ไม่พบพนักงานที่ตรงกับ:", r.em_code);
