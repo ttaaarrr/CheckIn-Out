@@ -48,15 +48,15 @@ const companyNameMap = {
 
          console.log("🟢 [EMPLOYEES API RESPONSE]:", res.data);
        if (res.data.success) {
-  const companyMap = {
-    "BPIT Holding": 1,
-    "Other Company": 2
-  };
+const companyMap = {};
+companies.forEach(c => {
+  companyMap[c.name.trim()] = c.id;
+});
 
   const employeesWithId = res.data.employees
     .map(emp => ({
       ...emp,
-      company_id: companyMap[emp.company_name] || null
+      company_id: companyMap[emp.company_name?.trim()] || null
     }))
     .filter(emp => emp.company_name || emp.company_id); // กรองตรงนี้เลย
 
