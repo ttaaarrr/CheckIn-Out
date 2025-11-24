@@ -11,7 +11,7 @@ export default function Dashboard({ user }) {
   const [records, setRecords] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [companies, setCompanies] = useState([]);
-  const [selectedCompany, setSelectedCompany] = useState("all");
+  const [selectedCompanyId, setSelectedCompanyId] = useState("all");
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
@@ -44,10 +44,13 @@ useEffect(() => {
       setCompanies(companiesData);
 
       // 2. fetch employees
-      const url =
-        selectedCompany === "all"
-          ? "https://api-checkin-out.bpit-staff.com/api/employees?company_name=A"
-          : `https://api-checkin-out.bpit-staff.com/api/employees?company_name=${selectedCompany}`;
+      let url = "https://api-checkin-out.bpit-staff.com/api/employees?company_name=A";
+      if (selectedCompanyId !== "all") {
+        const selectedCompany = companiesData.find(c => c.id === selectedCompanyId);
+        if (selectedCompany) {
+          url = `https://api-checkin-out.bpit-staff.com/api/employees?company_name=${selectedCompany.name}`;
+        }
+      }
       const empRes = await axios.get(url);
 
       if (empRes.data.success) {
@@ -67,7 +70,7 @@ useEffect(() => {
   };
 
   fetchCompaniesAndEmployees();
-}, [user, selectedCompany]);
+}, [user, selectedCompanyId]);
 
   // Fetch companies + records
   useEffect(() => {
@@ -81,18 +84,23 @@ useEffect(() => {
           );
         }
 
-        const recRes = await axios.get(
-          `https://api-checkin-out.bpit-staff.com/api/time-record?date=${formatDateForApi(selectedDate)}${
-            selectedCompany !== "all" ? `&company=${selectedCompany}` : ""
-          }`
-        );
+        let url = `https://api-checkin-out.bpit-staff.com/api/time-record?date=${formatDateForApi(selectedDate)}`;
+        if (selectedCompanyId !== "all") {
+          const selectedCompany = compRes.data.success 
+            ? compRes.data.companies.find(c => c.id === selectedCompanyId)
+            : null;
+          if (selectedCompany) {
+            url += `&company=${selectedCompany.name}`;
+          }
+        }
+        const recRes = await axios.get(url);
         if (recRes.data.success) setRecords(recRes.data.records || []);
       } catch (err) {
         console.error(err);
       }
     };
     fetchData();
-  }, [user, selectedDate, selectedCompany]);
+  }, [user, selectedDate, selectedCompanyId]);
 
   // คำนวณเวลา
   const calcDuration = (start, end) => {
@@ -139,15 +147,12 @@ useEffect(() => {
   };
   // สร้าง tableData หน้าเว็บ
 const tableData = {};
-const selectedCompanyId = selectedCompany !== "all" 
-  ? companies.find(c => c.name === selectedCompany)?.id 
-  : null;
 
 records.forEach((r) => {
   if (!r.type || !r.em_code) return;
 
-  // ตรวจสอบบริษัทก่อน
-  if (selectedCompany !== "all" && r.company_id !== selectedCompanyId) return;
+  // ตรวจสอบบริษัทก่อน (ใช้ ID โดยตรง)
+  if (selectedCompanyId !== "all" && r.company_id !== selectedCompanyId) return;
 
   const key = `${r.em_code}_${getLocalDateStr(selectedDate)}`;
   if (!tableData[key]) {
@@ -172,8 +177,15 @@ records.forEach((r) => {
 });
 
  const exportExcel = async () => {
-  if (!selectedCompany || selectedCompany === "all" || !startDate || !endDate) {
+  if (!selectedCompanyId || selectedCompanyId === "all" || !startDate || !endDate) {
     alert("กรุณาเลือกบริษัทและช่วงวันที่ก่อน export Excel");
+    return;
+  }
+
+  // หาชื่อบริษัทจาก ID
+  const selectedCompany = companies.find(c => c.id === selectedCompanyId);
+  if (!selectedCompany) {
+    alert("ไม่พบข้อมูลบริษัท");
     return;
   }
 
@@ -193,7 +205,7 @@ records.forEach((r) => {
   try {
     const requests = dayList.map(dateStr =>
       axios.get(
-        `https://api-checkin-out.bpit-staff.com/api/time-record?date=${dateStr}&company=${selectedCompany}`
+        `https://api-checkin-out.bpit-staff.com/api/time-record?date=${dateStr}&company=${selectedCompany.name}`
       ).then(res => ({ dateStr, data: res.data }))
     );
     const responses = await Promise.all(requests);
@@ -217,7 +229,7 @@ records.forEach((r) => {
 if (!empList.length) {
   try {
     const empRes = await axios.get(
-      `https://api-checkin-out.bpit-staff.com/api/employees?company_name=${selectedCompany}`
+      `https://api-checkin-out.bpit-staff.com/api/employees?company_name=${selectedCompany.name}`
     );
     if (empRes.data.success) empList = empRes.data.employees || [];
   } catch (err) {
@@ -246,7 +258,7 @@ console.log("employees for export:", empList); // ต้องมีข้อม
         otOutBefore: "-",
         otInAfter: "-",
         otOutAfter: "-",
-        company_name: emp.company_name || selectedCompany,
+        company_name: emp.company_name || selectedCompany.name,
       };
     });
   });
@@ -379,7 +391,7 @@ sheet.getCell("E6").value = {
 sheet.getCell("E7").value = {
   richText: [
     { text: "สังกัดลูกค้า: ", font: { bold: true } },
-    { text: emp.company_name || selectedCompany }
+    { text: emp.company_name || selectedCompany.name }
   ]
 };
  sheet.getCell("I6").value = `บริษัท:บีพีไอที โฮลดิ้งส์ จำกัด`;
@@ -590,13 +602,13 @@ saveAs(new Blob([buf]), `TimeRecords_${formatDateForApi(startDate)}_${formatDate
           />
         </div>
         <select
-  value={selectedCompany}
-  onChange={(e) => setSelectedCompany(e.target.value)}
+  value={selectedCompanyId}
+  onChange={(e) => setSelectedCompanyId(e.target.value)}
   className="px-4 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 focus:outline-none"
 >
   <option value="all">เลือกบริษัท</option>
   {companies.map((c) => (
-    <option key={c.id} value={c.name}>{c.name}</option>
+    <option key={c.id} value={c.id}>{c.name}</option>
   ))}
 </select>
         <div className="flex items-center gap-2 ml-auto">
@@ -629,7 +641,7 @@ saveAs(new Blob([buf]), `TimeRecords_${formatDateForApi(startDate)}_${formatDate
         </div>
       </div>
  
-      {selectedCompany === "all" ? (
+      {selectedCompanyId === "all" ? (
         <div className="text-red-500 font-semibold text-lg flex justify-center items-center">กรุณาเลือกบริษัทก่อนแสดงข้อมูล</div>
       ) : (<>
          {console.log(
