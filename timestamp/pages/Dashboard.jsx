@@ -31,30 +31,43 @@ export default function Dashboard({ user }) {
   }, [user, navigate]);
 
   // Fetch employees
-  useEffect(() => {
-    if (!user) return;
-    const fetchEmployees = async () => {
-      try {
-        const url =
-          selectedCompany === "all"
-            ? "https://api-checkin-out.bpit-staff.com/api/employees?company_name=A"
-            : `https://api-checkin-out.bpit-staff.com/api/employees?company_name=${selectedCompany}`;
-        const res = await axios.get(url);
+useEffect(() => {
+  if (!user) return;
 
-         console.log("🟢 [EMPLOYEES API RESPONSE]:", res.data);
-        if (res.data.success) {
-        // กรองเฉพาะพนักงานที่มี company_name หรือ company_id
-        const filtered = res.data.employees.filter(
-          e => e.company_name || e.company_id
-        ); console.log("พนักงาน:", filtered);
-        setEmployees(filtered);
+  const fetchCompaniesAndEmployees = async () => {
+    try {
+      // 1. fetch companies
+      const compRes = await axios.get("https://api-checkin-out.bpit-staff.com/api/company");
+      const companiesData = compRes.data.success
+        ? compRes.data.companies.map(c => ({ id: c.id, name: c.name }))
+        : [];
+      setCompanies(companiesData);
+
+      // 2. fetch employees
+      const url =
+        selectedCompany === "all"
+          ? "https://api-checkin-out.bpit-staff.com/api/employees?company_name=A"
+          : `https://api-checkin-out.bpit-staff.com/api/employees?company_name=${selectedCompany}`;
+      const empRes = await axios.get(url);
+
+      if (empRes.data.success) {
+        // map company_id ให้ employees
+        const mappedEmployees = empRes.data.employees.map(e => {
+          const comp = companiesData.find(c => c.name === e.company_name);
+          return {
+            ...e,
+            company_id: comp ? comp.id : null,
+          };
+        });
+        setEmployees(mappedEmployees);
       }
     } catch (err) {
       console.error(err);
     }
-    };
-    fetchEmployees();
-  }, [user, selectedCompany]);
+  };
+
+  fetchCompaniesAndEmployees();
+}, [user, selectedCompany]);
 
   // Fetch companies + records
   useEffect(() => {
@@ -139,18 +152,18 @@ export default function Dashboard({ user }) {
     // หา company_id จาก companies
     const company = companies.find(c => c.name === (emp?.company_name || r.company_name));
 
-    tableData[key] = {
-      em_code: r.em_code,
-      name: emp ? emp.name : r.name || "-",
-      company_id: company ? company.id : null, 
-      company: r.company_name || selectedCompany,
-      checkIn: "-",
-      checkOut: "-",
-      otInBefore: "-",
-      otOutBefore: "-",
-      otInAfter: "-",
-      otOutAfter: "-",
-    };
+   tableData[key] = {
+  em_code: r.em_code,
+  name: emp ? emp.name : r.name || "-",
+  company_id: emp?.company_id || null,
+  company: emp?.company_name || selectedCompany,
+  checkIn: "-",
+  checkOut: "-",
+  otInBefore: "-",
+  otOutBefore: "-",
+  otInAfter: "-",
+  otOutAfter: "-",
+};
   }
   const field = typeMap[r.type.toLowerCase()];
   if (field) tableData[key][field] = r.time || "-";
