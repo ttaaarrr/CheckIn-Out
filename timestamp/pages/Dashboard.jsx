@@ -11,7 +11,7 @@ export default function Dashboard({ user }) {
   const [records, setRecords] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [companies, setCompanies] = useState([]);
-  const [selectedCompanyId, setSelectedCompanyId] = useState("all");
+  const [selectedCompany, setSelectedCompany] = useState("all");
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
@@ -31,46 +31,30 @@ export default function Dashboard({ user }) {
   }, [user, navigate]);
 
   // Fetch employees
-useEffect(() => {
-  if (!user) return;
+  useEffect(() => {
+    if (!user) return;
+    const fetchEmployees = async () => {
+      try {
+        const url =
+          selectedCompany === "all"
+            ? "https://api-checkin-out.bpit-staff.com/api/employees?company_name=A"
+            : `https://api-checkin-out.bpit-staff.com/api/employees?company_name=${selectedCompany}`;
+        const res = await axios.get(url);
 
-  const fetchCompaniesAndEmployees = async () => {
-    try {
-      // 1. fetch companies
-      const compRes = await axios.get("https://api-checkin-out.bpit-staff.com/api/company");
-      const companiesData = compRes.data.success
-        ? compRes.data.companies.map(c => ({ id: c.id, name: c.name }))
-        : [];
-      setCompanies(companiesData);
-
-      // 2. fetch employees
-      let url = "https://api-checkin-out.bpit-staff.com/api/employees?company_name=A";
-      if (selectedCompanyId !== "all") {
-        const selectedCompany = companiesData.find(c => String(c.id) === String(selectedCompanyId));
-        if (selectedCompany) {
-          url = `https://api-checkin-out.bpit-staff.com/api/employees?company_name=${selectedCompany.name}`;
-        }
-      }
-      const empRes = await axios.get(url);
-
-      if (empRes.data.success) {
-        // map company_id ให้ employees
-        const mappedEmployees = empRes.data.employees.map(e => {
-          const comp = companiesData.find(c => c.name === e.company_name);
-          return {
-            ...e,
-            company_id: comp ? comp.id : null,
-          };
-        });
-        setEmployees(mappedEmployees);
+         console.log("🟢 [EMPLOYEES API RESPONSE]:", res.data);
+        if (res.data.success) {
+        // กรองเฉพาะพนักงานที่มี company_name หรือ company_id
+        const filtered = res.data.employees.filter(
+          e => e.company_name || e.company_id
+        ); console.log("พนักงาน:", filtered);
+        setEmployees(filtered);
       }
     } catch (err) {
       console.error(err);
     }
-  };
-
-  fetchCompaniesAndEmployees();
-}, [user, selectedCompanyId]);
+    };
+    fetchEmployees();
+  }, [user, selectedCompany]);
 
   // Fetch companies + records
   useEffect(() => {
@@ -80,27 +64,22 @@ useEffect(() => {
         const compRes = await axios.get("https://api-checkin-out.bpit-staff.com/api/company");
         if (compRes.data.success) {
           setCompanies(
-            compRes.data.companies.map(c => ({ id: c.id, name: c.name }))
+            compRes.data.companies.map((c, index) => ({ id: index, name: c.name }))
           );
         }
 
-        let url = `https://api-checkin-out.bpit-staff.com/api/time-record?date=${formatDateForApi(selectedDate)}`;
-        if (selectedCompanyId !== "all") {
-          const selectedCompany = compRes.data.success 
-            ? compRes.data.companies.find(c => String(c.id) === String(selectedCompanyId))
-            : null;
-          if (selectedCompany) {
-            url += `&company=${selectedCompany.name}`;
-          }
-        }
-        const recRes = await axios.get(url);
+        const recRes = await axios.get(
+          `https://api-checkin-out.bpit-staff.com/api/time-record?date=${formatDateForApi(selectedDate)}${
+            selectedCompany !== "all" ? `&company=${selectedCompany}` : ""
+          }`
+        );
         if (recRes.data.success) setRecords(recRes.data.records || []);
       } catch (err) {
         console.error(err);
       }
     };
     fetchData();
-  }, [user, selectedDate, selectedCompanyId]);
+  }, [user, selectedDate, selectedCompany]);
 
   // คำนวณเวลา
   const calcDuration = (start, end) => {
@@ -146,35 +125,20 @@ useEffect(() => {
     return `${day}/${month}/${year}`;
   };
   // สร้าง tableData หน้าเว็บ
-const tableData = {};
-
-// Map company_id ให้ records จาก company_name
-const recordsWithCompanyId = records.map(r => {
-  if (!r.company_name) return { ...r, company_id: null };
-  const company = companies.find(c => c.name === r.company_name);
-  return { ...r, company_id: company ? company.id : null };
-});
-
-recordsWithCompanyId.forEach((r) => {
+  const tableData = {};
+ records.forEach((r) => {
   if (!r.type || !r.em_code) return;
-
-  // ตรวจสอบบริษัทก่อน (ใช้ ID โดยตรง)
-  // แปลงเป็น string เพื่อเปรียบเทียบให้แน่ใจว่า type ตรงกัน
-  if (selectedCompanyId !== "all") {
-    const recordCompanyId = r.company_id ? String(r.company_id) : null;
-    const selectedId = String(selectedCompanyId);
-    if (recordCompanyId !== selectedId) return;
-  }
+  
+  // ตรวจสอบบริษัทก่อน
+  if (selectedCompany !== "all" && r.company_name !== selectedCompany) return;
 
   const key = `${r.em_code}_${getLocalDateStr(selectedDate)}`;
   if (!tableData[key]) {
     const emp = employees.find(e => e.em_code.toString() === r.em_code.toString());
-
     tableData[key] = {
       em_code: r.em_code,
       name: emp ? emp.name : r.name || "-",
-      company_id: r.company_id || (emp ? emp.company_id : null),  // ใช้ company_id จาก record ก่อน ถ้าไม่มีค่อยใช้จาก employee
-      company: companies.find(c => c.id === (r.company_id || emp?.company_id))?.name || r.company_name,
+      company: r.company_name || selectedCompany,
       checkIn: "-",
       checkOut: "-",
       otInBefore: "-",
@@ -183,21 +147,13 @@ recordsWithCompanyId.forEach((r) => {
       otOutAfter: "-",
     };
   }
-
   const field = typeMap[r.type.toLowerCase()];
   if (field) tableData[key][field] = r.time || "-";
 });
 
  const exportExcel = async () => {
-  if (!selectedCompanyId || selectedCompanyId === "all" || !startDate || !endDate) {
+  if (!selectedCompany || selectedCompany === "all" || !startDate || !endDate) {
     alert("กรุณาเลือกบริษัทและช่วงวันที่ก่อน export Excel");
-    return;
-  }
-
-  // หาชื่อบริษัทจาก ID
-  const selectedCompany = companies.find(c => String(c.id) === String(selectedCompanyId));
-  if (!selectedCompany) {
-    alert("ไม่พบข้อมูลบริษัท");
     return;
   }
 
@@ -217,7 +173,7 @@ recordsWithCompanyId.forEach((r) => {
   try {
     const requests = dayList.map(dateStr =>
       axios.get(
-        `https://api-checkin-out.bpit-staff.com/api/time-record?date=${dateStr}&company=${selectedCompany.name}`
+        `https://api-checkin-out.bpit-staff.com/api/time-record?date=${dateStr}&company=${selectedCompany}`
       ).then(res => ({ dateStr, data: res.data }))
     );
     const responses = await Promise.all(requests);
@@ -241,7 +197,7 @@ recordsWithCompanyId.forEach((r) => {
 if (!empList.length) {
   try {
     const empRes = await axios.get(
-      `https://api-checkin-out.bpit-staff.com/api/employees?company_name=${selectedCompany.name}`
+      `https://api-checkin-out.bpit-staff.com/api/employees?company_name=${selectedCompany}`
     );
     if (empRes.data.success) empList = empRes.data.employees || [];
   } catch (err) {
@@ -270,7 +226,7 @@ console.log("employees for export:", empList); // ต้องมีข้อม
         otOutBefore: "-",
         otInAfter: "-",
         otOutAfter: "-",
-        company_name: emp.company_name || selectedCompany.name,
+        company_name: emp.company_name || selectedCompany,
       };
     });
   });
@@ -403,7 +359,7 @@ sheet.getCell("E6").value = {
 sheet.getCell("E7").value = {
   richText: [
     { text: "สังกัดลูกค้า: ", font: { bold: true } },
-    { text: emp.company_name || selectedCompany.name }
+    { text: emp.company_name || selectedCompany }
   ]
 };
  sheet.getCell("I6").value = `บริษัท:บีพีไอที โฮลดิ้งส์ จำกัด`;
@@ -613,16 +569,11 @@ saveAs(new Blob([buf]), `TimeRecords_${formatDateForApi(startDate)}_${formatDate
             className="px-4 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 focus:outline-none"
           />
         </div>
-        <select
-  value={selectedCompanyId}
-  onChange={(e) => setSelectedCompanyId(e.target.value)}
-  className="px-4 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 focus:outline-none"
->
-  <option value="all">เลือกบริษัท</option>
-  {companies.map((c) => (
-    <option key={c.id} value={c.id}>{c.name}</option>
-  ))}
-</select>
+        <select value={selectedCompany} onChange={(e) => setSelectedCompany(e.target.value)}
+          className="px-4 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 focus:outline-none">
+          <option value="all">เลือกบริษัท</option>
+          {companies.map((c) => <option key={c.id} value={c.name}>{c.name}</option>)}
+        </select>
         <div className="flex items-center gap-2 ml-auto">
           <div className="flex flex-col">
             <DatePicker
@@ -653,25 +604,17 @@ saveAs(new Blob([buf]), `TimeRecords_${formatDateForApi(startDate)}_${formatDate
         </div>
       </div>
  
-      {selectedCompanyId === "all" ? (
+      {selectedCompany === "all" ? (
         <div className="text-red-500 font-semibold text-lg flex justify-center items-center">กรุณาเลือกบริษัทก่อนแสดงข้อมูล</div>
       ) : (<>
          {console.log(
-      "Debug Info:",
-      {
-        selectedCompanyId,
-        recordsCount: records.length,
-        recordsWithCompanyIdCount: recordsWithCompanyId.length,
-        employeesCount: employees.length,
-        companiesCount: companies.length,
-        tableDataCount: Object.keys(tableData).length,
-        tableData: Object.values(tableData).map(r => ({
-          em_code: r.em_code,
-          name: r.name,
-          company_id: r.company_id,
-          company_name: r.company
-        }))
-      }
+      "tableData สำหรับแสดงตาราง:",
+      Object.values(tableData).map(r => ({
+        em_code: r.em_code,
+        name: r.name,
+        company_id: r.company_id,   // เพิ่มตรงนี้
+        company_name: r.company      // และชื่อบริษัท
+      }))
     )}
         <div className="bg-white shadow-md rounded-lg overflow-auto">
           <table className="min-w-full border border-gray-300 border-collapse">
