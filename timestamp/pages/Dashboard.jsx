@@ -29,7 +29,7 @@ export default function Dashboard({ user }) {
   useEffect(() => {
     if (!user) navigate("/login");
   }, [user, navigate]);
-  
+
 // mapping ชื่อเก่า -> ชื่อใหม่
 const companyNameMap = {
 "บริษัทเก่า": "ชื่อใหม่",
@@ -144,6 +144,7 @@ const companyNameMap = {
     tableData[key] = {
       em_code: r.em_code,
       name: emp ? emp.name : r.name || "-",
+      company_id: emp ? emp.company_id : undefined,
       company: r.company_name || selectedCompany,
       checkIn: "-",
       checkOut: "-",
