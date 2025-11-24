@@ -64,12 +64,15 @@ useEffect(() => {
       if (!empRes.data.success) return;
 
       const employeesWithId = empRes.data.employees.map(emp => {
-        const companyName = (companyNameMap[emp.company_name?.trim()] || emp.company_name || "").replace(/\s+/g, ' ').trim();
-        return {
-          ...emp,
-          company_id: companyMap[companyName] ?? null
-        };
-      });
+  const rawName = emp.company_name?.trim() || "";
+  // map ชื่อเก่าไปชื่อใหม่
+  const normalizedName = companyNameMap[rawName] || rawName;
+  return {
+    ...emp,
+    company_id: companyMap[normalizedName] ?? null,
+    company_name: normalizedName // เก็บเป็นชื่อใหม่
+  };
+});
 
       setEmployees(employeesWithId);
       console.log("🟢 Employees with ID:", employeesWithId);
@@ -161,19 +164,19 @@ useEffect(() => {
 
   const key = `${r.em_code}_${getLocalDateStr(selectedDate)}`;
   if (!tableData[key]) {
-    const emp = employees.find(e => e.em_code.toString() === r.em_code.toString());
-    tableData[key] = {
-      em_code: r.em_code,
-      name: emp ? emp.name : r.name || "-",
-      company_id: emp ? emp.company_id : undefined,
-      company: r.company_name || selectedCompany,
-      checkIn: "-",
-      checkOut: "-",
-      otInBefore: "-",
-      otOutBefore: "-",
-      otInAfter: "-",
-      otOutAfter: "-",
-    };
+   const emp = employees.find(e => e.em_code === r.em_code);
+tableData[key] = {
+  em_code: r.em_code,
+  name: emp?.name || r.name || "-",
+  company_id: emp?.company_id ?? null,
+  company: emp?.company_name || selectedCompany, // ใช้ชื่อ normalize
+  checkIn: "-",
+  checkOut: "-",
+  otInBefore: "-",
+  otOutBefore: "-",
+  otInAfter: "-",
+  otOutAfter: "-",
+};
   }
   const field = typeMap[r.type.toLowerCase()];
   if (field) tableData[key][field] = r.time || "-";
