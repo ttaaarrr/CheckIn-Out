@@ -36,39 +36,51 @@ const companyNameMap = {
 "OldCo": "NewCo"
 };
   // Fetch employees
-  useEffect(() => {
-    if (!user) return;
-    const fetchEmployees = async () => {
-      try {
-        const url =
-          selectedCompany === "all"
-            ? "https://api-checkin-out.bpit-staff.com/api/employees?company_name=A"
-            : `https://api-checkin-out.bpit-staff.com/api/employees?company_name=${selectedCompany}`;
-        const res = await axios.get(url);
+useEffect(() => {
+  if (!user) return;
 
-         console.log("🟢 [EMPLOYEES API RESPONSE]:", res.data);
-       if (res.data.success) {
-const companyMap = {};
-companies.forEach(c => {
-  companyMap[c.name.trim()] = c.id;
-});
+  const fetchCompaniesAndEmployees = async () => {
+    try {
+      // 1. fetch companies
+      const compRes = await axios.get("https://api-checkin-out.bpit-staff.com/api/company");
+      if (!compRes.data.success) return;
 
-  const employeesWithId = res.data.employees
-    .map(emp => ({
-      ...emp,
-      company_id: companyMap[emp.company_name?.trim()] || null
-    }))
-    .filter(emp => emp.company_name || emp.company_id); // กรองตรงนี้เลย
+      const companyList = compRes.data.companies.map((c, index) => ({ id: index, name: c.name }));
+      setCompanies(companyList);
 
-  setEmployees(employeesWithId);
-  console.log("พนักงาน:", employeesWithId);
-}
+      // สร้าง map สำหรับ mapping ชื่อบริษัท -> id
+      const companyMap = {};
+      companyList.forEach(c => {
+        const normalized = c.name.replace(/\s+/g, ' ').trim();
+        companyMap[normalized] = c.id;
+      });
+
+      // 2. fetch employees
+      const url =
+        selectedCompany === "all"
+          ? "https://api-checkin-out.bpit-staff.com/api/employees?company_name=A"
+          : `https://api-checkin-out.bpit-staff.com/api/employees?company_name=${selectedCompany}`;
+      const empRes = await axios.get(url);
+      if (!empRes.data.success) return;
+
+      const employeesWithId = empRes.data.employees.map(emp => {
+        const companyName = (companyNameMap[emp.company_name?.trim()] || emp.company_name || "").replace(/\s+/g, ' ').trim();
+        return {
+          ...emp,
+          company_id: companyMap[companyName] ?? null
+        };
+      });
+
+      setEmployees(employeesWithId);
+      console.log("🟢 Employees with ID:", employeesWithId);
+
     } catch (err) {
       console.error(err);
     }
-    };
-    fetchEmployees();
-  }, [user, selectedCompany]);
+  };
+
+  fetchCompaniesAndEmployees();
+}, [user, selectedCompany]);
 
   // Fetch companies + records
   useEffect(() => {
