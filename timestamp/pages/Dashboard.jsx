@@ -138,33 +138,35 @@ useEffect(() => {
     return `${day}/${month}/${year}`;
   };
   // สร้าง tableData หน้าเว็บ
-  const tableData = {};
- records.forEach((r) => {
+const tableData = {};
+const selectedCompanyId = selectedCompany !== "all" 
+  ? companies.find(c => c.name === selectedCompany)?.id 
+  : null;
+
+records.forEach((r) => {
   if (!r.type || !r.em_code) return;
-  
+
   // ตรวจสอบบริษัทก่อน
-  if (selectedCompany !== "all" && r.company_name !== selectedCompany) return;
+  if (selectedCompany !== "all" && r.company_id !== selectedCompanyId) return;
 
   const key = `${r.em_code}_${getLocalDateStr(selectedDate)}`;
   if (!tableData[key]) {
     const emp = employees.find(e => e.em_code.toString() === r.em_code.toString());
 
-    // หา company_id จาก companies
-    const company = companies.find(c => c.name === (emp?.company_name || r.company_name));
-
-   tableData[key] = {
-  em_code: r.em_code,
-  name: emp ? emp.name : r.name || "-",
-  company_id: emp?.company_id || null,
-  company: emp?.company_name || selectedCompany,
-  checkIn: "-",
-  checkOut: "-",
-  otInBefore: "-",
-  otOutBefore: "-",
-  otInAfter: "-",
-  otOutAfter: "-",
-};
+    tableData[key] = {
+      em_code: r.em_code,
+      name: emp ? emp.name : r.name || "-",
+      company_id: emp ? emp.company_id : null,  // ใช้ company_id จาก employee
+      company: companies.find(c => c.id === emp?.company_id)?.name || r.company_name,
+      checkIn: "-",
+      checkOut: "-",
+      otInBefore: "-",
+      otOutBefore: "-",
+      otInAfter: "-",
+      otOutAfter: "-",
+    };
   }
+
   const field = typeMap[r.type.toLowerCase()];
   if (field) tableData[key][field] = r.time || "-";
 });
@@ -587,11 +589,16 @@ saveAs(new Blob([buf]), `TimeRecords_${formatDateForApi(startDate)}_${formatDate
             className="px-4 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 focus:outline-none"
           />
         </div>
-        <select value={selectedCompany} onChange={(e) => setSelectedCompany(e.target.value)}
-          className="px-4 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 focus:outline-none">
-          <option value="all">เลือกบริษัท</option>
-          {companies.map((c) => <option key={c.id} value={c.name}>{c.name}</option>)}
-        </select>
+        <select
+  value={selectedCompany}
+  onChange={(e) => setSelectedCompany(e.target.value)}
+  className="px-4 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 focus:outline-none"
+>
+  <option value="all">เลือกบริษัท</option>
+  {companies.map((c) => (
+    <option key={c.id} value={c.name}>{c.name}</option>
+  ))}
+</select>
         <div className="flex items-center gap-2 ml-auto">
           <div className="flex flex-col">
             <DatePicker
