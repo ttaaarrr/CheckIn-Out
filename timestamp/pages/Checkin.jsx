@@ -79,36 +79,44 @@ export default function Checkin() {
       navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true });
     });
 
-  const handleCheckin = async (type) => {
-    if (!empId || !companyId) {
-      setMessage({ text: 'กรุณากรอกข้อมูลพนักงานและเลือกบริษัท', type: 'error' });
+const handleCheckin = async (type) => {
+  if (!empId || !companyId) {
+    setMessage({ text: 'กรุณากรอกข้อมูลพนักงานและเลือกบริษัท', type: 'error' });
+    return;
+  }
+
+  try {
+    // ตรวจสอบว่าพนักงานอยู่บริษัทนั้นหรือไม่
+    const checkRes = await axios.get(
+      `https://api-checkin-out.bpit-staff.com/api/employees/check/${empId}/${companyId}`
+    );
+
+    if (!checkRes.data.exists) {
+      setMessage({ text: `พนักงาน ${empId} ไม่ได้อยู่บริษัท ${companyId}`, type: 'error' });
       return;
     }
 
-    try {
-      const position = await getPosition();
-      const { latitude, longitude } = position.coords;
+    // ได้พนักงานตรงกับบริษัท -> ดึง GPS
+    const position = await getPosition();
+    const { latitude, longitude } = position.coords;
 
-      // log เวลาไป backend
-      const res = await logTime({ empId, type, company_name: companyId, latitude, longitude });
+    // log เวลาไป backend
+    const logRes = await logTime({ empId, type, company_name: companyId, latitude, longitude });
 
-      if (res.success) {
-        setMessage({ text: `บันทึกเวลา ${typeMapTH[type]} สำเร็จ: ${res.time}`, type: 'success' });
-        setEmpId('');
-        setRecords(await getTimeRecords(empId));
-
-        if (type.startsWith('ot')) {
-          setShowOTButtons(false); 
-        }
-      } else {
-        setMessage({ text: res.message, type: 'error' });
-      }
-    } catch (err) {
-      console.error(err);
-      setMessage({ text: 'กรุณาเปิด GPS ก่อนลงเวลา', type: 'error' });
+    if (logRes.success) {
+      setMessage({ text: `บันทึกเวลา ${typeMapTH[type]} สำเร็จ: ${logRes.time}`, type: 'success' });
+      setEmpId('');
+      setRecords(await getTimeRecords(empId));
+      if (type.startsWith('ot')) setShowOTButtons(false);
+    } else {
+      setMessage({ text: logRes.message, type: 'error' });
     }
-  };
 
+  } catch (err) {
+    console.error(err);
+    setMessage({ text: 'เกิดข้อผิดพลาด: กรุณาเปิด GPS หรือเช็คข้อมูลพนักงาน', type: 'error' });
+  }
+};
   return (
    <div className="max-w-lg w-full mx-auto bg-white rounded-2xl shadow-2xl p-6 sm:p-8 mt-10 border border-gray-100">
   <div className="mb-6 sm:mb-10 flex flex-col items-center justify-center text-blue-800 text-4xl sm:text-5xl font-extrabold">
