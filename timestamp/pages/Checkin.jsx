@@ -88,8 +88,8 @@ const handleCheckin = async (type) => {
   try {
     // ตรวจสอบว่าพนักงานอยู่บริษัทนั้นหรือไม่
     const checkRes = await axios.get(
-      `https://api-checkin-out.bpit-staff.com/api/employees/check/${empId}/${companyId}`
-    );
+  `https://api-checkin-out.bpit-staff.com/api/employees/check/${empId.trim()}/${companyId.trim()}`
+);
 
     if (!checkRes.data.exists) {
       setMessage({ text: `พนักงาน ${empId} ไม่ได้อยู่บริษัท ${companyId}`, type: 'error' });
