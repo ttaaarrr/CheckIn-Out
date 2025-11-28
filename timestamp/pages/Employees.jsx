@@ -299,7 +299,8 @@ if (res.data.success) {
   zoom={13}
   style={{ height: '300px', width: '100%' }}
 >
-  <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+  {/* <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" /> */}
+  <TileLayer  url={`https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}&AIzaSyAqz5e1vSEwRLtKRK6u4jbXf5ceCDTAVtc`} attribution="&copy; Google Maps"/>
   <MarkerSetter
     lat={newCompanyLat}
     lng={newCompanyLng}
