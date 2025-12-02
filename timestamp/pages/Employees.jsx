@@ -18,40 +18,41 @@ L.Icon.Default.mergeOptions({
   shadowUrl: markerShadow,
 });
 const MarkerSetter = ({ lat, lng, setLat, setLng }) => {
-  const map = useMap();
-
-  // อัพเดท center ของ map เมื่อ lat/lng เปลี่ยน
-  useEffect(() => {
-    if (lat && lng) {
-      map.setView([lat, lng], map.getZoom());
-    }
-  }, [lat, lng, map]);
-
   const [position, setPosition] = useState(lat && lng ? { lat, lng } : null);
-
-  useEffect(() => {
-    if (lat && lng) setPosition({ lat, lng });
-  }, [lat, lng]);
-
-  useMapEvents({
+  const map = useMapEvents({
     click(e) {
       setPosition(e.latlng);
       setLat(e.latlng.lat);
       setLng(e.latlng.lng);
-    },
+    }
   });
 
- const customIcon = new L.Icon({
-  iconUrl: markerIcon,
-  iconRetinaUrl: markerIcon2x,
-  shadowUrl: markerShadow,
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-});
+  useEffect(() => {
+    if (typeof lat === 'number' && typeof lng === 'number') {
+      setPosition({ lat, lng });
+    }
+  }, [lat, lng]);
 
-return position ? <Marker position={[position.lat, position.lng]} icon={customIcon} /> : null;
+  if (!position) return null;
 
+  const customIcon = new L.Icon({
+    iconUrl: markerIcon,
+    iconRetinaUrl: markerIcon2x,
+    shadowUrl: markerShadow,
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+  });
+
+  return <Marker position={[position.lat, position.lng]} icon={customIcon} />;
 };
+function ChangeView({ center }) {
+  const map = useMap();
+  useEffect(() => {
+    map.setView(center);
+  }, [center]);
+
+  return null;
+}
 export default function Employees() {
   const [companies, setCompanies] = useState([]);
   const [selectedCompany, setSelectedCompany] = useState('');
@@ -107,7 +108,7 @@ export default function Employees() {
        let res;
 if (editingCompany) {
   res = await axios.put(
-    `https://api-checkin-out.bpit-staff.com/api/company/${editingCompany.name}`,
+    `http://https://api-checkin-out.bpit-staff.com:3009/api/company/${editingCompany.name}`,
     {
       name: newCompanyName,
       address: newCompanyAddress,
@@ -118,7 +119,7 @@ if (editingCompany) {
   alert(`แก้ไขบริษัท ${newCompanyName} สำเร็จ`);
   setEditingCompany(null);
 } else {
-  res = await axios.post('https://api-checkin-out.bpit-staff.com/api/company', {
+  res = await axios.post('http://https://api-checkin-out.bpit-staff.com:3009/api/company', {
     name: newCompanyName,
     address: newCompanyAddress,
     latitude: newCompanyLat || null,
@@ -143,7 +144,7 @@ if (res.data.success) {
   //ลบบริษัท
   const deleteCompany = async (companyName) => {
     try {
-      const res = await axios.delete(`https://api-checkin-out.bpit-staff.com/api/company/${companyName}`);
+      const res = await axios.delete(`http://https://api-checkin-out.bpit-staff.com:3009/api/company/${companyName}`);
       if (res.data.success) {
         alert(`ลบบริษัท ${companyName} เรียบร้อยแล้ว`);
         if (selectedCompany === companyName) setSelectedCompany('');
@@ -162,7 +163,7 @@ if (res.data.success) {
     if (!selectedCompany) return alert("กรุณาเลือกบริษัทก่อน");
 
     try {
-      const res = await axios.post('https://api-checkin-out.bpit-staff.com/api/employees', { ...newEmp, company_name: selectedCompany });
+      const res = await axios.post('http://https://api-checkin-out.bpit-staff.com:3009/api/employees', { ...newEmp, company_name: selectedCompany });
       if (res.data.success) {
         fetchEmployees(selectedCompany);
         setFormVisible(false);
@@ -183,7 +184,7 @@ if (res.data.success) {
     if (!confirm("ลบพนักงาน?")) return;
 
     try {
-      const res = await axios.delete(`https://api-checkin-out.bpit-staff.com/api/employees/${em_code}?company_name=${selectedCompany}`);
+      const res = await axios.delete(`http://https://api-checkin-out.bpit-staff.com:3009/api/employees/${em_code}?company_name=${selectedCompany}`);
       if (res.data.success) fetchEmployees(selectedCompany);
     } catch (err) {
       console.error(err.response?.data || err.message);
@@ -277,14 +278,23 @@ if (res.data.success) {
 
         // เรียก Geocoding API ของ OpenStreetMap
         try {
-          const res = await axios.get('https://nominatim.openstreetmap.org/search', {
-            params: { q: addr, format: 'json', limit: 1 },
-          });
-          if (res.data.length > 0) {
-            const { lat, lon } = res.data[0];
-            setNewCompanyLat(parseFloat(lat));
-            setNewCompanyLng(parseFloat(lon));
-          }
+        const res = await axios.get('https://nominatim.openstreetmap.org/search', {
+          params: { q: addr, format: 'json', limit: 1 ,countrycodes: 'th',},
+        });
+        if (res.data.length > 0) {
+  const { lat, lon } = res.data[0];
+  const parsedLat = parseFloat(lat);
+  const parsedLng = parseFloat(lon);
+
+  if (!isNaN(parsedLat) && !isNaN(parsedLng)) {
+    setNewCompanyLat(parsedLat);
+    setNewCompanyLng(parsedLng);
+  } else {
+    console.error("Invalid coordinates from geocoding:", lat, lon);
+  }
+      } else {
+        console.error("No geocoding results for:", addr);
+      }
         } catch (err) {
           console.error('Geocoding error:', err);
         }
@@ -294,21 +304,25 @@ if (res.data.success) {
 
     {/* แผนที่ */}
     <div style={{ height: 300 }}>
-     <MapContainer
-  center={[newCompanyLat || 13.7367, newCompanyLng || 100.5231]}
-  zoom={13}
+<MapContainer
+  center={[13.7367, 100.5231]}
+   zoom={16}
+  maxZoom={18}
   style={{ height: '300px', width: '100%' }}
->
-  {/* <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" /> */}
-  <TileLayer  url={`https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}&AIzaSyAqz5e1vSEwRLtKRK6u4jbXf5ceCDTAVtc`} attribution="&copy; Google Maps"/>
-  <MarkerSetter
-    lat={newCompanyLat}
-    lng={newCompanyLng}
-    setLat={setNewCompanyLat}
-    setLng={setNewCompanyLng}
+ >
+  <TileLayer
+    url="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}&key=AIzaSyAqz5e1vSEwRLtKRK6u4jbXf5ceCDTAVtc"
+    attribution="&copy; Google Maps"
+    maxZoom={18}
   />
+  <ChangeView center={[newCompanyLat, newCompanyLng]} />
+ <MarkerSetter
+  lat={newCompanyLat}
+  lng={newCompanyLng}
+  setLat={setNewCompanyLat}
+  setLng={setNewCompanyLng}
+/>
 </MapContainer>
-
     </div>
 
     <p className="text-sm text-gray-500 mt-1">
