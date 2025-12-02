@@ -224,7 +224,7 @@ if (res.data.success) {
             เพิ่มบริษัท
           </button>
           {/*แก้ไข*/}
-          {/* <button
+          <button
           onClick={() => {
             if (!selectedCompany) return alert("กรุณาเลือกบริษัทก่อนแก้ไข");
             const company = companies.find(c => c.name === selectedCompany);
@@ -239,7 +239,7 @@ if (res.data.success) {
           className="bg-yellow-400 text-white px-5 py-2 rounded-lg hover:bg-yellow-500"
           >
             แก้ไขบริษัท
-          </button> */}
+          </button> 
           {/*ลบ*/ }
           <button
             onClick={() => {
