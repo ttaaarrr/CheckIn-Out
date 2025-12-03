@@ -98,7 +98,7 @@ const handleCheckin = async (type) => {
   // 1. ตรวจสอบรหัสหรือชื่อพนักงาน
   const { exists, employee } = await checkEmployeeInCompany(empId, companyId);
   if (!exists) {
-    setMessage({ text: `ไม่พบพนักงานในบริษัท ${companyId}`, type: 'error' });
+   setMessage({ text: `ไม่พบข้อมูล ${empId} ในบริษัท ${companyId}`, type: 'error' });
     return;
   }
 
