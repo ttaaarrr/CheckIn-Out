@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Clock, Building2, User, LogIn, LogOut, Edit } from 'lucide-react';
+
 export default function Checkin() {
   const [empId, setEmpId] = useState('');
   const [companyId, setCompanyId] = useState('');
@@ -9,6 +10,7 @@ export default function Checkin() {
   const [companies, setCompanies] = useState([]);
   const [records, setRecords] = useState([]);
   const [showOTButtons, setShowOTButtons] = useState(false);
+
   const typeMapTH = { 
     in: 'เข้างาน', 
     out: 'ออกงาน', 
@@ -17,6 +19,7 @@ export default function Checkin() {
     ot_out_before: 'ออก OT ก่อนเข้างาน',
     ot_out_after: 'ออก OT หลังเลิกงาน'
   };
+
   const typeColor = {
     in: 'bg-green-500 hover:bg-green-600',
     out: 'bg-red-500 hover:bg-red-600',
@@ -25,8 +28,10 @@ export default function Checkin() {
     ot_out_before: 'bg-yellow-500 hover:bg-yellow-600',
     ot_out_after: 'bg-yellow-500 hover:bg-yellow-600',
   };
+
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+
     const fetchCompanies = async () => {
       try {
         const res = await fetch('https://api-checkin-out.bpit-staff.com/api/company');
@@ -38,9 +43,11 @@ export default function Checkin() {
         console.error(err);
       }
     };
+
     fetchCompanies();
     return () => clearInterval(timer);
   }, []);
+
   const getTimeRecords = async (empId) => {
     try {
       const res = await axios.get(`https://api-checkin-out.bpit-staff.com/api/time-record/${empId}`);
@@ -49,6 +56,7 @@ export default function Checkin() {
       return [];
     }
   };
+
   const logTime = async ({ empId, type, company_name, latitude, longitude }) => {
     try {
       const res = await axios.post('https://api-checkin-out.bpit-staff.com/api/time-record', {
@@ -64,47 +72,67 @@ export default function Checkin() {
       return { success: false, message: err.response?.data?.message || 'เกิดข้อผิดพลาด' };
     }
   };
+
   const getPosition = () =>
     new Promise((resolve, reject) => {
       if (!navigator.geolocation) return reject(new Error('Browser ไม่รองรับ GPS'));
       navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true });
     });
+const checkEmployeeInCompany = async (employeeInput, company_name) => {
+  try {
+    const res = await axios.get('https://api-checkin-out.bpit-staff.com/api/employees/check', {
+      params: { query: employeeInput, company_name }
+    });
+    return res.data; // { exists, employee }
+  } catch (err) {
+    console.error(err);
+    return { exists: false };
+  }
+};
+const handleCheckin = async (type) => {
+  if (!empId || !companyId) {
+    setMessage({ text: 'กรุณากรอกข้อมูลพนักงานและเลือกบริษัท', type: 'error' });
+    return;
+  }
 
-  const handleCheckin = async (type) => {
-    if (!empId || !companyId) {
-      setMessage({ text: 'กรุณากรอกข้อมูลพนักงานและเลือกบริษัท', type: 'error' });
-      return;
+  // 1. ตรวจสอบรหัสหรือชื่อพนักงาน
+  const { exists, employee } = await checkEmployeeInCompany(empId, companyId);
+  if (!exists) {
+    setMessage({ text: `ไม่พบพนักงานในบริษัท ${companyId}`, type: 'error' });
+    return;
+  }
+
+  try {
+    const position = await getPosition();
+    const { latitude, longitude } = position.coords;
+
+    const res = await logTime({
+      empId: employee.em_code, // ใช้ em_code จริง
+      type,
+      company_name: companyId,
+      latitude,
+      longitude,
+    });
+
+    if (res.success) {
+      setMessage({ text: `บันทึกเวลา ${typeMapTH[type]} สำเร็จ: ${res.time}`, type: 'success' });
+      setEmpId('');
+      setRecords(await getTimeRecords(employee.em_code));
+      if (type.startsWith('ot')) setShowOTButtons(false);
+    } else {
+      setMessage({ text: res.message, type: 'error' });
     }
-
-    try {
-      const position = await getPosition();
-      const { latitude, longitude } = position.coords;
-
-      // log เวลาไป backend
-      const res = await logTime({ empId, type, company_name: companyId, latitude, longitude });
-
-      if (res.success) {
-        setMessage({ text: `บันทึกเวลา ${typeMapTH[type]} สำเร็จ: ${res.time}`, type: 'success' });
-        setEmpId('');
-        setRecords(await getTimeRecords(empId));
-
-        if (type.startsWith('ot')) {
-          setShowOTButtons(false); 
-        }
-      } else {
-        setMessage({ text: res.message, type: 'error' });
-      }
-    } catch (err) {
-      console.error(err);
-      setMessage({ text: 'กรุณาเปิด GPS ก่อนลงเวลา', type: 'error' });
-    }
-  };
-
+  } catch (err) {
+    console.error(err);
+    setMessage({ text: 'กรุณาเปิด GPS ก่อนลงเวลา', type: 'error' });
+  }
+};
   return (
    <div className="max-w-lg w-full mx-auto bg-white rounded-2xl shadow-2xl p-6 sm:p-8 mt-10 border border-gray-100">
   <div className="mb-6 sm:mb-10 flex flex-col items-center justify-center text-blue-800 text-4xl sm:text-5xl font-extrabold">
     <h1>BPIT Time App</h1>
   </div>
+
   <div className="text-center mb-4 sm:mb-6">
     <h4 className="text-xl sm:text-2xl font-extrabold text-blue-700">บันทึกเวลาเข้า-ออกงาน</h4>
     <p className="flex items-center justify-center gap-2 text-gray-600 mt-1 sm:mt-2 text-base sm:text-lg">
@@ -112,6 +140,7 @@ export default function Checkin() {
       {currentTime.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })}
     </p>
   </div>
+
   {/* Input พนักงาน */}
   <div className="relative mb-3 sm:mb-4">
     <User className="absolute left-3 top-3 text-gray-400 w-4 h-4 sm:w-5 sm:h-5" />
@@ -123,6 +152,7 @@ export default function Checkin() {
       className="w-full pl-10 pr-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none text-sm sm:text-base"
     />
   </div>
+
   {/* Select บริษัท */}
   <div className="relative mb-4 sm:mb-6">
     <Building2 className="absolute left-3 top-3 text-gray-400 w-4 h-4 sm:w-5 sm:h-5" />
@@ -137,6 +167,7 @@ export default function Checkin() {
       ))}
     </select>
   </div>
+
   {/* ปุ่มลงเวลา */}
   <div className="grid grid-cols-2 gap-2 sm:gap-3 mb-4 sm:mb-6">
     {['in', 'out'].map((type) => (
@@ -151,6 +182,7 @@ export default function Checkin() {
       </button>
     ))}
   </div>
+
   {/* ปุ่มขอ OT */}
   <button
     onClick={() => setShowOTButtons(true)}
@@ -158,6 +190,7 @@ export default function Checkin() {
   >
     <Edit className="w-4 h-4 sm:w-5 sm:h-5" /> OT
   </button>
+
   {/* ปุ่ม OT 4 ปุ่ม */}
   {showOTButtons && (
     <div className="grid grid-cols-2 gap-2 sm:gap-3 mb-4 sm:mb-6">
@@ -172,12 +205,14 @@ export default function Checkin() {
       ))}
     </div>
   )}
+
   {/* ข้อความสถานะ */}
   {message && (
     <div className={`mt-3 sm:mt-4 p-3 sm:p-4 rounded-lg text-center font-medium text-sm sm:text-base ${message.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
       {message.text}
     </div>
   )}
+
   {/* ประวัติ */}
   {records.length > 0 && (
     <div className="mt-4 sm:mt-8">
@@ -193,5 +228,6 @@ export default function Checkin() {
     </div>
   )}
 </div>
+
   );
 }
