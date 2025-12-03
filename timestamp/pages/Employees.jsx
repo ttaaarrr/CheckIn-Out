@@ -302,28 +302,40 @@ if (res.data.success) {
       className="px-4 py-2 border rounded-lg"
     />
 
-    {/* แผนที่ */}
-    <div style={{ height: 300 }}>
-<MapContainer
-  center={[13.7367, 100.5231]}
-   zoom={16}
-  maxZoom={18}
-  style={{ height: '300px', width: '100%' }}
- >
-  <TileLayer
-    url="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}&key=AIzaSyAqz5e1vSEwRLtKRK6u4jbXf5ceCDTAVtc"
-    attribution="&copy; Google Maps"
+      {/* แผนที่ */}
+   <div style={{ height: 300 }}>
+  <MapContainer
+    center={[
+      newCompanyLat || 13.7367,
+      newCompanyLng || 100.5231
+    ]}
+    zoom={16}
     maxZoom={18}
-  />
-  <ChangeView center={[newCompanyLat, newCompanyLng]} />
- <MarkerSetter
-  lat={newCompanyLat}
-  lng={newCompanyLng}
-  setLat={setNewCompanyLat}
-  setLng={setNewCompanyLng}
-/>
-</MapContainer>
-    </div>
+    style={{ height: '300px', width: '100%' }}
+  >
+    <TileLayer
+      url="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}&key=AIzaSyAqz5e1vSEwRLtKRK6u4jbXf5ceCDTAVtc"
+      attribution="&copy; Google Maps"
+      maxZoom={18}
+    />
+
+    {/* ✔ ChangeView — ทำงานเฉพาะเมื่อมีค่า lat/lng */}
+    {newCompanyLat && newCompanyLng && (
+      <ChangeView center={[newCompanyLat, newCompanyLng]} />
+    )}
+
+    {/* ✔ MarkerSetter — กัน NaN */}
+    {newCompanyLat && newCompanyLng && (
+      <MarkerSetter
+        lat={Number(newCompanyLat)}
+        lng={Number(newCompanyLng)}
+        setLat={setNewCompanyLat}
+        setLng={setNewCompanyLng}
+      />
+    )}
+
+  </MapContainer>
+</div>
 
     <p className="text-sm text-gray-500 mt-1">
       คลิกบนแผนที่เพื่อปรับตำแหน่งบริษัทได้
