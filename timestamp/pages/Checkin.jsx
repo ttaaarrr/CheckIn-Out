@@ -138,6 +138,14 @@ const handleCheckin = async (type) => {
 
   <div className="text-center mb-4 sm:mb-6">
     <h4 className="text-xl sm:text-2xl font-extrabold text-blue-700">บันทึกเวลาเข้า-ออกงาน</h4>
+    <p className="font-semibold text-gray-600 mb-1 text-xl">
+    {currentTime.toLocaleDateString("th-TH", {
+      weekday: "short",
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    })}
+  </p>
     <p className="flex items-center justify-center gap-2 font-bold text-gray-600 mt-1 sm:mt-2 text-base sm:text-lg">
       <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 " />
       {currentTime.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' , second: '2-digit' })}
