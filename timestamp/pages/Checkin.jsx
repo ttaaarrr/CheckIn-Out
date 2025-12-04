@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Clock, Building2, User, LogIn, LogOut, Edit } from 'lucide-react';
+import { Link } from "react-router-dom";
 
 export default function Checkin() {
   const [empId, setEmpId] = useState('');
@@ -10,6 +11,7 @@ export default function Checkin() {
   const [companies, setCompanies] = useState([]);
   const [records, setRecords] = useState([]);
   const [showOTButtons, setShowOTButtons] = useState(false);
+ const [open, setOpen] = useState(false);
 
   const typeMapTH = { 
     in: 'เข้างาน', 
@@ -98,7 +100,7 @@ const handleCheckin = async (type) => {
   // 1. ตรวจสอบรหัสหรือชื่อพนักงาน
   const { exists, employee } = await checkEmployeeInCompany(empId, companyId);
   if (!exists) {
-   setMessage({ text: `ไม่พบข้อมูล ${empId} ในบริษัท ${companyId}`, type: 'error' });
+    setMessage({ text: `ไม่พบข้อมูล ${empId} ในบริษัท ${companyId}`, type: 'error' });
     return;
   }
 
@@ -128,6 +130,7 @@ const handleCheckin = async (type) => {
   }
 };
   return (
+    <div className="min-h-screen flex flex-col justify-center items-center relative p-4">
    <div className="max-w-lg w-full mx-auto bg-white rounded-2xl shadow-2xl p-6 sm:p-8 mt-10 border border-gray-100">
   <div className="mb-6 sm:mb-10 flex flex-col items-center justify-center text-blue-800 text-4xl sm:text-5xl font-extrabold">
     <h1>BPIT Time App</h1>
@@ -136,8 +139,8 @@ const handleCheckin = async (type) => {
   <div className="text-center mb-4 sm:mb-6">
     <h4 className="text-xl sm:text-2xl font-extrabold text-blue-700">บันทึกเวลาเข้า-ออกงาน</h4>
     <p className="flex items-center justify-center gap-2 font-bold text-gray-600 mt-1 sm:mt-2 text-base sm:text-lg">
-      <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500" />
-      {currentTime.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })}
+      <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 " />
+      {currentTime.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' , second: '2-digit' })}
     </p>
   </div>
 
@@ -228,6 +231,43 @@ const handleCheckin = async (type) => {
     </div>
   )}
 </div>
+ {/* ปุ่มลอยมุมขวาล่าง */}
+    <div className="fixed bottom-6 right-6 z-50">
+        <button
+          onClick={() => setOpen(!open)}
+          className="bg-blue-600 text-white px-5 py-3 rounded-full shadow-lg text-lg"
+        >
+          สำหรับเจ้าหน้าที่
+        </button>
 
+        {/* Drop-Up Menu */}
+        {open && (
+          <div className="absolute bottom-16 right-0 w-56 bg-white rounded-t-2xl rounded-b-lg shadow-xl overflow-hidden">
+            <Link
+              to="/employees"
+              className="block w-full text-center py-3 hover:bg-gray-100"
+              onClick={() => setOpen(false)}
+            >
+              จัดการพนักงาน
+            </Link>
+
+            <Link
+              to="/dashboard"
+              className="block w-full text-center py-3 hover:bg-gray-100"
+              onClick={() => setOpen(false)}
+            >
+              ตารางการลงเวลา
+            </Link>
+
+            <button
+              onClick={() => setOpen(false)}
+              className="block w-full text-center py-3 bg-gray-200 hover:bg-gray-300"
+            >
+              ยกเลิก
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
