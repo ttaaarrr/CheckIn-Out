@@ -325,14 +325,14 @@ if (res.data.success) {
     )}
 
     {/* ✔ MarkerSetter — กัน NaN */}
-    {newCompanyLat && newCompanyLng && (
-      <MarkerSetter
-        lat={Number(newCompanyLat)}
-        lng={Number(newCompanyLng)}
-        setLat={setNewCompanyLat}
-        setLng={setNewCompanyLng}
-      />
-    )}
+     {newCompanyLat !== null && newCompanyLng !== null && (
+  <MarkerSetter
+    lat={parseFloat(newCompanyLat)}
+    lng={parseFloat(newCompanyLng)}
+    setLat={setNewCompanyLat}
+    setLng={setNewCompanyLng}
+  />
+)}
 
   </MapContainer>
 </div>
