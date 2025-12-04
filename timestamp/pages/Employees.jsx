@@ -65,6 +65,8 @@ export default function Employees() {
   const [newCompanyLng, setNewCompanyLng] = useState(null);
   const [companyFormVisible, setCompanyFormVisible] = useState(false);
   const [editingCompany, setEditingCompany] = useState(null); 
+  const [addressSuggestions, setAddressSuggestions] = useState([]);
+  const [isFetchingAddress, setIsFetchingAddress] = useState(false);
   const { user } = useUser();
   const navigate = useNavigate();
 
@@ -140,7 +142,70 @@ if (res.data.success) {
       alert('เกิดข้อผิดพลาด');
     }
   };
+ // auto search
+ const searchAddress = async (query) => {
+  if (!query.trim()) return [];
 
+  try {
+    const res = await axios.get("https://nominatim.openstreetmap.org/search", {
+      params: {
+        q: query,
+        format: "json",
+        limit: 5,
+        countrycodes: "th",
+        addressdetails: 1,
+      },
+    });
+
+    return res.data;
+  } catch (err) {
+    console.error("Geocode error:", err);
+    return [];
+  }
+};
+
+const handleAddressChange = async (e) => {
+  const value = e.target.value;
+  setNewCompanyAddress(value);
+
+  if (value.length < 3) {
+    setAddressSuggestions([]);
+    return;
+  }
+
+  setIsFetchingAddress(true);
+  const results = await searchAddress(value);
+  setAddressSuggestions(results);
+  setIsFetchingAddress(false);
+};
+
+// ENTER = auto choose suggestion[0] หรือ set default lat/lng
+const handleAddressEnter = async (e) => {
+  if (e.key !== "Enter") return;
+  e.preventDefault();
+
+  const results = await searchAddress(newCompanyAddress);
+
+  if (results.length > 0) {
+    const { lat, lon } = results[0];
+    setNewCompanyLat(parseFloat(lat));
+    setNewCompanyLng(parseFloat(lon));
+  } else {
+    // ถ้าไม่พบที่อยู่ → ใช้ default พิกัดกรุงเทพ
+    setNewCompanyLat(13.7563);
+    setNewCompanyLng(100.5018);
+  }
+
+  setAddressSuggestions([]);
+};
+
+const selectSuggestion = (item) => {
+  setNewCompanyAddress(item.display_name);
+  setAddressSuggestions([]);
+
+  setNewCompanyLat(parseFloat(item.lat));
+  setNewCompanyLng(parseFloat(item.lon));
+};
   //ลบบริษัท
   const deleteCompany = async (companyName) => {
     try {
@@ -266,42 +331,38 @@ if (res.data.success) {
     />
 
     {/* ที่อยู่บริษัท */}
-    <input
-      type="text"
-      placeholder="ที่อยู่บริษัท"
-      value={newCompanyAddress}
-      onChange={async e => {
-        const addr = e.target.value;
-        setNewCompanyAddress(addr);
+<div className="relative">
+  <input
+    type="text"
+    placeholder="กรอกทข้อมูลที่อยู่บริษัทเพื่อปักหมุดบนแผนที่"
+    value={newCompanyAddress}
+    onChange={handleAddressChange}
+    onKeyDown={handleAddressEnter}
+    className="px-4 py-2 border rounded-lg w-full"
+  />
 
-        if (!addr) return;
+  {/* Loading message */}
+  {isFetchingAddress && (
+    <div className="absolute bg-white border rounded-lg mt-1 w-full p-2 text-gray-500 z-50">
+      กำลังค้นหา...
+    </div>
+  )}
 
-        // เรียก Geocoding API ของ OpenStreetMap
-        try {
-        const res = await axios.get('https://nominatim.openstreetmap.org/search', {
-          params: { q: addr, format: 'json', limit: 1 ,countrycodes: 'th',},
-        });
-        if (res.data.length > 0) {
-  const { lat, lon } = res.data[0];
-  const parsedLat = parseFloat(lat);
-const parsedLng = parseFloat(lon);
-
-if (!isNaN(parsedLat) && !isNaN(parsedLng)) {
-  setNewCompanyLat(parsedLat);
-  setNewCompanyLng(parsedLng);
-} else {
-    console.error("Invalid coordinates from geocoding:", lat, lon);
-  }
-      } else {
-        console.error("No geocoding results for:", addr);
-      }
-        } catch (err) {
-          console.error('Geocoding error:', err);
-        }
-      }}
-      className="px-4 py-2 border rounded-lg"
-    />
-
+  {/* Suggestions list */}
+  {addressSuggestions.length > 0 && (
+    <ul className="absolute bg-white border rounded-lg mt-1 w-full max-h-48 overflow-auto shadow-lg z-10000">
+      {addressSuggestions.map((item, idx) => (
+        <li
+          key={idx}
+          className="px-3 py-2 cursor-pointer hover:bg-gray-100"
+          onClick={() => selectSuggestion(item)}
+        >
+          {item.display_name}
+        </li>
+      ))}
+    </ul>
+  )}
+</div>
     {/* แผนที่ */}
    <div style={{ height: 300 }}>
   <MapContainer
@@ -338,7 +399,7 @@ if (!isNaN(parsedLat) && !isNaN(parsedLng)) {
 </div>
 
     <p className="text-sm text-gray-500 mt-1">
-      คลิกบนแผนที่เพื่อปรับตำแหน่งบริษัทได้
+      คลิกบนแผนที่เพื่อปักหมุดตำแหน่งบริษัทได้
     </p>
 
     <div className="flex gap-2 justify-end">
