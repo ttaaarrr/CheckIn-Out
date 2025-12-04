@@ -334,7 +334,7 @@ const selectSuggestion = (item) => {
 <div className="relative">
   <input
     type="text"
-    placeholder="กรอกทข้อมูลที่อยู่บริษัทเพื่อปักหมุดบนแผนที่"
+    placeholder="กรอกข้อมูลที่อยู่บริษัทเพื่อปักหมุดบนแผนที่"
     value={newCompanyAddress}
     onChange={handleAddressChange}
     onKeyDown={handleAddressEnter}
