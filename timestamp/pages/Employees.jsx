@@ -61,8 +61,8 @@ export default function Employees() {
   const [newEmp, setNewEmp] = useState({ em_code: '', name: '', position: '', department: '' });
   const [newCompanyName, setNewCompanyName] = useState('');
   const [newCompanyAddress, setNewCompanyAddress] = useState('');
-  const [newCompanyLat, setNewCompanyLat] = useState('');
-  const [newCompanyLng, setNewCompanyLng] = useState('');
+  const [newCompanyLat, setNewCompanyLat] = useState(null);
+  const [newCompanyLng, setNewCompanyLng] = useState(null);
   const [companyFormVisible, setCompanyFormVisible] = useState(false);
   const [editingCompany, setEditingCompany] = useState(null); 
   const { user } = useUser();
@@ -239,7 +239,7 @@ if (res.data.success) {
           className="bg-yellow-400 text-white px-5 py-2 rounded-lg hover:bg-yellow-500"
           >
             แก้ไขบริษัท
-          </button> 
+          </button>
           {/*ลบ*/ }
           <button
             onClick={() => {
@@ -284,12 +284,12 @@ if (res.data.success) {
         if (res.data.length > 0) {
   const { lat, lon } = res.data[0];
   const parsedLat = parseFloat(lat);
-  const parsedLng = parseFloat(lon);
+const parsedLng = parseFloat(lon);
 
-  if (!isNaN(parsedLat) && !isNaN(parsedLng)) {
-    setNewCompanyLat(parsedLat);
-    setNewCompanyLng(parsedLng);
-  } else {
+if (!isNaN(parsedLat) && !isNaN(parsedLng)) {
+  setNewCompanyLat(parsedLat);
+  setNewCompanyLng(parsedLng);
+} else {
     console.error("Invalid coordinates from geocoding:", lat, lon);
   }
       } else {
@@ -302,7 +302,7 @@ if (res.data.success) {
       className="px-4 py-2 border rounded-lg"
     />
 
-      {/* แผนที่ */}
+    {/* แผนที่ */}
    <div style={{ height: 300 }}>
   <MapContainer
     center={[
@@ -325,7 +325,7 @@ if (res.data.success) {
     )}
 
     {/* ✔ MarkerSetter — กัน NaN */}
-     {newCompanyLat !== null && newCompanyLng !== null && (
+    {newCompanyLat !== null && newCompanyLng !== null && (
   <MarkerSetter
     lat={parseFloat(newCompanyLat)}
     lng={parseFloat(newCompanyLng)}
