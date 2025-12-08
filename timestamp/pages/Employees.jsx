@@ -18,7 +18,15 @@ L.Icon.Default.mergeOptions({
   shadowUrl: markerShadow,
 });
 const MarkerSetter = ({ lat, lng, setLat, setLng }) => {
-  const [position, setPosition] = useState(lat && lng ? { lat, lng } : null);
+  const numLat = Number(lat);
+  const numLng = Number(lng);
+
+  const valid = !isNaN(numLat) && !isNaN(numLng);
+
+  const [position, setPosition] = useState(
+    valid ? { lat: numLat, lng: numLng } : null
+  );
+
   const map = useMapEvents({
     click(e) {
       setPosition(e.latlng);
@@ -28,8 +36,11 @@ const MarkerSetter = ({ lat, lng, setLat, setLng }) => {
   });
 
   useEffect(() => {
-    if (typeof lat === 'number' && typeof lng === 'number') {
-      setPosition({ lat, lng });
+    const newLat = Number(lat);
+    const newLng = Number(lng);
+
+    if (!isNaN(newLat) && !isNaN(newLng)) {
+      setPosition({ lat: newLat, lng: newLng });
     }
   }, [lat, lng]);
 
