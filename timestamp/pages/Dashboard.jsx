@@ -638,7 +638,7 @@ console.log("บริษัทที่เลือก:", selectedCompany);
       {selectedCompany === "all" ? (
         <div className="text-red-500 font-semibold text-lg flex justify-center items-center">กรุณาเลือกบริษัทก่อนแสดงข้อมูล</div>
       ) : (<>
-         /* {console.log(
+      {console.log(
       "tableData สำหรับแสดงตาราง:",
       Object.values(tableData).map(r => ({
         em_code: r.em_code,
@@ -646,7 +646,7 @@ console.log("บริษัทที่เลือก:", selectedCompany);
         company_id: r.company_id,   // เพิ่มตรงนี้
         company_name: r.company      // และชื่อบริษัท
       }))
-    )} */
+    )} 
         <div className="bg-white shadow-md rounded-lg overflow-auto">
           <table className="min-w-full border border-gray-300 border-collapse">
             <thead className="bg-blue-50">
