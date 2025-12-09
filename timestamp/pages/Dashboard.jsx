@@ -588,104 +588,130 @@ console.log("บริษัทที่เลือก:", selectedCompany);
   if (!user) return null;
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      <h1 className="text-2xl font-bold mb-6 text-gray-800">ตารางบันทึกการลงเวลา</h1>
+  <div className="p-4 sm:p-6 bg-gray-50 min-h-screen">
+  <h1 className="text-xl sm:text-2xl font-bold mb-4 text-gray-800">
+    ตารางบันทึกการลงเวลา
+  </h1>
 
-      <div className="flex flex-col md:flex-row gap-4 mb-6">
-        <div className="flex flex-col">
-          <DatePicker
-            selected={selectedDate}
-            onChange={(date) => date && setSelectedDate(date)}
-            dateFormat="dd/MM/yyyy"
-            className="px-4 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 focus:outline-none"
-          />
-        </div>
-        <select value={selectedCompany} onChange={(e) => setSelectedCompany(e.target.value)}
-          className="px-4 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 focus:outline-none">
-          <option value="all">เลือกบริษัท</option>
-          {companies.map((c) => <option key={c.id} value={c.name}>{c.name}</option>)}
-        </select>
-        <div className="flex items-center gap-2 ml-auto">
-          <div className="flex flex-col">
-            <DatePicker
-              selected={startDate}
-              onChange={(date) => date && setStartDate(date)}
-              selectsStart
-              startDate={startDate}
-              endDate={endDate}
-              dateFormat="dd/MM/yyyy"
-              className="px-4 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 focus:outline-none"
-            />
-          </div>
-          <div className="flex flex-col">
-            <DatePicker
-              selected={endDate}
-              onChange={(date) => date && setEndDate(date)}
-              selectsEnd
-              startDate={startDate}
-              endDate={endDate}
-              minDate={startDate}
-              dateFormat="dd/MM/yyyy"
-              className="px-4 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 focus:outline-none"
-            />
-         </div>
-          <button onClick={exportExcel} className="px-4 py-2 bg-blue-500 text-white rounded-lg shadow hover:bg-blue-600 transition">
-            ดาวน์โหลด Excel
-          </button>
-        </div>
-      </div>
- 
-      {selectedCompany === "all" ? (
-        <div className="text-red-500 font-semibold text-lg flex justify-center items-center">กรุณาเลือกบริษัทก่อนแสดงข้อมูล</div>
-      ) : (<>
-      {console.log(
-      "tableData สำหรับแสดงตาราง:",
-      Object.values(tableData).map(r => ({
-        em_code: r.em_code,
-        name: r.name,
-        company_id: r.company_id,   // เพิ่มตรงนี้
-        company_name: r.company      // และชื่อบริษัท
-      }))
-    )} 
-        <div className="bg-white shadow-md rounded-lg overflow-auto">
-          <table className="min-w-full border border-gray-300 border-collapse">
-            <thead className="bg-blue-50">
-              <tr>
-                <th rowSpan={2} className="border border-gray-300 px-2 py-1">รหัสพนักงาน</th>
-                <th rowSpan={2} className="border border-gray-300 px-2 py-1">ชื่อ</th>
-                <th rowSpan={2} className="border border-gray-300 px-2 py-1">เวลาเข้า</th>
-                <th rowSpan={2} className="border border-gray-300 px-2 py-1">เวลาออก</th>
-                <th colSpan={4} className="border border-gray-300 px-2 py-1 text-center">OT</th>
-                <th rowSpan={2} className="border border-gray-300 px-2 py-1">ชั่วโมงทำงาน</th>
-                <th rowSpan={2} className="border border-gray-300 px-2 py-1">ชั่วโมง OT</th>
-              </tr>
-              <tr>
-                <th className="border border-gray-300 px-2 py-1">OT IN (ก่อนเข้างาน)</th>
-                <th className="border border-gray-300 px-2 py-1">OT OUT (ก่อนเข้างาน)</th>
-                <th className="border border-gray-300 px-2 py-1">OT IN (หลังเลิกงาน)</th>
-                <th className="border border-gray-300 px-2 py-1">OT OUT (หลังเลิกงาน)</th>
-              </tr>
-            </thead>
-            <tbody>
-              {Object.values(tableData).map((r, idx) => (
-                <tr key={idx} className={idx % 2 === 0 ? "bg-gray-50" : ""}>
-                  <td className="border px-2 py-1">{r.em_code}</td>
-                  <td className="border px-2 py-1">{r.name}</td>
-                  <td className="border px-2 py-1">{r.checkIn}</td>
-                  <td className="border px-2 py-1">{r.checkOut}</td>
-                  <td className="border px-2 py-1">{r.otInBefore}</td>
-                  <td className="border px-2 py-1">{r.otOutBefore}</td>
-                  <td className="border px-2 py-1">{r.otInAfter}</td>
-                  <td className="border px-2 py-1">{r.otOutAfter}</td>
-                  <td className="border px-2 py-1">{calcDuration(r.checkIn, r.checkOut)}</td>
-                  <td className="border px-2 py-1">{calcTotalOT(r)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </>
-    )}
+  {/* 🔥 ส่วนของตัวกรองข้อมูล */}
+  <div className="flex flex-col md:flex-row gap-4 mb-6">
+
+    {/* วันที่เดี่ยว */}
+    <div className="flex flex-col w-full md:w-auto">
+      <DatePicker
+        selected={selectedDate}
+        onChange={(date) => date && setSelectedDate(date)}
+        dateFormat="dd/MM/yyyy"
+        className="w-full px-3 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 focus:outline-none"
+      />
     </div>
+
+    {/* เลือกบริษัท */}
+    <select
+      value={selectedCompany}
+      onChange={(e) => setSelectedCompany(e.target.value)}
+      className="w-full md:w-auto px-3 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 focus:outline-none"
+    >
+      <option value="all">เลือกบริษัท</option>
+      {companies.map((c) => (
+        <option key={c.id} value={c.name}>{c.name}</option>
+      ))}
+    </select>
+
+    {/* ช่วงวันที่ */}
+    <div className="flex flex-col sm:flex-row items-center gap-2 md:ml-auto w-full md:w-auto">
+
+      <DatePicker
+        selected={startDate}
+        onChange={(date) => date && setStartDate(date)}
+        selectsStart
+        startDate={startDate}
+        endDate={endDate}
+        dateFormat="dd/MM/yyyy"
+        className="w-full px-3 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 focus:outline-none"
+      />
+
+      <DatePicker
+        selected={endDate}
+        onChange={(date) => date && setEndDate(date)}
+        selectsEnd
+        startDate={startDate}
+        endDate={endDate}
+        minDate={startDate}
+        dateFormat="dd/MM/yyyy"
+        className="w-full px-3 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 focus:outline-none"
+      />
+
+      {/* ปุ่มดาวน์โหลด */}
+      <button
+        onClick={exportExcel}
+        className="w-full sm:w-auto px-4 py-2 bg-blue-500 text-white rounded-lg shadow hover:bg-blue-600 transition"
+      >
+        ดาวน์โหลด Excel
+      </button>
+    </div>
+  </div>
+
+  {/* เตือนให้เลือกบริษัท */}
+  {selectedCompany === "all" ? (
+    <div className="text-red-500 font-semibold text-lg flex justify-center items-center">
+      กรุณาเลือกบริษัทก่อนแสดงข้อมูล
+    </div>
+  ) : (
+    <>
+      {/* Debug (ถ้าจะเก็บไว้) */}
+      {console.log(
+        "tableData:",
+        Object.values(tableData).map((r) => ({
+          em_code: r.em_code,
+          name: r.name,
+          company_id: r.company_id,
+          company_name: r.company
+        }))
+      )}
+
+      {/* 🔥 ตารางรองรับจอมือถือ — เลื่อนขวาได้ */}
+      <div className="bg-white shadow-md rounded-lg overflow-x-auto">
+        <table className="min-w-max border border-gray-300 border-collapse text-sm">
+          <thead className="bg-blue-50">
+            <tr>
+              <th rowSpan={2} className="border px-2 py-1">รหัสพนักงาน</th>
+              <th rowSpan={2} className="border px-2 py-1">ชื่อ</th>
+              <th rowSpan={2} className="border px-2 py-1">เวลาเข้า</th>
+              <th rowSpan={2} className="border px-2 py-1">เวลาออก</th>
+              <th colSpan={4} className="border px-2 py-1 text-center">OT</th>
+              <th rowSpan={2} className="border px-2 py-1">ชั่วโมงทำงาน</th>
+              <th rowSpan={2} className="border px-2 py-1">ชั่วโมง OT</th>
+            </tr>
+            <tr>
+              <th className="border px-2 py-1">OT IN (ก่อนเข้างาน)</th>
+              <th className="border px-2 py-1">OT OUT (ก่อนเข้างาน)</th>
+              <th className="border px-2 py-1">OT IN (หลังเลิกงาน)</th>
+              <th className="border px-2 py-1">OT OUT (หลังเลิกงาน)</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {Object.values(tableData).map((r, idx) => (
+              <tr key={idx} className={idx % 2 === 0 ? "bg-gray-50" : ""}>
+                <td className="border px-2 py-1">{r.em_code}</td>
+                <td className="border px-2 py-1">{r.name}</td>
+                <td className="border px-2 py-1">{r.checkIn}</td>
+                <td className="border px-2 py-1">{r.checkOut}</td>
+                <td className="border px-2 py-1">{r.otInBefore}</td>
+                <td className="border px-2 py-1">{r.otOutBefore}</td>
+                <td className="border px-2 py-1">{r.otInAfter}</td>
+                <td className="border px-2 py-1">{r.otOutAfter}</td>
+                <td className="border px-2 py-1">{calcDuration(r.checkIn, r.checkOut)}</td>
+                <td className="border px-2 py-1">{calcTotalOT(r)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </>
+  )}
+</div>
+
   );
 }
