@@ -72,8 +72,8 @@ export default function Employees() {
   const [newEmp, setNewEmp] = useState({ em_code: '', name: '', position: '', department: '' });
   const [newCompanyName, setNewCompanyName] = useState('');
   const [newCompanyAddress, setNewCompanyAddress] = useState('');
-  const [newCompanyLat, setNewCompanyLat] = useState(null);
-  const [newCompanyLng, setNewCompanyLng] = useState(null);
+  const [newCompanyLat, setNewCompanyLat] = useState(13.7563);
+  const [newCompanyLng, setNewCompanyLng] = useState(100.5018);
   const [companyFormVisible, setCompanyFormVisible] = useState(false);
   const [editingCompany, setEditingCompany] = useState(null); 
   const [addressSuggestions, setAddressSuggestions] = useState([]);
