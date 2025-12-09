@@ -272,255 +272,256 @@ const selectSuggestion = (item) => {
 
   // Render JSX
 
-  return (
-    <div className="bg-white rounded-2xl shadow-xl p-8 space-y-6">
+return (
+<div className="bg-white rounded-2xl shadow-xl p-4 md:p-8 space-y-6">
 
-      {/* เลือกบริษัท + ปุ่มเพิ่ม/ลบบริษัท  */}
-      <div className="mb-6 flex justify-between items-center">
-        <select
-          value={selectedCompany}
-          onChange={e => {
-            const companyId = e.target.value;
-            setSelectedCompany(companyId);
-            fetchEmployees(companyId);
-          }}
-          className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-        >
-          <option value="">เลือกบริษัท</option>
-          {companies.map(c => (
-            <option key={c.id} value={c.id}>{c.name}</option>
-          ))}
-        </select>
+  {/* เลือกบริษัท + ปุ่มเพิ่ม/ลบ */}
+  <div className="mb-6 flex flex-col md:flex-row md:justify-between md:items-center gap-4">
 
-        <div className="flex gap-2">
-          <button
-            onClick={() => setCompanyFormVisible(true)}
-            className="flex items-center gap-2 bg-green-500 text-white px-5 py-2 rounded-lg hover:bg-green-600 shadow-md transition"
-          >
-            เพิ่มบริษัท
-          </button>
-          {/*แก้ไข*/}
-          <button
-          onClick={() => {
-            if (!selectedCompany) return alert("กรุณาเลือกบริษัทก่อนแก้ไข");
-            const company = companies.find(c => c.name === selectedCompany);
-            if (!company) return;
-            setEditingCompany(company);             // กำหนดบริษัทที่จะแก้ไข
-            setNewCompanyName(company.name);        // เติมชื่อบริษัทใน form
-            setNewCompanyAddress(company.address || '');
-            setNewCompanyLat(company.latitude || '');
-            setNewCompanyLng(company.longitude || '');
-            setCompanyFormVisible(true);            // เปิด form
-          }}
-          className="bg-yellow-400 text-white px-5 py-2 rounded-lg hover:bg-yellow-500"
-          >
-            แก้ไขบริษัท
-          </button>
-          {/*ลบ*/ }
-          <button
-            onClick={() => {
-              if (!selectedCompany) return alert("กรุณาเลือกบริษัทก่อนลบ");
-              if (confirm(`ลบบริษัท ${selectedCompany}?`)) deleteCompany(selectedCompany);
-            }}
-            className="flex items-center gap-2 bg-red-500 text-white px-5 py-2 rounded-lg hover:bg-red-600 shadow-md transition"
-          >
-            ลบบริษัท
-          </button>
-        </div>
+    <select
+      value={selectedCompany}
+      onChange={e => {
+        const companyId = e.target.value;
+        setSelectedCompany(companyId);
+        fetchEmployees(companyId);
+      }}
+      className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 w-full md:w-auto"
+    >
+      <option value="">เลือกบริษัท</option>
+      {companies.map(c => (
+        <option key={c.id} value={c.id}>{c.name}</option>
+      ))}
+    </select>
+
+    <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+      <button
+        onClick={() => setCompanyFormVisible(true)}
+        className="flex items-center justify-center gap-2 bg-green-500 text-white px-5 py-2 rounded-lg hover:bg-green-600 shadow-md transition w-full sm:w-auto"
+      >
+        เพิ่มบริษัท
+      </button>
+
+      <button
+        onClick={() => {
+          if (!selectedCompany) return alert("กรุณาเลือกบริษัทก่อนแก้ไข");
+          const company = companies.find(c => c.id == selectedCompany);
+          if (!company) return;
+          setEditingCompany(company);
+          setNewCompanyName(company.name);
+          setNewCompanyAddress(company.address || '');
+          setNewCompanyLat(company.latitude || '');
+          setNewCompanyLng(company.longitude || '');
+          setCompanyFormVisible(true);
+        }}
+        className="bg-yellow-400 text-white px-5 py-2 rounded-lg hover:bg-yellow-500 w-full sm:w-auto"
+      >
+        แก้ไขบริษัท
+      </button>
+
+      <button
+        onClick={() => {
+          if (!selectedCompany) return alert("กรุณาเลือกบริษัทก่อนลบ");
+          if (confirm(`ลบบริษัทนี้?`)) deleteCompany(selectedCompany);
+        }}
+        className="bg-red-500 text-white px-5 py-2 rounded-lg hover:bg-red-600 shadow-md transition w-full sm:w-auto"
+      >
+        ลบบริษัท
+      </button>
+    </div>
+
+  </div>
+
+  {/* ฟอร์มเพิ่มบริษัท */}
+  {companyFormVisible && (
+    <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 shadow-sm flex flex-col gap-3">
+
+      {/* ชื่อบริษัท */}
+      <input
+        type="text"
+        placeholder="ชื่อบริษัท"
+        value={newCompanyName}
+        onChange={e => setNewCompanyName(e.target.value)}
+        className="px-4 py-2 border rounded-lg w-full"
+      />
+
+      {/* ที่อยู่ + Suggestion */}
+      <div className="relative">
+        <input
+          type="text"
+          placeholder="กรอกข้อมูลที่อยู่บริษัทเพื่อปักหมุดบนแผนที่"
+          value={newCompanyAddress}
+          onChange={handleAddressChange}
+          onKeyDown={handleAddressEnter}
+          className="px-4 py-2 border rounded-lg w-full"
+        />
+
+        {isFetchingAddress && (
+          <div className="absolute bg-white border rounded-lg mt-1 w-full p-2 text-gray-500 z-50">
+            กำลังค้นหา...
+          </div>
+        )}
+
+        {addressSuggestions.length > 0 && (
+          <ul className="absolute bg-white border rounded-lg mt-1 w-full max-h-48 overflow-auto shadow-lg z-50">
+            {addressSuggestions.map((item, idx) => (
+              <li
+                key={idx}
+                className="px-3 py-2 cursor-pointer hover:bg-gray-100"
+                onClick={() => selectSuggestion(item)}
+              >
+                {item.display_name}
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
-      {/* --- ฟอร์มเพิ่มบริษัท --- */}
-     {companyFormVisible && (
-  <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 shadow-sm flex flex-col gap-2">
-    {/* ชื่อบริษัท */}
-    <input
-      type="text"
-      placeholder="ชื่อบริษัท"
-      value={newCompanyName}
-      onChange={e => setNewCompanyName(e.target.value)}
-      className="px-4 py-2 border rounded-lg"
-    />
-
-    {/* ที่อยู่บริษัท */}
-<div className="relative">
-  <input
-    type="text"
-    placeholder="กรอกข้อมูลที่อยู่บริษัทเพื่อปักหมุดบนแผนที่"
-    value={newCompanyAddress}
-    onChange={handleAddressChange}
-    onKeyDown={handleAddressEnter}
-    className="px-4 py-2 border rounded-lg w-full"
-  />
-
-  {/* Loading message */}
-  {isFetchingAddress && (
-    <div className="absolute bg-white border rounded-lg mt-1 w-full p-2 text-gray-500 z-50">
-      กำลังค้นหา...
-    </div>
-  )}
-
-  {/* Suggestions list */}
-  {addressSuggestions.length > 0 && (
-    <ul className="absolute bg-white border rounded-lg mt-1 w-full max-h-48 overflow-auto shadow-lg z-10000">
-      {addressSuggestions.map((item, idx) => (
-        <li
-          key={idx}
-          className="px-3 py-2 cursor-pointer hover:bg-gray-100"
-          onClick={() => selectSuggestion(item)}
+      {/* แผนที่ – ปรับให้ฟิตจอมือถือ */}
+      <div className="w-full" style={{ height: 240 }}>
+        <MapContainer
+          center={[
+            newCompanyLat || 13.7367,
+            newCompanyLng || 100.5231
+          ]}
+          zoom={16}
+          maxZoom={18}
+          style={{ height: "100%", width: "100%" }}
         >
-          {item.display_name}
-        </li>
-      ))}
-    </ul>
-  )}
-</div>
-    {/* แผนที่ */}
-   <div style={{ height: 300 }}>
-  <MapContainer
-    center={[
-      newCompanyLat || 13.7367,
-      newCompanyLng || 100.5231
-    ]}
-    zoom={16}
-    maxZoom={18}
-    style={{ height: '300px', width: '100%' }}
-  >
-    <TileLayer
-      url="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}&key=AIzaSyAqz5e1vSEwRLtKRK6u4jbXf5ceCDTAVtc"
-      attribution="&copy; Google Maps"
-      maxZoom={18}
-    />
+          <TileLayer
+            url="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}&key=YOUR_API_KEY"
+            attribution="&copy; Google Maps"
+          />
 
-    {/* ✔ ChangeView — ทำงานเฉพาะเมื่อมีค่า lat/lng */}
-    {newCompanyLat && newCompanyLng && (
-      <ChangeView center={[newCompanyLat, newCompanyLng]} />
-    )}
-
-    {/* ✔ MarkerSetter — กัน NaN */}
-    {newCompanyLat !== null && newCompanyLng !== null && (
-  <MarkerSetter
-    lat={parseFloat(newCompanyLat)}
-    lng={parseFloat(newCompanyLng)}
-    setLat={setNewCompanyLat}
-    setLng={setNewCompanyLng}
-  />
-)}
-
-  </MapContainer>
-</div>
-
-    <p className="text-sm text-gray-500 mt-1">
-      คลิกบนแผนที่เพื่อปักหมุดตำแหน่งบริษัทได้
-    </p>
-
-    <div className="flex gap-2 justify-end">
-      <button onClick={addCompany} className="bg-green-500 text-white px-4 py-2 rounded">บันทึก</button>
-      <button onClick={() => {setCompanyFormVisible(false); setEditingCompany(null);}}
-       className="bg-red-500 text-white px-4 py-2 rounded">ยกเลิก</button>
-    </div>
-  </div>
-)}
-
-
-      {/* ปุ่มเพิ่มพนักงานและตาราง  */}
-      {selectedCompany && (
-        <div className="space-y-4">
-          <button
-            onClick={() => setFormVisible(true)}
-            className="bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600 shadow-md transition"
-          >
-            + เพิ่มพนักงาน
-          </button>
-
-          {/* ฟอร์มเพิ่มพนักงาน */}
-          {formVisible && (
-            <div className="bg-gray-50 p-6 rounded-xl border border-gray-200 shadow-sm space-y-4">
-              <div>
-                <label className="block text-gray-700 mb-1">รหัสพนักงาน</label>
-                <input
-                  type="text"
-                  placeholder="รหัสพนักงาน"
-                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-                  value={newEmp.em_code}
-                  onChange={e => setNewEmp({ ...newEmp, em_code: e.target.value })}
-                />
-              </div>
-              <div>
-                <label className="block text-gray-700 mb-1">ชื่อพนักงาน</label>
-                <input
-                  type="text"
-                  placeholder="ชื่อ-สกุล"
-                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-                  value={newEmp.name}
-                  onChange={e => setNewEmp({ ...newEmp, name: e.target.value })}
-                />
-              </div>
-              <div>
-                <label className="block text-gray-700 mb-1">แผนก</label>
-                <input
-                  type="text"
-                  placeholder="แผนก"
-                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-                  value={newEmp.department}
-                  onChange={e => setNewEmp({ ...newEmp, department: e.target.value })}
-                />
-              </div>
-              <div>
-                <label className="block text-gray-700 mb-1">ตำแหน่ง</label>
-                <input
-                  type="text"
-                  placeholder="ตำแหน่งงาน"
-                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-                  value={newEmp.position}
-                  onChange={e => setNewEmp({ ...newEmp, position: e.target.value })}
-                />
-              </div>
-              <div className="flex gap-2 justify-end">
-                <button onClick={addEmployee} className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">บันทึก</button>
-                <button onClick={() => setFormVisible(false)} className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">ยกเลิก</button>
-              </div>
-            </div>
+          {newCompanyLat && newCompanyLng && (
+            <ChangeView center={[newCompanyLat, newCompanyLng]} />
           )}
 
-          {/* ตารางแสดงพนักงาน */}
-          <div className="overflow-x-auto">
-            <table className="min-w-full bg-white border border-gray-200 rounded-xl shadow-sm">
-              <thead className="bg-gray-100">
-                <tr>
-                  <th className="px-6 py-3 text-left text-gray-700 font-medium">รหัส</th>
-                  <th className="px-6 py-3 text-left text-gray-700 font-medium">ชื่อ</th>
-                  <th className="px-6 py-3 text-left text-gray-700 font-medium">แผนก</th>
-                  <th className="px-6 py-3 text-left text-gray-700 font-medium">ตำแหน่ง</th>
-                  <th className="px-6 py-3 text-center text-gray-700 font-medium">จัดการ</th>
-                </tr>
-              </thead>
-              <tbody>
-                {employees.map(emp => (
-                  <tr key={emp.id} className="border-b hover:bg-gray-50 transition">
-                    <td className="px-6 py-3">{emp.em_code}</td>
-                    <td className="px-6 py-3">{emp.name}</td>
-                    <td className="px-6 py-3">{emp.department}</td>
-                    <td className="px-6 py-3">{emp.position}</td>
-                    <td className="px-6 py-3 text-center">
-                      <button
-                        onClick={() => deleteEmployee(emp.em_code)}
-                        className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition"
-                      >
-                        ลบ
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-                {employees.length === 0 && (
-                  <tr>
-                    <td colSpan={5} className="px-6 py-4 text-center text-gray-500">ยังไม่มีพนักงาน</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+          {newCompanyLat !== null && newCompanyLng !== null && (
+            <MarkerSetter
+              lat={parseFloat(newCompanyLat)}
+              lng={parseFloat(newCompanyLng)}
+              setLat={setNewCompanyLat}
+              setLng={setNewCompanyLng}
+            />
+          )}
+        </MapContainer>
+      </div>
+
+      <p className="text-sm text-gray-500 mt-1">
+        คลิกบนแผนที่เพื่อปักหมุดตำแหน่งบริษัทได้
+      </p>
+
+      <div className="flex gap-2 justify-end">
+        <button onClick={addCompany} className="bg-green-500 text-white px-4 py-2 rounded">บันทึก</button>
+        <button onClick={() => { setCompanyFormVisible(false); setEditingCompany(null); }}
+          className="bg-red-500 text-white px-4 py-2 rounded">ยกเลิก</button>
+      </div>
+    </div>
+  )}
+
+  {/* ปุ่มเพิ่มพนักงาน */}
+  {selectedCompany && (
+    <div className="space-y-4">
+
+      <button
+        onClick={() => setFormVisible(true)}
+        className="bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600 shadow-md transition w-full md:w-auto"
+      >
+        + เพิ่มพนักงาน
+      </button>
+
+      {/* ฟอร์มเพิ่มพนักงาน */}
+      {formVisible && (
+        <div className="bg-gray-50 p-6 rounded-xl border border-gray-200 shadow-sm space-y-4">
+          <div>
+            <label className="block text-gray-700 mb-1">รหัสพนักงาน</label>
+            <input
+              type="text"
+              className="w-full px-4 py-2 border rounded-lg"
+              value={newEmp.em_code}
+              onChange={e => setNewEmp({ ...newEmp, em_code: e.target.value })}
+            />
+          </div>
+
+          <div>
+            <label className="block text-gray-700 mb-1">ชื่อพนักงาน</label>
+            <input
+              type="text"
+              className="w-full px-4 py-2 border rounded-lg"
+              value={newEmp.name}
+              onChange={e => setNewEmp({ ...newEmp, name: e.target.value })}
+            />
+          </div>
+
+          <div>
+            <label className="block text-gray-700 mb-1">แผนก</label>
+            <input
+              type="text"
+              className="w-full px-4 py-2 border rounded-lg"
+              value={newEmp.department}
+              onChange={e => setNewEmp({ ...newEmp, department: e.target.value })}
+            />
+          </div>
+
+          <div>
+            <label className="block text-gray-700 mb-1">ตำแหน่ง</label>
+            <input
+              type="text"
+              className="w-full px-4 py-2 border rounded-lg"
+              value={newEmp.position}
+              onChange={e => setNewEmp({ ...newEmp, position: e.target.value })}
+            />
+          </div>
+
+          <div className="flex gap-2 justify-end">
+            <button onClick={addEmployee} className="bg-green-500 text-white px-4 py-2 rounded">บันทึก</button>
+            <button onClick={() => setFormVisible(false)} className="bg-gray-500 text-white px-4 py-2 rounded">ยกเลิก</button>
           </div>
         </div>
       )}
+
+      {/* ตารางพนักงาน */}
+      <div className="overflow-x-auto">
+        <table className="min-w-full bg-white border border-gray-200 rounded-xl shadow-sm">
+          <thead className="bg-gray-100">
+            <tr>
+              <th className="px-6 py-3 text-left">รหัส</th>
+              <th className="px-6 py-3 text-left">ชื่อ</th>
+              <th className="px-6 py-3 text-left">แผนก</th>
+              <th className="px-6 py-3 text-left">ตำแหน่ง</th>
+              <th className="px-6 py-3 text-center">จัดการ</th>
+            </tr>
+          </thead>
+          <tbody>
+            {employees.map(emp => (
+              <tr key={emp.id} className="border-b">
+                <td className="px-6 py-3">{emp.em_code}</td>
+                <td className="px-6 py-3">{emp.name}</td>
+                <td className="px-6 py-3">{emp.department}</td>
+                <td className="px-6 py-3">{emp.position}</td>
+                <td className="px-6 py-3 text-center">
+                  <button
+                    onClick={() => deleteEmployee(emp.em_code)}
+                    className="bg-red-500 text-white px-3 py-1 rounded"
+                  >
+                    ลบ
+                  </button>
+                </td>
+              </tr>
+            ))}
+
+            {employees.length === 0 && (
+              <tr>
+                <td colSpan={5} className="px-6 py-4 text-center text-gray-500">ยังไม่มีพนักงาน</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
     </div>
+  )}
+
+</div>
   );
 }
