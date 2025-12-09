@@ -30,31 +30,58 @@ export default function Dashboard({ user }) {
     if (!user) navigate("/login");
   }, [user, navigate]);
 
+// mapping ชื่อเก่า -> ชื่อใหม่
+const companyNameMap = {
+"บริษัทเก่า": "ชื่อใหม่",
+"OldCo": "NewCo"
+};
   // Fetch employees
-  useEffect(() => {
-    if (!user) return;
-    const fetchEmployees = async () => {
-      try {
-        const url =
-          selectedCompany === "all"
-            ? "https://api-checkin-out.bpit-staff.com/api/employees?company_name=A"
-            : `https://api-checkin-out.bpit-staff.com/api/employees?company_name=${selectedCompany}`;
-        const res = await axios.get(url);
+useEffect(() => {
+  if (!user) return;
 
-         console.log("🟢 [EMPLOYEES API RESPONSE]:", res.data);
-        if (res.data.success) {
-        // กรองเฉพาะพนักงานที่มี company_name หรือ company_id
-        const filtered = res.data.employees.filter(
-          e => e.company_name || e.company_id
-        ); console.log("พนักงาน:", filtered);
-        setEmployees(filtered);
-      }
+  const fetchCompaniesAndEmployees = async () => {
+    try {
+      // 1. fetch companies
+      const compRes = await axios.get("https://api-checkin-out.bpit-staff.com/api/company");
+      if (!compRes.data.success) return;
+
+      const companyList = compRes.data.companies.map((c, index) => ({ id: index, name: c.name }));
+      setCompanies(companyList);
+
+      // สร้าง map สำหรับ mapping ชื่อบริษัท -> id
+      const companyMap = {};
+      companyList.forEach(c => {
+        const normalized = c.name.replace(/\s+/g, ' ').trim();
+        companyMap[normalized] = c.id;
+      });
+
+      // 2. fetch employees
+      const url =
+        selectedCompany === "all"
+          ? "https://api-checkin-out.bpit-staff.com/api/employees?company_name=A"
+          : `https://api-checkin-out.bpit-staff.com/api/employees?company_name=${selectedCompany}`;
+      const empRes = await axios.get(url);
+      if (!empRes.data.success) return;
+
+const employeesWithId = empRes.data.employees.map(emp => {
+  const normalizedName = companyNameMap[emp.company_name?.trim()] || emp.company_name?.trim();
+  return {
+    ...emp,
+    company_id: companyMap[normalizedName] ?? null,
+    company_name: normalizedName
+  };
+});
+
+      setEmployees(employeesWithId);
+      // console.log("🟢 Employees with ID:", employeesWithId);
+
     } catch (err) {
       console.error(err);
     }
-    };
-    fetchEmployees();
-  }, [user, selectedCompany]);
+  };
+
+  fetchCompaniesAndEmployees();
+}, [user, selectedCompany]);
 
   // Fetch companies + records
   useEffect(() => {
@@ -124,6 +151,7 @@ export default function Dashboard({ user }) {
     const day = String(d.getDate()).padStart(2, "0");
     return `${day}/${month}/${year}`;
   };
+  
   // สร้าง tableData หน้าเว็บ
   const tableData = {};
  records.forEach((r) => {
@@ -134,18 +162,20 @@ export default function Dashboard({ user }) {
 
   const key = `${r.em_code}_${getLocalDateStr(selectedDate)}`;
   if (!tableData[key]) {
-    const emp = employees.find(e => e.em_code.toString() === r.em_code.toString());
-    tableData[key] = {
-      em_code: r.em_code,
-      name: emp ? emp.name : r.name || "-",
-      company: r.company_name || selectedCompany,
-      checkIn: "-",
-      checkOut: "-",
-      otInBefore: "-",
-      otOutBefore: "-",
-      otInAfter: "-",
-      otOutAfter: "-",
-    };
+   const emp = employees.find(e => e.em_code === r.em_code);
+
+tableData[key] = {
+  em_code: r.em_code,
+  name: emp?.name || r.name || "-",
+  company_id: emp?.company_id ?? null,
+  company: emp?.company_name || selectedCompany,
+  checkIn: "-",
+  checkOut: "-",
+  otInBefore: "-",
+  otOutBefore: "-",
+  otInAfter: "-",
+  otOutAfter: "-",
+};
   }
   const field = typeMap[r.type.toLowerCase()];
   if (field) tableData[key][field] = r.time || "-";
@@ -210,7 +240,7 @@ if (!empList.length) {
 // ทำให้ em_code เป็นสตริง เพื่อให้ key ตรงกัน
 empList.forEach(e => { if (e && e.em_code !== undefined && e.em_code !== null) e.em_code = e.em_code.toString(); });
 
-console.log("employees for export:", empList); // ต้องมีข้อมูลตอนนี้
+// console.log("employees for export:", empList); // ต้องมีข้อมูลตอนนี้
   // สร้าง groupedRecords: emp+date
   const groupedRecords = {};
   empList.forEach((emp) => {
@@ -234,7 +264,7 @@ console.log("employees for export:", empList); // ต้องมีข้อม
 // เติมข้อมูลจริงจาก dailyRows
 dailyRows.forEach((r) => {
 
-   const emp = employees.find(e => e.name.trim().includes(r.em_code.trim()));
+   const emp = employees.find(e => e.em_code.toString() === r.em_code.toString());
 
   if (!emp) {
     console.warn("ไม่พบพนักงานที่ตรงกับ:", r.em_code);
@@ -552,6 +582,7 @@ for(let i=footerStartRow; i<=footerStartRow+3; i++) sheet.getRow(i).height = 25;
 // Save file
 const buf = await workbook.xlsx.writeBuffer();
 saveAs(new Blob([buf]), `TimeRecords_${formatDateForApi(startDate)}_${formatDateForApi(endDate)}.xlsx`);
+console.log("บริษัทที่เลือก:", selectedCompany);
 };
 
   if (!user) return null;
@@ -607,7 +638,7 @@ saveAs(new Blob([buf]), `TimeRecords_${formatDateForApi(startDate)}_${formatDate
       {selectedCompany === "all" ? (
         <div className="text-red-500 font-semibold text-lg flex justify-center items-center">กรุณาเลือกบริษัทก่อนแสดงข้อมูล</div>
       ) : (<>
-         {console.log(
+         /* {console.log(
       "tableData สำหรับแสดงตาราง:",
       Object.values(tableData).map(r => ({
         em_code: r.em_code,
@@ -615,7 +646,7 @@ saveAs(new Blob([buf]), `TimeRecords_${formatDateForApi(startDate)}_${formatDate
         company_id: r.company_id,   // เพิ่มตรงนี้
         company_name: r.company      // และชื่อบริษัท
       }))
-    )}
+    )} */
         <div className="bg-white shadow-md rounded-lg overflow-auto">
           <table className="min-w-full border border-gray-300 border-collapse">
             <thead className="bg-blue-50">
