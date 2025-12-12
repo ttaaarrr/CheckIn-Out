@@ -387,10 +387,10 @@ return (
           maxZoom={18}
           style={{ height: "100%", width: "100%" }}
         >
-          <TileLayer
-            url="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}&key=YOUR_API_KEY"
-            attribution="&copy; Google Maps"
-          />
+           <TileLayer
+              url={`https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}&key=${import.meta.env.VITE_GOOGLE_MAPS_KEY}`}
+              attribution="&copy; Google Maps"
+            />
 
           {newCompanyLat && newCompanyLng && (
             <ChangeView center={[newCompanyLat, newCompanyLng]} />
