@@ -672,7 +672,7 @@ console.log("บริษัทที่เลือก:", selectedCompany);
 
       {/* 🔥 ตารางรองรับจอมือถือ — เลื่อนขวาได้ */}
       <div className="bg-white shadow-md rounded-lg overflow-x-auto">
-        <table className="min-w-max border border-gray-300 border-collapse text-sm">
+        <table className="min-w-max border border-gray-300 border-collapse text-sm mx-auto">
           <thead className="bg-blue-50">
             <tr>
               <th rowSpan={2} className="border px-2 py-1">รหัสพนักงาน</th>
