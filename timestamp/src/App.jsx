@@ -6,6 +6,7 @@ import Dashboard from '../pages/Dashboard';
 import Summary from '../pages/Summary';
 import Login from '../pages/Login';
 import { UserProvider, useUser } from '../components/UserContext';
+import { useEffect } from 'react';
 
 function DashboardWrapper() {
   const { user } = useUser();
@@ -28,6 +29,14 @@ function AdminRoute({ children }) {
 }
 
 function App() {
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/service-worker.js')
+        .then(() => console.log('Service Worker registered'))
+        .catch(err => console.error('Service Worker error', err));
+    }
+  }, []);
+
   return (
     <UserProvider>
       <Router>

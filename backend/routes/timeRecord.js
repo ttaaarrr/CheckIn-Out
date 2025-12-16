@@ -143,7 +143,7 @@ router.post('/', async (req, res) => {
     res.json({ success: true, message: `บันทึกเวลา ${type} สำเร็จ`, time: rows[0].time });
 
   } catch (err) {
-    console.error(err);
+     console.error("❌ ERROR in /time-records:", err); 
     res.json({ success: false, message: 'เกิดข้อผิดพลาดในระบบ' });
   } finally {
     conn.release();
@@ -180,16 +180,22 @@ router.get('/monthly', async (req, res) => {
   const conn = await pool.getConnection();
   try {
     let sql = `
-      SELECT tr.em_code, tr.company_name, tr.date, tr.type, tr.time, e.name
-      FROM time_records tr
-      JOIN employees e ON tr.em_code = e.em_code
-      WHERE DATE_FORMAT(tr.date, '%Y-%m') = ?
+      SELECT tr.em_code,
+       c.name AS company_name,
+       tr.date,
+       tr.type,
+       tr.time,
+       e.name
+FROM time_records tr
+JOIN employees e ON tr.em_code = e.em_code
+JOIN company c ON tr.company_name = c.name
+
     `;
     const params = [month];
     if (company && company !== 'all') {
-      sql += ' AND tr.company_name = ?';
-      params.push(company);
-    }
+  sql += ' AND tr.company_name LIKE ?';
+  params.push(company.trim());
+}
     const [rows] = await conn.query(sql, params);
     res.json({ success: true, records: rows });
   } catch (err) {
@@ -208,11 +214,17 @@ router.get('/range', async (req, res) => {
   const conn = await pool.getConnection();
   try {
     const [rows] = await conn.query(
-      `SELECT tr.em_code, tr.company_name, tr.date, tr.type, tr.time, e.name
-       FROM time_records tr
-       LEFT JOIN employees e ON tr.em_code = e.em_code
-       WHERE tr.company_name = ? AND tr.date BETWEEN ? AND ?`,
-      [company, start, end]
+      `SELECT tr.em_code,
+       c.name AS company_name,
+       tr.date,
+       tr.type,
+       tr.time,
+       e.name
+      FROM time_records tr
+      LEFT JOIN employees e ON tr.em_code = e.em_code
+      LEFT JOIN company c ON tr.company_name = c.name
+     `,
+      [company.trim(), start, end]
     );
 
     // แปลงข้อมูลเป็น structured object ต่อคนต่อวัน

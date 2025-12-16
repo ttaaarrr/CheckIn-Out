@@ -14,7 +14,7 @@ const app = express();
 //  Config CORS
 const allowedOrigins = [
   "https://check-in-out.vercel.app",
-  "http://localhost:5174"
+  "http://localhost:5173"
 ];
 
 const corsOptions = {

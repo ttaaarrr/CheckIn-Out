@@ -7,7 +7,7 @@ router.get('/', async (req, res) => {
   let conn;
   try {
     conn = await pool.getConnection();
-    const [rows] = await conn.execute('SELECT name, address, latitude, longitude FROM company');
+    const [rows] = await conn.execute('SELECT id, name, address, latitude, longitude, radius_km FROM company');
     console.log('DB rows:', rows); // log ดูว่ามีข้อมูลไหม
     res.json({ success: true, companies: rows });
   } catch (err) {
@@ -20,7 +20,7 @@ router.get('/', async (req, res) => {
 
 // เพิ่มบริษัท
 router.post('/', async (req, res) => {
-  const { name, address, latitude, longitude } = req.body;
+  const { name, address, latitude, longitude, radius_km } = req.body;
   if (!name) return res.status(400).json({ success: false, message: 'Missing name' });
 
   let conn;
@@ -30,8 +30,8 @@ router.post('/', async (req, res) => {
     if (existing.length > 0) return res.status(400).json({ success: false, message: 'บริษัทนี้มีอยู่แล้ว' });
 
     await conn.execute(
-      'INSERT INTO company (name, address, latitude, longitude) VALUES (?, ?, ?, ?)',
-      [name, address || null, latitude || null, longitude || null]
+      'INSERT INTO company (name, address, latitude, longitude ,radius_km) VALUES (?, ?, ?, ?, ?)',
+      [name, address || null, latitude || null, longitude || null, radius_km || 0.05 ]
     );
 
     res.json({ success: true });
@@ -42,46 +42,67 @@ router.post('/', async (req, res) => {
     if (conn) conn.release();
   }
 });
-// แก้ไขบริษัท
+// แก้ไขบริษัท + อัปเดตทุกตารางที่เกี่ยวข้อง
 router.put('/:name', async (req, res) => {
-  const oldName = req.params.name;  // ชื่อก่อนแก้
-  const { name, address, latitude, longitude } = req.body; // ข้อมูลใหม่
+  const oldName = req.params.name;  // ชื่อเดิม
+  const { name, address, latitude, longitude, radius_km } = req.body; // ข้อมูลใหม่
 
   let conn;
   try {
     conn = await pool.getConnection();
+    await conn.beginTransaction(); //  ป้องกันข้อมูลค้าง ครึ่งๆกลางๆ
 
-    // ถ้าชื่อใหม่ != ชื่อเดิม → ต้องตรวจสอบว่ามีซ้ำไหม
+    // ตรวจสอบชื่อบริษัทซ้ำ (ถ้าชื่อใหม่ != เดิม)
     if (name && name !== oldName) {
       const [exists] = await conn.execute(
-        'SELECT name FROM company WHERE name = ?', 
+        'SELECT name FROM company WHERE name = ?',
         [name]
       );
       if (exists.length > 0) {
-        return res.status(400).json({ 
-          success: false, 
-          message: 'ชื่อบริษัทนี้มีอยู่แล้ว' 
+        return res.status(400).json({
+          success: false,
+          message: 'ชื่อบริษัทนี้มีอยู่แล้ว'
         });
       }
     }
 
+    // อัปเดตใน company
     await conn.execute(
-      `UPDATE company 
-       SET name = ?, address = ?, latitude = ?, longitude = ?
+      `UPDATE company
+       SET name = ?, address = ?, latitude = ?, longitude = ?, radius_km = ?
        WHERE name = ?`,
-      [name, address, latitude, longitude, oldName]
+      [name, address, latitude,  longitude, radius_km, oldName]
     );
+
+    //  อัปเดตใน employees
+    await conn.execute(
+      `UPDATE employees
+       SET company_name = ?
+       WHERE company_name = ?`,
+      [name, oldName]
+    );
+
+    //  อัปเดตใน time_records
+    await conn.execute(
+      `UPDATE time_records
+       SET company_name = ?
+       WHERE company_name = ?`,
+      [name, oldName]
+    );
+
+    await conn.commit(); // ยืนยันทั้งหมด
 
     res.json({ success: true });
 
   } catch (err) {
+    if (conn) await conn.rollback(); // ย้อนกลับทั้งหมดถ้าพัง
     console.error('PUT /api/company/:name error:', err);
     res.status(500).json({ success: false, message: 'Database error' });
+
   } finally {
     if (conn) conn.release();
   }
 });
-
 // ลบบริษัท
 router.delete('/:name', async (req, res) => {
   const { name } = req.params;
