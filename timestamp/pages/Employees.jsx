@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useUser } from '../components/UserContext';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, useMap, useMapEvents, Circle } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
@@ -433,6 +433,17 @@ const selectSuggestion = (item) => {
               setLng={setNewCompanyLng}
             />
           )}
+        {newCompanyLat && newCompanyLng && newCompanyRadius > 0 && (
+  <Circle
+    center={[newCompanyLat, newCompanyLng]}
+    radius={newCompanyRadius} // เมตร
+    pathOptions={{
+      color: 'blue',
+      fillColor: 'blue',
+      fillOpacity: 0.15,
+    }}
+  />
+)}
         </MapContainer>
       </div>
 
