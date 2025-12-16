@@ -78,6 +78,7 @@ export default function Employees() {
   const [editingCompany, setEditingCompany] = useState(null); 
   const [addressSuggestions, setAddressSuggestions] = useState([]);
   const [isFetchingAddress, setIsFetchingAddress] = useState(false);
+  const [newCompanyRadius, setNewCompanyRadius] = useState(30);
   const { user } = useUser();
   const navigate = useNavigate();
 
@@ -92,7 +93,13 @@ export default function Employees() {
     try {
       const res = await axios.get('https://api-checkin-out.bpit-staff.com/api/company');
       if (res.data.success) {
-        setCompanies(res.data.companies.map(c => ({ id: c.name, name: c.name })));
+        setCompanies(res.data.companies.map(c => ({  id: c.name,
+        name: c.name,
+        address: c.address,
+        latitude: c.latitude,
+        longitude: c.longitude,
+        radius_km: c.radius_km,
+       })));
       }
     } catch (err) {
       console.error(err);
@@ -116,6 +123,11 @@ export default function Employees() {
 
   //เพิ่มบริษัท
   const addCompany = async () => {
+     if (!newCompanyRadius || newCompanyRadius <= 0) {
+    alert('กรุณากรอกระยะห่าง (เมตร)');
+    return;
+  }
+  const radiusKm = Number(newCompanyRadius) / 1000;
     if (!newCompanyName) return alert("กรอกชื่อบริษัท");
     try {   
        let res;
@@ -127,6 +139,7 @@ if (editingCompany) {
       address: newCompanyAddress,
       latitude: newCompanyLat || null,
       longitude: newCompanyLng || null,
+      radius_km: radiusKm,
     }
   );
   alert(`แก้ไขบริษัท ${newCompanyName} สำเร็จ`);
@@ -137,6 +150,7 @@ if (editingCompany) {
     address: newCompanyAddress,
     latitude: newCompanyLat || null,
     longitude: newCompanyLng || null,
+    radius_km: radiusKm,
   });
 }
 if (res.data.success) {
@@ -206,14 +220,12 @@ const handleAddressEnter = async (e) => {
     setNewCompanyLat(13.7563);
     setNewCompanyLng(100.5018);
   }
-
   setAddressSuggestions([]);
 };
 
 const selectSuggestion = (item) => {
   setNewCompanyAddress(item.display_name);
   setAddressSuggestions([]);
-
   setNewCompanyLat(parseFloat(item.lat));
   setNewCompanyLng(parseFloat(item.lon));
 };
@@ -272,7 +284,7 @@ const selectSuggestion = (item) => {
 
   // Render JSX
 
-return (
+  return (
 <div className="bg-white rounded-2xl shadow-xl p-4 md:p-8 space-y-6">
 
   {/* เลือกบริษัท + ปุ่มเพิ่ม/ลบ */}
@@ -311,6 +323,7 @@ return (
           setNewCompanyAddress(company.address || '');
           setNewCompanyLat(company.latitude || '');
           setNewCompanyLng(company.longitude || '');
+          setNewCompanyRadius(company.radius_km ? company.radius_km * 1000 :'');
           setCompanyFormVisible(true);
         }}
         className="bg-yellow-400 text-white px-5 py-2 rounded-lg hover:bg-yellow-500 w-full sm:w-auto"
@@ -356,13 +369,13 @@ return (
         />
 
         {isFetchingAddress && (
-          <div className="absolute bg-white border rounded-lg mt-1 w-full p-2 text-gray-500 z-50">
+          <div className="absolute bg-white border rounded-lg mt-1 w-full p-2 text-gray-500 z-9999">
             กำลังค้นหา...
           </div>
         )}
 
         {addressSuggestions.length > 0 && (
-          <ul className="absolute bg-white border rounded-lg mt-1 w-full max-h-48 overflow-auto shadow-lg z-50">
+          <ul className="absolute bg-white border rounded-lg mt-1 w-full max-h-48 overflow-auto shadow-lg z-9999">
             {addressSuggestions.map((item, idx) => (
               <li
                 key={idx}
@@ -375,9 +388,25 @@ return (
           </ul>
         )}
       </div>
-
+<div>
+  <label className="block text-sm text-gray-700 mb-1">
+    ระยะห่างที่อนุญาตในการลงเวลา (เมตร)
+  </label>
+  <input
+    type="number"
+    min={10}
+    step={10}
+    value={newCompanyRadius}
+    onChange={e => setNewCompanyRadius(Number(e.target.value))}
+    className="px-4 py-2 border rounded-lg w-full"
+    placeholder="เช่น 300"
+  />
+  <p className="text-xs text-gray-500 mt-1">
+    พนักงานต้องอยู่ในระยะนี้จากบริษัทจึงจะลงเวลาได้
+  </p>
+</div>
       {/* แผนที่ – ปรับให้ฟิตจอมือถือ */}
-      <div className="w-full" style={{ height: 240 }}>
+      <div className="w-full" style={{ height: 360 }}>
         <MapContainer
           center={[
             newCompanyLat || 13.7367,
@@ -387,10 +416,10 @@ return (
           maxZoom={18}
           style={{ height: "100%", width: "100%" }}
         >
-           <TileLayer
-              url={`https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}&key=${import.meta.env.VITE_GOOGLE_MAPS_KEY}`}
-              attribution="&copy; Google Maps"
-            />
+   <TileLayer
+  url={`https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}&key=${import.meta.env.VITE_GOOGLE_MAPS_KEY}`}
+  attribution="&copy; Google Maps"
+/>
 
           {newCompanyLat && newCompanyLng && (
             <ChangeView center={[newCompanyLat, newCompanyLng]} />
