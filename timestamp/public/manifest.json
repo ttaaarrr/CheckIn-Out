@@ -1,0 +1,8 @@
+{
+  "name": "ระบบลงเวลา",
+  "short_name": "Checkin-Checkout",
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#2563eb",
+  "background_color": "#ffffff"
+}
