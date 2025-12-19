@@ -7,6 +7,7 @@ const timeRecordRoutes = require('./routes/timeRecord');
 const companyRoutes = require('./routes/company');
 const employeeRoutes = require('./routes/employees');
 const login = require('./routes/login'); 
+const user = require('./routes/user');
 // const otRequestRoutes = require('./routes/ot-request');
 
 const app = express();
@@ -14,7 +15,8 @@ const app = express();
 //  Config CORS
 const allowedOrigins = [
   "https://check-in-out.vercel.app",
-  "http://localhost:5174"
+  "http://localhost:5174",
+  "http://localhost:5173"
 ];
 
 const corsOptions = {
@@ -40,6 +42,7 @@ app.use('/api/login', login); // login route
 app.use('/api/time-record', timeRecordRoutes);
 app.use('/api/company', companyRoutes);
 app.use('/api/employees', employeeRoutes);
+app.use('/api/user', user);
 // app.use('/api/ot-request', otRequestRoutes);
 // Health check
 app.get('/health', (req, res) => res.send('OK'));

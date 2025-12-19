@@ -8,6 +8,7 @@ import L from 'leaflet';
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+import api from '../src/api';
 
 // Fix default icon
 delete L.Icon.Default.prototype._getIconUrl;
@@ -85,13 +86,32 @@ export default function Employees() {
   // Check Login
 
   useEffect(() => {
-    if (!user) navigate('/login');
+   const storedUser = localStorage.getItem('user');
+
+  if (!user && storedUser) {
+    setUser(JSON.parse(storedUser));
+  }
+
+  if (!user && !storedUser) {
+    navigate('/login');
+  }
   }, [user, navigate]);
 
   //ข้อมูลบริษัท
   const fetchCompanies = async () => {
     try {
-      const res = await axios.get('https://api-checkin-out.bpit-staff.com/api/company');
+      const user = JSON.parse(localStorage.getItem("user"));
+      const token = user?.token;
+      console.log(token);
+      if (!token) {
+      console.error("ไม่พบ token");
+      return;
+    }
+      const res = await api.get('https://api-checkin-out.bpit-staff.com/api/company',{
+  headers: {
+    Authorization: `Bearer ${token}`
+  }
+});
       if (res.data.success) {
         setCompanies(res.data.companies.map(c => ({  id: c.name,
         name: c.name,
@@ -114,7 +134,7 @@ export default function Employees() {
   const fetchEmployees = async (companyName) => {
     if (!companyName) return;
     try {
-      const res = await axios.get(`https://api-checkin-out.bpit-staff.com/api/employees?company_name=${companyName}`);
+      const res = await api.get(`https://api-checkin-out.bpit-staff.com/api/employees?company_name=${companyName}`);
       if (res.data.success) setEmployees(res.data.employees);
     } catch (err) {
       console.error(err);
@@ -132,7 +152,7 @@ export default function Employees() {
     try {   
        let res;
 if (editingCompany) {
-  res = await axios.put(
+  res = await api.put(
     `https://api-checkin-out.bpit-staff.com/api/company/${editingCompany.name}`,
     {
       name: newCompanyName,
@@ -145,7 +165,7 @@ if (editingCompany) {
   alert(`แก้ไขบริษัท ${newCompanyName} สำเร็จ`);
   setEditingCompany(null);
 } else {
-  res = await axios.post('https://api-checkin-out.bpit-staff.com/api/company', {
+  res = await api.post('https://api-checkin-out.bpit-staff.com/api/company', {
     name: newCompanyName,
     address: newCompanyAddress,
     latitude: newCompanyLat || null,
@@ -232,7 +252,7 @@ const selectSuggestion = (item) => {
   //ลบบริษัท
   const deleteCompany = async (companyName) => {
     try {
-      const res = await axios.delete(`https://api-checkin-out.bpit-staff.com/api/company/${companyName}`);
+      const res = await api.delete(`https://api-checkin-out.bpit-staff.com/api/company/${companyName}`);
       if (res.data.success) {
         alert(`ลบบริษัท ${companyName} เรียบร้อยแล้ว`);
         if (selectedCompany === companyName) setSelectedCompany('');
@@ -251,7 +271,7 @@ const selectSuggestion = (item) => {
     if (!selectedCompany) return alert("กรุณาเลือกบริษัทก่อน");
 
     try {
-      const res = await axios.post('https://api-checkin-out.bpit-staff.com/api/employees', { ...newEmp, company_name: selectedCompany });
+      const res = await api.post('https://api-checkin-out.bpit-staff.com/api/employees', { ...newEmp, company_name: selectedCompany });
       if (res.data.success) {
         fetchEmployees(selectedCompany);
         setFormVisible(false);
@@ -272,7 +292,7 @@ const selectSuggestion = (item) => {
     if (!confirm("ลบพนักงาน?")) return;
 
     try {
-      const res = await axios.delete(`https://api-checkin-out.bpit-staff.com/api/employees/${em_code}?company_name=${selectedCompany}`);
+      const res = await api.delete(`https://api-checkin-out.bpit-staff.com/api/employees/${em_code}?company_name=${selectedCompany}`);
       if (res.data.success) fetchEmployees(selectedCompany);
     } catch (err) {
       console.error(err.response?.data || err.message);

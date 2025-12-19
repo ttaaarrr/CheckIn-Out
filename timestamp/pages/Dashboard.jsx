@@ -5,6 +5,7 @@ import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import api from '../src/api';
 
 export default function Dashboard({ user }) {
   const navigate = useNavigate();
@@ -42,7 +43,7 @@ useEffect(() => {
   const fetchCompaniesAndEmployees = async () => {
     try {
       // 1. fetch companies
-      const compRes = await axios.get("https://api-checkin-out.bpit-staff.com/api/company");
+      const compRes = await api.get("https://api-checkin-out.bpit-staff.com/api/company");
       if (!compRes.data.success) return;
 
       const companyList = compRes.data.companies.map((c, index) => ({ id: index, name: c.name }));
@@ -60,7 +61,7 @@ useEffect(() => {
         selectedCompany === "all"
           ? "https://api-checkin-out.bpit-staff.com/api/employees?company_name=A"
           : `https://api-checkin-out.bpit-staff.com/api/employees?company_name=${selectedCompany}`;
-      const empRes = await axios.get(url);
+      const empRes = await api.get(url);
       if (!empRes.data.success) return;
 
 const employeesWithId = empRes.data.employees.map(emp => {
@@ -88,14 +89,14 @@ const employeesWithId = empRes.data.employees.map(emp => {
     if (!user) return;
     const fetchData = async () => {
       try {
-        const compRes = await axios.get("https://api-checkin-out.bpit-staff.com/api/company");
+        const compRes = await api.get("https://api-checkin-out.bpit-staff.com/api/company");
         if (compRes.data.success) {
           setCompanies(
             compRes.data.companies.map((c, index) => ({ id: index, name: c.name }))
           );
         }
 
-        const recRes = await axios.get(
+        const recRes = await api.get(
           `https://api-checkin-out.bpit-staff.com/api/time-record?date=${formatDateForApi(selectedDate)}${
             selectedCompany !== "all" ? `&company=${selectedCompany}` : ""
           }`
@@ -202,7 +203,7 @@ tableData[key] = {
   let dailyRows = [];
   try {
     const requests = dayList.map(dateStr =>
-      axios.get(
+      api.get(
         `https://api-checkin-out.bpit-staff.com/api/time-record?date=${dateStr}&company=${selectedCompany}`
       ).then(res => ({ dateStr, data: res.data }))
     );
@@ -226,7 +227,7 @@ tableData[key] = {
  let empList = employees; // เอา state employees
 if (!empList.length) {
   try {
-    const empRes = await axios.get(
+    const empRes = await api.get(
       `https://api-checkin-out.bpit-staff.com/api/employees?company_name=${selectedCompany}`
     );
     if (empRes.data.success) empList = empRes.data.employees || [];
@@ -267,7 +268,7 @@ dailyRows.forEach((r) => {
    const emp = employees.find(e => e.em_code.toString() === r.em_code.toString());
 
   if (!emp) {
-    console.warn("ไม่พบพนักงานที่ตรงกับ:", r.em_code);
+    console.warn(":-)");
     return;
   }
 

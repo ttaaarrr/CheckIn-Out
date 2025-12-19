@@ -67,17 +67,25 @@ router.delete('/:em_code', async (req, res) => {
 });
 
 // ตรวจสอบรหัสพนักงานอยู่ในบริษัทหรือไม่
-router.get('/check/:empId/:company_name', async (req, res) => {
-  const { empId, company_name } = req.params;
-  if (!empId || !company_name) return res.status(400).json({ success:false, message:'Missing parameters' });
+router.get('/check', async (req, res) => {
+   console.log('req.query =', req.query); 
+  const { query, company_name } = req.query; // query = รหัสหรือชื่อ
+  if (!query || !company_name) return res.status(400).json({ success: false, message: 'Missing parameters' });
 
   try {
-    const [rows] = await pool.execute('SELECT id FROM employees WHERE id = ? AND company_name = ?', [empId, company_name]);
-    res.json({ exists: rows.length > 0 });
+   const [rows] = await pool.execute(
+  `SELECT id, em_code, name FROM employees 
+   WHERE company_name = ? 
+   AND (em_code = ? OR name LIKE ?)`,
+  [company_name, query, `%${query}%`]
+);
+
+    res.json({ exists: rows.length > 0, employee: rows[0] || null });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ success:false, message: err.message });
+    res.status(500).json({ success: false, message: err.message });
   }
 });
+
 
 module.exports = router;

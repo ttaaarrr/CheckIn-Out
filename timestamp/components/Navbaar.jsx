@@ -1,8 +1,9 @@
-import { NavLink, useLocation } from "react-router-dom";
+import { useUser } from './UserContext';
+import { NavLink, useLocation, Link } from "react-router-dom";
 
 export default function Navbar() {
   const location = useLocation();
-
+  const { user } = useUser();
   // ❌ ถ้าอยู่หน้าลงเวลา "/" ให้ไม่แสดง Navbar
   if (location.pathname === "/") return null;
 
@@ -33,6 +34,14 @@ export default function Navbar() {
       >
         ตารางการลงเวลา
       </NavLink>
+       {user?.role === 'admin' && (
+      <NavLink
+         to="/addmanager"
+         className={({ isActive }) => isActive ? activeClass : normalClass}
+          >
+            เพิ่มผู้จัดการ
+      </NavLink>
+      )}
     </div>
   );
 }

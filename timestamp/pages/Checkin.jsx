@@ -36,7 +36,7 @@ export default function Checkin() {
 
     const fetchCompanies = async () => {
       try {
-        const res = await fetch('https://api-checkin-out.bpit-staff.com/api/company');
+        const res = await fetch('https://api-checkin-out.bpit-staff.com/api/company/public');
         const data = await res.json();
         if (data.success) {
           setCompanies(data.companies.map(c => ({ id: c.name, name: c.name })));

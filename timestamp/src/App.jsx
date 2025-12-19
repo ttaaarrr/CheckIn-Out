@@ -5,6 +5,7 @@ import Employees from '../pages/Employees';
 import Dashboard from '../pages/Dashboard';
 import Summary from '../pages/Summary';
 import Login from '../pages/Login';
+import AddManager from '../pages/addmanager';
 import { UserProvider, useUser } from '../components/UserContext';
 
 function DashboardWrapper() {
@@ -23,7 +24,7 @@ function PrivateRoute({ children }) {
 function AdminRoute({ children }) {
   const { user } = useUser();
   if (!user) return <Navigate to="/login" />;
-  if (user.role !== 'admin') return <Navigate to="/dashboard" />;
+  // if (user.role !== 'admin') return <Navigate to="/dashboard" />;
   return children;
 }
 
@@ -42,7 +43,8 @@ function App() {
 
             {/* admin เท่านั้น */}
             <Route path="/employees" element={<AdminRoute><Employees /></AdminRoute>} />
-            <Route path="/summary" element={<AdminRoute><Summary /></AdminRoute>} />
+            <Route path="/addmanager"  element={ <AdminRoute><AddManager /></AdminRoute>}/> 
+            {/* <Route path="/summary" element={<AdminRoute><Summary /></AdminRoute>} /> */}
           </Routes>
         </div>
       </Router>

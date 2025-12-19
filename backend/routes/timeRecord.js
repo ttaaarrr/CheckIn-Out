@@ -1,5 +1,6 @@
 const express = require('express');
 const pool = require('../db');
+const authMiddleware = require('../middleware/auth');
 const router = express.Router();
 
 // ฟังก์ชันคำนวณเวลา (ชั่วโมง + นาที + ชั่วโมงรวม)
@@ -201,19 +202,34 @@ router.get('/monthly', async (req, res) => {
 });
 
 // เลือกเวลาแบบช่วง
-router.get('/range', async (req, res) => {
+router.get('/range', authMiddleware, async (req, res) => {
   const { start, end, company } = req.query;
-  if (!start || !end || !company) return res.status(400).json({ success: false, message: 'Missing parameters' });
+  if (!start || !end || !company) 
+    return res.status(400).json({ success: false, message: 'Missing parameters' });
+
+  const { role, id } = req.user; // ดึง role + id จาก JWT
 
   const conn = await pool.getConnection();
   try {
-    const [rows] = await conn.query(
-      `SELECT tr.em_code, tr.company_name, tr.date, tr.type, tr.time, e.name
-       FROM time_records tr
-       LEFT JOIN employees e ON tr.em_code = e.em_code
-       WHERE tr.company_name = ? AND tr.date BETWEEN ? AND ?`,
-      [company, start, end]
-    );
+    let sql = `
+      SELECT tr.em_code, tr.company_name, tr.date, tr.type, tr.time, e.name
+      FROM time_records tr
+      LEFT JOIN employees e ON tr.em_code = e.em_code
+      WHERE tr.date BETWEEN ? AND ?
+    `;
+    const params = [start, end];
+
+    if (role === 'manager') {
+      // manager เห็นแค่บริษัทที่ตัวเองเพิ่ม
+      sql += ' AND tr.company_name IN (SELECT name FROM company WHERE added_by = ?)';
+      params.push(id);
+    } else if (company !== 'all') {
+      // admin เลือกเฉพาะบริษัทถ้าไม่ได้เลือก all
+      sql += ' AND tr.company_name = ?';
+      params.push(company);
+    }
+
+    const [rows] = await conn.query(sql, params);
 
     // แปลงข้อมูลเป็น structured object ต่อคนต่อวัน
     const recordsByEmp = {};
@@ -228,7 +244,6 @@ router.get('/range', async (req, res) => {
       const inTime = data.records.find(r => r.type === 'in')?.time || null;
       const outTime = data.records.find(r => r.type === 'out')?.time || null;
 
-      // ชั่วโมงทำงาน
       let workHours = { hours: 0, minutes: 0 };
       if (inTime && outTime) {
         const diff = timeDiff(inTime, outTime);
@@ -247,7 +262,7 @@ router.get('/range', async (req, res) => {
         workHours: workHours.hours + 'ชม. ' + workHours.minutes + 'นาที',
         otBefore,
         otAfter,
-        otTotal // รวม OT ก่อน + หลัง
+        otTotal
       };
     });
 
@@ -260,5 +275,6 @@ router.get('/range', async (req, res) => {
     conn.release();
   }
 });
+
 
 module.exports = router;

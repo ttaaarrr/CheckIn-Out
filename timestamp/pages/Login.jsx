@@ -10,13 +10,20 @@ export default function Login() {
   const [password, setPassword] = useState("");
 
   const handleLogin = async () => {
+    
     try {
       const res = await axios.post(
         "https://api-checkin-out.bpit-staff.com/api/login",
         { username, password }
       );
-
-      setUser(res.data.user);
+    const loginUser = res.data.user;
+      console.log("LOGIN USER =", loginUser);
+    console.log("ROLE =", loginUser.role);
+   
+       setUser(loginUser);
+        localStorage.setItem('token', loginUser.token);
+        localStorage.setItem('user', JSON.stringify(loginUser));
+        localStorage.setItem('role', loginUser.role);
       navigate("/employees");
     } catch (err) {
       alert("ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง");
