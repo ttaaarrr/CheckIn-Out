@@ -52,7 +52,7 @@ export default function Checkin() {
 
   const getTimeRecords = async (empId) => {
     try {
-      const res = await axios.get(`https://api-checkin-out.bpit-staff.com/api/time-record/${empId}`);
+      const res = await axios.get(`https://api-checkin-out.bpit-staff.com/api/timeRecord/${empId}`);
       return res.data.success ? res.data.records : [];
     } catch {
       return [];
