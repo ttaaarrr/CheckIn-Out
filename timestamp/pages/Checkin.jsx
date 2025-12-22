@@ -58,8 +58,19 @@ export default function Checkin() {
       return [];
     }
   };
+const getDeviceId = () => {
+  const data = [
+    navigator.userAgent,
+    navigator.language,
+    screen.width,
+    screen.height,
+    Intl.DateTimeFormat().resolvedOptions().timeZone,
+  ].join('|');
 
+  return btoa(data); // แปลงเป็น string ใช้เป็น device_id
+};
   const logTime = async ({ empId, type, company_name, latitude, longitude }) => {
+  const device_id  = getDeviceId();
     try {
       const res = await axios.post('https://api-checkin-out.bpit-staff.com/api/time-record', {
         empId,
@@ -67,6 +78,7 @@ export default function Checkin() {
         company_name,
         latitude,
         longitude,
+        device_id,
       });
       return res.data;
     } catch (err) {
