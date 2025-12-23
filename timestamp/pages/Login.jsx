@@ -17,7 +17,7 @@ export default function Login() {
         { username, password }
       );
     const loginUser = res.data.user;
-      console.log("LOGIN USER =", loginUser);
+   
     console.log("ROLE =", loginUser.role);
    
        setUser(loginUser);
