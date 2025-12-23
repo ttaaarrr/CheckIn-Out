@@ -102,7 +102,7 @@ export default function Employees() {
     try {
       const user = JSON.parse(localStorage.getItem("user"));
       const token = user?.token;
-      console.log(token);
+     
       if (!token) {
       console.error("ไม่พบ token");
       return;
