@@ -80,6 +80,7 @@ export default function Employees() {
   const [addressSuggestions, setAddressSuggestions] = useState([]);
   const [isFetchingAddress, setIsFetchingAddress] = useState(false);
   const [newCompanyRadius, setNewCompanyRadius] = useState(30);
+  const [editingEmp, setEditingEmp] = useState(null);
   const { user } = useUser();
   const navigate = useNavigate();
 
@@ -271,19 +272,32 @@ const selectSuggestion = (item) => {
     if (!selectedCompany) return alert("กรุณาเลือกบริษัทก่อน");
 
     try {
-      const res = await api.post('https://api-checkin-out.bpit-staff.com/api/employees', { ...newEmp, company_name: selectedCompany });
-      if (res.data.success) {
-        fetchEmployees(selectedCompany);
-        setFormVisible(false);
-        setNewEmp({ em_code: '', name: '', position: '', department: '' });
-      } else {
-        alert(res.data.message || 'เกิดข้อผิดพลาด');
-      }
-    } catch (err) {
-      console.error(err.response?.data || err.message);
-      alert(err.response?.data?.message || 'เกิดข้อผิดพลาด');
+    let res;
+
+    if (editingEmp) {
+      // 🔵 แก้ไขพนักงาน
+      res = await api.put(
+        `https://api-checkin-out.bpit-staff.com/api/employees/${editingEmp.em_code}`,
+        { ...newEmp, company_name: selectedCompany }
+      );
+    } else {
+      // 🟢 เพิ่มพนักงาน
+      res = await api.post(
+        'https://api-checkin-out.bpit-staff.com/api/employees',
+        { ...newEmp, company_name: selectedCompany }
+      );
     }
-  };
+
+    if (res.data.success) {
+      fetchEmployees(selectedCompany);
+      setFormVisible(false);
+      setEditingEmp(null);
+      setNewEmp({ em_code: '', name: '', position: '', department: '' });
+    }
+  } catch (err) {
+    alert("เกิดข้อผิดพลาด");
+  }
+};
 
   // ลบพนักงาน
 
@@ -499,6 +513,7 @@ const selectSuggestion = (item) => {
               type="text"
               className="w-full px-4 py-2 border rounded-lg"
               value={newEmp.em_code}
+                disabled={!!editingEmp} 
               onChange={e => setNewEmp({ ...newEmp, em_code: e.target.value })}
             />
           </div>
@@ -534,7 +549,9 @@ const selectSuggestion = (item) => {
           </div>
 
           <div className="flex gap-2 justify-end">
-            <button onClick={addEmployee} className="bg-green-500 text-white px-4 py-2 rounded">บันทึก</button>
+          <button onClick={addEmployee} className="bg-green-500 text-white px-4 py-2 rounded">
+          {editingEmp ? 'บันทึกการแก้ไข' : 'บันทึก'}
+          </button>
             <button onClick={() => setFormVisible(false)} className="bg-gray-500 text-white px-4 py-2 rounded">ยกเลิก</button>
           </div>
         </div>
@@ -559,14 +576,34 @@ const selectSuggestion = (item) => {
                 <td className="px-6 py-3">{emp.name}</td>
                 <td className="px-6 py-3">{emp.department}</td>
                 <td className="px-6 py-3">{emp.position}</td>
-                <td className="px-6 py-3 text-center">
-                  <button
-                    onClick={() => deleteEmployee(emp.em_code)}
-                    className="bg-red-500 text-white px-3 py-1 rounded"
-                  >
-                    ลบ
-                  </button>
-                </td>
+               <td className="px-6 py-3 text-center">
+  <div className="flex gap-2 justify-center">
+    {/* ปุ่มแก้ไข */}
+    <button
+      onClick={() => {
+        setEditingEmp(emp);
+        setNewEmp({
+          em_code: emp.em_code,
+          name: emp.name,
+          department: emp.department,
+          position: emp.position,
+        });
+        setFormVisible(true);
+      }}
+      className="bg-yellow-400 text-white px-3 py-1 rounded hover:bg-yellow-500"
+    >
+      แก้ไข
+    </button>
+
+    {/* ปุ่มลบ */}
+    <button
+      onClick={() => deleteEmployee(emp.em_code)}
+      className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
+    >
+      ลบ
+    </button>
+  </div>
+</td>
               </tr>
             ))}
 
