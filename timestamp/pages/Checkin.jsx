@@ -285,40 +285,43 @@ const handleCheckin = async (type) => {
   </div>
 
   {/* ปุ่มลอยมุมขวา */}
-  <div className="fixed bottom-6 right-6 z-50">
-    <button
-      onClick={() => setOpen(!open)}
-      className="bg-blue-600 text-white px-5 py-3 rounded-full shadow-lg text-lg"
-    >
-      สำหรับเจ้าหน้าที่
-    </button>
+ <div
+  className="fixed z-40 bottom-4 right-4 sm:bottom-6 sm:right-6 pointer-events-none">
+  <button
+    onClick={() => setOpen(!open)}
+    className="pointer-events-auto bg-blue-600/80 hover:bg-blue-600 text-white text-sm sm:text-base px-4 py-2 sm:px-5 sm:py-3
+      rounded-full shadow-md opacity-80 hover:opacity-100">
+    สำหรับเจ้าหน้าที่
+  </button>
 
-    {/* Drop-up menu */}
-    {open && (
-      <div className="absolute bottom-16 right-0 w-52 bg-white rounded-xl shadow-xl overflow-hidden border">
-        <Link
-          to="/employees"
-          className="block w-full text-center py-3 hover:bg-gray-100"
-          onClick={() => setOpen(false)}
-        >
-          จัดการพนักงาน
-        </Link>
-        <Link
-          to="/dashboard"
-          className="block w-full text-center py-3 hover:bg-gray-100"
-          onClick={() => setOpen(false)}
-        >
-          ตารางการลงเวลา
-        </Link>
-        <button
-          onClick={() => setOpen(false)}
-          className="block w-full text-center py-3 bg-gray-200 hover:bg-gray-300"
-        >
-          ยกเลิก
-        </button>
-      </div>
-    )}
-  </div>
+  {open && (
+    <div
+      className="absolute bottom-12 right-0 w-48 bg-white rounded-xl shadow-xl border pointer-events-auto" >
+      <Link
+        to="/employees"
+        className="block w-full text-center py-2 text-sm hover:bg-gray-100"
+        onClick={() => setOpen(false)}
+      >
+        จัดการพนักงาน
+      </Link>
+
+      <Link
+        to="/dashboard"
+        className="block w-full text-center py-2 text-sm hover:bg-gray-100"
+        onClick={() => setOpen(false)}
+      >
+        ตารางการลงเวลา
+      </Link>
+
+      <button
+        onClick={() => setOpen(false)}
+        className="block w-full text-center py-2 text-sm bg-gray-100 hover:bg-gray-200"
+      >
+        ยกเลิก
+      </button>
+    </div>
+  )}
+</div>
 </div>
   );
 }
