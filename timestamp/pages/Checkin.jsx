@@ -225,7 +225,7 @@ const handleCheckin = async (type) => {
 
     {/* ปุ่ม OT */}
     <button
-      onClick={() => setShowOTButtons(true)}
+      onClick={() => setShowOTButtons(prev => !prev)}
       className="flex items-center justify-center gap-2 w-full py-3 mb-6 
                  rounded-xl bg-purple-500 hover:bg-purple-600 text-white 
                  font-semibold shadow-md text-base"
