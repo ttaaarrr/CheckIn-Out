@@ -505,10 +505,18 @@ dayList.forEach((dateStr, idx) => {
     cell.border = { top:{style:"thin"}, left:{style:"thin"}, bottom:{style:"thin"}, right:{style:"thin"} };
   });
 
-  // สลับสีแถว (optional)
-  if(idx % 2 === 0) row.eachCell({ includeEmpty: true }, cell => {
-    cell.fill = { type:"pattern", pattern:"solid", fgColor:{argb:"FFD9E1F2"} };
+//  ไฮไลท์เฉพาะ เสาร์ / อาทิตย์
+const day = new Date(dateStr).getDay(); // 0=อาทิตย์, 6=เสาร์
+
+if (day === 0 || day === 6) {
+  row.eachCell({ includeEmpty: true }, cell => {
+    cell.fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "FFD9E1F2" } 
+    };
   });
+}
 
   row.height = 18; // ตั้ง row height ให้ uniform
 });
