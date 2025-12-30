@@ -129,7 +129,7 @@ const handleCheckin = async (type) => {
     });
 
     if (res.success) {
-      setMessage({ text: `บันทึกเวลา ${typeMapTH[type]} สำเร็จ: ${res.time}`, type: 'success' });
+      setMessage({ text: `${empId} บันทึกเวลา ${typeMapTH[type]} สำเร็จ: ${res.time}`, type: 'success' });
       setEmpId('');
       setRecords(await getTimeRecords(employee.em_code));
       if (type.startsWith('ot')) setShowOTButtons(false);
