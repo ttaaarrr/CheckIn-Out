@@ -6,6 +6,11 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import api from '../src/api';
 
+const timeToMinutes = (t) => {
+  if (!t || t === "-") return null;
+  const [h, m] = t.split(":").map(Number);
+  return h * 60 + m;
+};
 export default function Dashboard({ user }) {
   const navigate = useNavigate();
   const [records, setRecords] = useState([]);
@@ -186,10 +191,31 @@ tableData[key] = {
   otOutBefore: "-",
   otInAfter: "-",
   otOutAfter: "-",
+  lateMinutes: "-",
 };
   }
   const field = typeMap[r.type.toLowerCase()];
   if (field) tableData[key][field] = r.time || "-";
+  if (field === "checkIn") {
+  const company = companies.find(
+    c => c.name.trim().toLowerCase() === (tableData[key].company || "").trim().toLowerCase()
+  );
+
+  if (company?.time_in && tableData[key].checkIn !== "-") {
+    const checkInMin = timeToMinutes(tableData[key].checkIn);
+    const workStart = timeToMinutes(company.time_in);
+
+    if (
+      checkInMin !== null &&
+      workStart !== null &&
+      checkInMin > workStart
+    ) {
+      tableData[key].lateMinutes = checkInMin - workStart;
+    } else {
+      tableData[key].lateMinutes = "-";
+    }
+  }
+}
 });
 
  const exportExcel = async () => {
@@ -754,7 +780,7 @@ console.log("บริษัทที่เลือก:", selectedCompany);
         }))
       )} */}
 
-      {/* 🔥 ตารางรองรับจอมือถือ — เลื่อนขวาได้ */}
+      {/*  ตารางรองรับจอมือถือ — เลื่อนขวาได้ */}
       <div className="bg-white shadow-md rounded-lg overflow-x-auto">
         <table className="min-w-max border border-gray-300 border-collapse text-sm mx-auto">
           <thead className="bg-blue-50">
@@ -766,6 +792,7 @@ console.log("บริษัทที่เลือก:", selectedCompany);
               <th colSpan={4} className="border px-2 py-1 text-center">OT</th>
               <th rowSpan={2} className="border px-2 py-1">ชั่วโมงทำงาน</th>
               <th rowSpan={2} className="border px-2 py-1">ชั่วโมง OT</th>
+              <th rowSpan={2} className="border px-2 py-1">สาย (นาที)</th>
             </tr>
             <tr>
               <th className="border px-2 py-1">OT IN (ก่อนเข้างาน)</th>
@@ -788,6 +815,7 @@ console.log("บริษัทที่เลือก:", selectedCompany);
                 <td className="border px-2 py-1">{r.otOutAfter}</td>
                 <td className="border px-2 py-1">{calcDuration(r.checkIn, r.checkOut)}</td>
                 <td className="border px-2 py-1">{calcTotalOT(r)}</td>
+                <td className="border px-2 py-1">{r.lateMinutes}</td>
               </tr>
             ))}
           </tbody>
