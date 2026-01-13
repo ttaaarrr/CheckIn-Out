@@ -81,6 +81,8 @@ export default function Employees() {
   const [isFetchingAddress, setIsFetchingAddress] = useState(false);
   const [newCompanyRadius, setNewCompanyRadius] = useState(30);
   const [editingEmp, setEditingEmp] = useState(null);
+  const [timeIn, setTimeIn] = useState('');
+  const [timeOut, setTimeOut] = useState('');
   const { user } = useUser();
   const navigate = useNavigate();
 
@@ -148,6 +150,7 @@ export default function Employees() {
     alert('กรุณากรอกระยะห่าง (เมตร)');
     return;
   }
+   if (!timeIn || !timeOut) return alert("กรุณากรอกเวลาเข้างานและเลิกงาน");
   const radiusKm = Number(newCompanyRadius) / 1000;
     if (!newCompanyName) return alert("กรอกชื่อบริษัท");
     try {   
@@ -161,6 +164,8 @@ if (editingCompany) {
       latitude: newCompanyLat || null,
       longitude: newCompanyLng || null,
       radius_km: radiusKm,
+      time_in: timeIn,    
+      time_out: timeOut,
     }
   );
   alert(`แก้ไขบริษัท ${newCompanyName} สำเร็จ`);
@@ -172,6 +177,8 @@ if (editingCompany) {
     latitude: newCompanyLat || null,
     longitude: newCompanyLng || null,
     radius_km: radiusKm,
+    time_in: timeIn,    
+      time_out: timeOut,
   });
 }
 if (res.data.success) {
@@ -275,13 +282,13 @@ const selectSuggestion = (item) => {
     let res;
 
     if (editingEmp) {
-      // 🔵 แก้ไขพนักงาน
+      //  แก้ไขพนักงาน
       res = await api.put(
         `https://api-checkin-out.bpit-staff.com/api/employees/${editingEmp.em_code}`,
         { ...newEmp, company_name: selectedCompany }
       );
     } else {
-      // 🟢 เพิ่มพนักงาน
+      //  เพิ่มพนักงาน
       res = await api.post(
         'https://api-checkin-out.bpit-staff.com/api/employees',
         { ...newEmp, company_name: selectedCompany }
@@ -358,6 +365,8 @@ const selectSuggestion = (item) => {
           setNewCompanyLat(company.latitude || '');
           setNewCompanyLng(company.longitude || '');
           setNewCompanyRadius(company.radius_km ? company.radius_km * 1000 :'');
+          setTimeIn(company.time_in || '');    
+          setTimeOut(company.time_out || ''); 
           setCompanyFormVisible(true);
         }}
         className="bg-yellow-400 text-white px-5 py-2 rounded-lg hover:bg-yellow-500 w-full sm:w-auto"
@@ -421,6 +430,28 @@ const selectSuggestion = (item) => {
             ))}
           </ul>
         )}
+      </div>
+      <div className="flex flex-col gap-4"> 
+        <label className="text-sm text-gray-700 whitespace-nowrap">
+          เวลาเข้างาน - เวลาออกงาน
+        </label>
+        <div className="flex gap-4">
+        <input
+          type="time"
+          placeholder="เวลาเข้างาน"
+          value={timeIn}
+          onChange={(e) => setTimeIn(e.target.value)}
+          className="px-4 py-2 border rounded-lg "
+        />
+        
+        <input
+          type="time"
+          placeholder="เวลาออกงาน"
+          value={timeOut}
+          onChange={(e) => setTimeOut(e.target.value)}
+          className="px-4 py-2 border rounded-lg "
+        />
+        </div>
       </div>
 <div>
   <label className="block text-sm text-gray-700 mb-1">
