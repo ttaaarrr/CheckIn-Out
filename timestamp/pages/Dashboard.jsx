@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
 import DatePicker from "react-datepicker";
@@ -46,7 +45,13 @@ useEffect(() => {
       const compRes = await api.get("https://api-checkin-out.bpit-staff.com/api/company");
       if (!compRes.data.success) return;
 
-      const companyList = compRes.data.companies.map((c, index) => ({ id: index, name: c.name }));
+      const companyList = compRes.data.companies.map((c, index) => ({ 
+        id: index, 
+        name: c.name,
+        time_in: c.time_in,
+        time_out: c.timeout
+       }));
+
       setCompanies(companyList);
 
       // สร้าง map สำหรับ mapping ชื่อบริษัท -> id
@@ -92,7 +97,12 @@ const employeesWithId = empRes.data.employees.map(emp => {
         const compRes = await api.get("https://api-checkin-out.bpit-staff.com/api/company");
         if (compRes.data.success) {
           setCompanies(
-            compRes.data.companies.map((c, index) => ({ id: index, name: c.name }))
+            compRes.data.companies.map((c, index) => ({ 
+              id: index, 
+              name: c.name, 
+              time_in: c.time_in, 
+              time_out: c.time_out
+             }))
           );
         }
 
@@ -241,7 +251,7 @@ if (!empList.length) {
 // ทำให้ em_code เป็นสตริง เพื่อให้ key ตรงกัน
 empList.forEach(e => { if (e && e.em_code !== undefined && e.em_code !== null) e.em_code = e.em_code.toString(); });
 
-// console.log("employees for export:", empList); // ต้องมีข้อมูลตอนนี้
+// console.log("employees for export:", empList); 
   // สร้าง groupedRecords: emp+date
   const groupedRecords = {};
   empList.forEach((emp) => {
@@ -268,7 +278,7 @@ dailyRows.forEach((r) => {
    const emp = employees.find(e => e.em_code.toString() === r.em_code.toString());
 
   if (!emp) {
-    console.warn(":-)");
+    console.warn("//");
     return;
   }
 
@@ -288,6 +298,8 @@ dailyRows.forEach((r) => {
   else if (type === 'ot_out_after') groupedRecords[key].otOutAfter = r.time || '-';
 
   if (r.note) groupedRecords[key].note = r.note;
+console.log(key, groupedRecords[key]);
+
 });
 
   // สร้าง Excel
@@ -482,7 +494,14 @@ sheet.columns = [
   {width:10}, {width:10},
   {width:10}, {width:12}
 ];
-
+const timeToMinutes = (t) => {
+  if(!t || t === '-') return null;
+  const parts = t.split(':').map(Number);
+  if(parts.length < 2) return null;
+  const h = parts[0];
+  const m = parts[1];
+  return h * 60 + m;
+};
 // Fill data
 dayList.forEach((dateStr, idx) => {
   const key = `${emp.em_code}_${dateStr}`;
@@ -504,7 +523,34 @@ dayList.forEach((dateStr, idx) => {
     cell.alignment = { horizontal: "center", vertical: "middle" }; 
     cell.border = { top:{style:"thin"}, left:{style:"thin"}, bottom:{style:"thin"}, right:{style:"thin"} };
   });
+  // เช็คเวลาเข้า-ออกงานของแต่ละบริษัท
+  const normalizedCompanyName = companyNameMap[r.company_name?.trim()] || r.company_name?.trim();
+  const company = companies.find(c => c.name.trim().toLowerCase() === (r.company_name || '').trim().toLowerCase());
 
+// console.log("CheckIn", r.checkIn, "CheckOut", r.checkOut, "Company", company);
+
+  if(company){
+     console.log(
+      "CheckIn:", r.checkIn,
+      "CheckOut:", r.checkOut, 
+      "Company time_in:", company.time_in, 
+      "Company time_out:", company.time_out);
+
+    const checkInMin = timeToMinutes(r.checkIn);
+    const checkOutMin = timeToMinutes(r.checkOut);
+    const workStart = timeToMinutes(company.time_in);
+    const workEnd = timeToMinutes(company.time_out);
+
+    // ไฮไลท์ CheckIn สาย = แดง 
+    if(checkInMin !== null && workStart !== null && checkInMin > workStart){
+      row.getCell(3).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFF0000' } };
+    }
+
+    // ไฮไลท์ CheckOut ออกก่อน = เหลือง
+    if(checkOutMin !== null && workEnd !== null && checkOutMin < workEnd){
+      row.getCell(4).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFF00' } };
+    }
+  }
 //  ไฮไลท์เฉพาะ เสาร์ / อาทิตย์
 const day = new Date(dateStr).getDay(); // 0=อาทิตย์, 6=เสาร์
 
@@ -668,8 +714,8 @@ console.log("บริษัทที่เลือก:", selectedCompany);
     </div>
   ) : (
     <>
-      {/* Debug (ถ้าจะเก็บไว้) */}
-      {console.log(
+      {/* Debug  */}
+      {/* {console.log(
         "tableData:",
         Object.values(tableData).map((r) => ({
           em_code: r.em_code,
@@ -677,9 +723,9 @@ console.log("บริษัทที่เลือก:", selectedCompany);
           company_id: r.company_id,
           company_name: r.company
         }))
-      )}
+      )} */}
 
-      {/* 🔥 ตารางรองรับจอมือถือ — เลื่อนขวาได้ */}
+      {/* ตารางรองรับจอมือถือ — เลื่อนขวาได้ */}
       <div className="bg-white shadow-md rounded-lg overflow-x-auto">
         <table className="min-w-max border border-gray-300 border-collapse text-sm mx-auto">
           <thead className="bg-blue-50">
