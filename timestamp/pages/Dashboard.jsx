@@ -421,8 +421,9 @@ sheet.mergeCells('C9:D9'); // เวลางานปกติ
 sheet.mergeCells('E9:F9'); // OT ก่อนเริ่มงาน
 sheet.mergeCells('G9:H9'); // OT หลังเลิกงาน
 sheet.mergeCells('I9:I10'); // ชม.ทำงาน
-sheet.mergeCells('J9:M9'); // ชม.OT
-sheet.mergeCells('N9:N10'); // หมายเหตุ
+sheet.mergeCells('J9:J10'); // สาย (นาที)
+sheet.mergeCells('K9:N9');  // ชม.OT
+sheet.mergeCells('O9'); // หมายเหตุ
 
 // ตั้งค่าหัวแถวหลัก
 sheet.getCell('A9').value = 'วัน';
@@ -431,8 +432,9 @@ sheet.getCell('C9').value = 'เวลางานปกติ';
 sheet.getCell('E9').value = 'OT ก่อนเริ่มงาน';
 sheet.getCell('G9').value = 'OT หลังเลิกงาน';
 sheet.getCell('I9').value = 'ชม.ทำงาน';
-sheet.getCell('J9').value = 'ชม. OT';
-sheet.getCell('N9').value = 'หมายเหตุ';
+sheet.getCell('J9').value = 'สาย (นาที)';
+sheet.getCell('K9').value = 'ชม. OT';
+sheet.getCell('O9').value = 'หมายเหตุ';
 
 // ตั้งค่าหัวแถวรอง (แถว 2)
 sheet.getCell('C10').value = 'เข้า';
@@ -441,19 +443,19 @@ sheet.getCell('E10').value = 'เข้า';
 sheet.getCell('F10').value = 'ออก';
 sheet.getCell('G10').value = 'เข้า';
 sheet.getCell('H10').value = 'ออก';
-sheet.getCell('J10').value = '1เท่า';
-sheet.getCell('K10').value = '1.5เท่า';
-sheet.getCell('L10').value = '2เท่า';
-sheet.getCell('M10').value = '3เท่า';
-sheet.getCell('N10').value = '(ป่วย/กิจ/พักร้อน)'; 
+sheet.getCell('K10').value = '1เท่า';
+sheet.getCell('L10').value = '1.5เท่า';
+sheet.getCell('M10').value = '2เท่า';
+sheet.getCell('N10').value = '3เท่า';
+sheet.getCell('O10').value = '(ป่วย/กิจ/พักร้อน)'; 
 
 // จัดสไตล์หัวตาราง
-['A9','B9','C9','E9','G9','I9','J9','N9',
- 'C10','D10','E10','F10','G10','H10','J10','K10','L10','M10','N10'].forEach(cell => {
+['A9','B9','C9','E9','G9','I9','J9','K9','O9',
+ 'C10','D10','E10','F10','G10','H10','K10','L10','M10','N10','O10'].forEach(cell => {
 
   sheet.getCell(cell).alignment = { vertical: 'middle', horizontal: 'center' };
   
-  if(cell === 'N10') {
+  if(cell === 'O10') {
     sheet.getCell(cell).font = { color: { argb: 'FFFFFF' }, bold: true, size: 8 };
   } else {
     sheet.getCell(cell).font = { color: { argb: 'FFFFFF' }, bold: true }; 
@@ -478,6 +480,7 @@ sheet.columns = [
   { key: 'ot_after_in', width: 12 },
   { key: 'ot_after_out', width: 12 },
   { key: 'work_hours', width: 10 },
+  { key: 'late_minuter', width: 10 },
   { key: 'ot_1', width: 10 },
   { key: 'ot_1_5', width: 10 },
   { key: 'ot_2', width: 10 },
@@ -486,13 +489,11 @@ sheet.columns = [
 ];
 // Column width
 sheet.columns = [
-  { width: 10}, {width:12},
-  {width:10}, {width:10},
-  {width:12}, {width:12},
-  {width:12}, {width:12},
-  {width:10}, {width:10},
-  {width:10}, {width:10},
-  {width:10}, {width:12}
+  { width: 10}, {width:12},{width:10},
+  {width:10}, {width:12}, {width:12},
+  {width:12}, {width:12}, {width:10},
+  {width:10}, {width:10}, {width:10},
+  {width:10}, {width:10}, {width:12}
 ];
 const timeToMinutes = (t) => {
   if(!t || t === '-') return null;
@@ -503,72 +504,100 @@ const timeToMinutes = (t) => {
   return h * 60 + m;
 };
 // Fill data
-dayList.forEach((dateStr, idx) => {
+dayList.forEach((dateStr) => {
   const key = `${emp.em_code}_${dateStr}`;
   const r = groupedRecords[key];
   if (!r) return;
 
+  let lateMinutes = "";
+
+  const company = companies.find(
+    c => c.name.trim().toLowerCase() === (r.company_name || "").trim().toLowerCase()
+  );
+
+  let checkInMin = null;
+  let checkOutMin = null;
+  let workStart = null;
+  let workEnd = null;
+
+  if (company) {
+    checkInMin = timeToMinutes(r.checkIn);
+    checkOutMin = timeToMinutes(r.checkOut);
+    workStart = timeToMinutes(company.time_in);
+    workEnd = timeToMinutes(company.time_out);
+
+    // คำนวณสาย
+    if (
+      checkInMin !== null &&
+      workStart !== null &&
+      checkInMin > workStart
+    ) {
+      lateMinutes = checkInMin - workStart;
+    }
+  }
+  // ให้เป็น - ถ้าไม่สาย
+lateMinutes = lateMinutes === "" ? "-" : lateMinutes;
+  //  เพิ่ม row หลังคำนวณเสร็จแล้ว
   const row = sheet.addRow([
     dayNames[new Date(dateStr).getDay()],
-    formatDateTH(dateStr), 
-    r.checkIn, r.checkOut,
-    r.otInBefore, r.otOutBefore,
-    r.otInAfter, r.otOutAfter,
+    formatDateTH(dateStr),
+    r.checkIn,
+    r.checkOut,
+    r.otInBefore,
+    r.otOutBefore,
+    r.otInAfter,
+    r.otOutAfter,
     calcDuration(r.checkIn, r.checkOut),
-    "","","","",
+    lateMinutes || "",
+    "", "", "", "",
     r.note || ""
   ]);
 
+  // จัด cell
   row.eachCell({ includeEmpty: true }, cell => {
-    cell.alignment = { horizontal: "center", vertical: "middle" }; 
-    cell.border = { top:{style:"thin"}, left:{style:"thin"}, bottom:{style:"thin"}, right:{style:"thin"} };
-  });
-  // เช็คเวลาเข้า-ออกงานของแต่ละบริษัท
-  const normalizedCompanyName = companyNameMap[r.company_name?.trim()] || r.company_name?.trim();
-  const company = companies.find(c => c.name.trim().toLowerCase() === (r.company_name || '').trim().toLowerCase());
-
-// console.log("CheckIn", r.checkIn, "CheckOut", r.checkOut, "Company", company);
-
-  if(company){
-     console.log(
-      "CheckIn:", r.checkIn,
-      "CheckOut:", r.checkOut, 
-      "Company time_in:", company.time_in, 
-      "Company time_out:", company.time_out);
-
-    const checkInMin = timeToMinutes(r.checkIn);
-    const checkOutMin = timeToMinutes(r.checkOut);
-    const workStart = timeToMinutes(company.time_in);
-    const workEnd = timeToMinutes(company.time_out);
-
-    // ไฮไลท์ CheckIn สาย = แดง 
-    if(checkInMin !== null && workStart !== null && checkInMin > workStart){
-      row.getCell(3).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFF0000' } };
-    }
-
-    // ไฮไลท์ CheckOut ออกก่อน = เหลือง
-    if(checkOutMin !== null && workEnd !== null && checkOutMin < workEnd){
-      row.getCell(4).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFF00' } };
-    }
-  }
-//  ไฮไลท์เฉพาะ เสาร์ / อาทิตย์
-const day = new Date(dateStr).getDay(); // 0=อาทิตย์, 6=เสาร์
-
-if (day === 0 || day === 6) {
-  row.eachCell({ includeEmpty: true }, cell => {
-    cell.fill = {
-      type: "pattern",
-      pattern: "solid",
-      fgColor: { argb: "FFD9E1F2" } 
+    cell.alignment = { horizontal: "center", vertical: "middle" };
+    cell.border = {
+      top: { style: "thin" },
+      left: { style: "thin" },
+      bottom: { style: "thin" },
+      right: { style: "thin" }
     };
   });
-}
 
-  row.height = 18; // ตั้ง row height ให้ uniform
+  // เข้าสาย
+  if (checkInMin !== null && workStart !== null && checkInMin > workStart) {
+    row.getCell(3).fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "FFFF0000" }
+    };
+  }
+
+  // ออกก่อน
+  if (checkOutMin !== null && workEnd !== null && checkOutMin < workEnd) {
+    row.getCell(4).fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "FFFFFF00" }
+    };
+  }
+
+  // เสาร์–อาทิตย์
+  const day = new Date(dateStr).getDay();
+  if (day === 0 || day === 6) {
+    row.eachCell({ includeEmpty: true }, cell => {
+      cell.fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "FFD9E1F2" }
+      };
+    });
+  }
+
+  row.height = 18;
 });
 
 const summaryRow = sheet.lastRow.number + 2;
-
 // สรุป OT
 sheet.mergeCells(`A${summaryRow}:I${summaryRow}`);
 sheet.getCell(`A${summaryRow}`).value = "สรุป: OT 1 เท่า = ……...... ชม./ OT 1.5 เท่า = ……........ ชม./ OT 2 เท่า = ……......... ชม./ OT 3 เท่า = …............ ชม.";
@@ -648,7 +677,7 @@ console.log("บริษัทที่เลือก:", selectedCompany);
     ตารางบันทึกการลงเวลา
   </h1>
 
-  {/* 🔥 ส่วนของตัวกรองข้อมูล */}
+  {/*  ส่วนของตัวกรองข้อมูล */}
   <div className="flex flex-col md:flex-row gap-4 mb-6">
 
     {/* วันที่เดี่ยว */}
@@ -714,7 +743,7 @@ console.log("บริษัทที่เลือก:", selectedCompany);
     </div>
   ) : (
     <>
-      {/* Debug  */}
+      {/* Debug */}
       {/* {console.log(
         "tableData:",
         Object.values(tableData).map((r) => ({
@@ -725,7 +754,7 @@ console.log("บริษัทที่เลือก:", selectedCompany);
         }))
       )} */}
 
-      {/* ตารางรองรับจอมือถือ — เลื่อนขวาได้ */}
+      {/* 🔥 ตารางรองรับจอมือถือ — เลื่อนขวาได้ */}
       <div className="bg-white shadow-md rounded-lg overflow-x-auto">
         <table className="min-w-max border border-gray-300 border-collapse text-sm mx-auto">
           <thead className="bg-blue-50">
