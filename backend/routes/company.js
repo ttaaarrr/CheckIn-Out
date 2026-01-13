@@ -11,7 +11,7 @@ router.get('/', authMiddleware, async (req, res) => {
 
     const { role, id } = req.user;
 
-    let sql = 'SELECT name, address, latitude, longitude FROM company';
+    let sql = 'SELECT name, address, latitude, longitude, time_in, time_out FROM company';
     let params = [];
 
     if (role === 'manager') {
@@ -35,7 +35,7 @@ router.get('/public', async (req, res) => {
   try {
     conn = await pool.getConnection();
     const [rows] = await conn.execute(
-      'SELECT name, address, latitude, longitude FROM company'
+      'SELECT name, address, latitude, longitude, time_in, time_out FROM company'
     );
     res.json({ success: true, companies: rows });
   } catch (err) {
@@ -47,13 +47,25 @@ router.get('/public', async (req, res) => {
 // เพิ่มบริษัท
 router.post('/', authMiddleware, async (req, res) => {
    console.log('JWT USER =', req.user); 
-  const { name, address, latitude, longitude } = req.body;
+  const { name, address, latitude, longitude, time_in, time_out } = req.body;
   const { id } = req.user; // user ที่ล็อกอิน
  
   if (!name) {
     return res.status(400).json({ success: false, message: 'Missing name' });
   }
+  if (!time_in || !time_out) {
+    return res.status(400).json({
+      success: false,
+      message: 'กรุณากรอกเวลาเข้างานและเลิกงาน'
+    });
+  }
 
+  if (time_in >= time_out) {
+    return res.status(400).json({
+      success: false,
+      message: 'เวลาเข้างานต้องน้อยกว่าเวลาเลิกงาน'
+    });
+  }
   let conn;
   try {
     conn = await pool.getConnection();
@@ -67,9 +79,9 @@ router.post('/', authMiddleware, async (req, res) => {
     }
 
     await conn.execute(
-      `INSERT INTO company (name, address, latitude, longitude, added_by)
-       VALUES (?, ?, ?, ?, ?)`,
-      [name, address || null, latitude || null, longitude || null, id]
+      `INSERT INTO company (name, address, latitude, longitude, added_by, time_in, time_out)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [name, address || null, latitude || null, longitude || null, id, time_in, time_out]
     );
 
     res.json({ success: true });
@@ -84,13 +96,31 @@ router.post('/', authMiddleware, async (req, res) => {
 // แก้ไขบริษัท
 router.put('/:name', authMiddleware, async (req, res) => {
   const oldName = req.params.name;
-  const { name, address, latitude, longitude } = req.body;
+  const { name, address, latitude, longitude, time_in, time_out } = req.body;
   const { role, id } = req.user;
+  if (!name) {
+  return res.status(400).json({
+    success: false,
+    message: 'กรอกชื่อบริษัท'
+  });
+}
+if (!time_in || !time_out) {
+  return res.status(400).json({
+    success: false,
+    message: 'กรุณากรอกเวลาเข้างานและเลิกงาน'
+  });
+}
 
+if (time_in >= time_out) {
+  return res.status(400).json({
+    success: false,
+    message: 'เวลาเข้างานต้องน้อยกว่าเวลาเลิกงาน'
+  });
+}
   let conn;
   try {
     conn = await pool.getConnection();
-
+      await conn.beginTransaction(); 
     // เช็กสิทธิ์ก่อน
     let checkSql = 'SELECT added_by FROM company WHERE name = ?';
     let [rows] = await conn.execute(checkSql, [oldName]);
@@ -105,13 +135,20 @@ router.put('/:name', authMiddleware, async (req, res) => {
 
     await conn.execute(
       `UPDATE company 
-       SET name = ?, address = ?, latitude = ?, longitude = ?
+       SET name = ?, address = ?, latitude = ?, longitude = ?, time_in =?, time_out = ?
        WHERE name = ?`,
-      [name, address, latitude, longitude, oldName]
+      [name, address, latitude, longitude, time_in, time_out, oldName]
     );
-
+   await conn.execute(
+      `UPDATE employees
+       SET company_name = ?
+       WHERE company_name = ?`,
+      [name, oldName]
+    );
+      await conn.commit();
     res.json({ success: true });
   } catch (err) {
+    if (conn) await conn.rollback();
     console.error('PUT /api/company error:', err);
     res.status(500).json({ success: false, message: 'Database error' });
   } finally {

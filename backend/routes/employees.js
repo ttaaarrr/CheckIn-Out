@@ -51,6 +51,43 @@ router.get('/', async (req, res) => {
     res.status(500).json({ success: false, message: 'Internal Server Error' });
   }
 });
+// แก้ไขพนักงาน (ล็อครหัสพนักงาน)
+router.put('/:em_code', async (req, res) => {
+  try {
+    const { em_code } = req.params; //  รหัสพนักงานเดิม (ห้ามแก้)
+    const { name, position, department, company_name } = req.body;
+
+    if (!name || !position || !department || !company_name) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing parameters'
+      });
+    }
+
+    const [result] = await pool.execute(
+      `UPDATE employees
+       SET name = ?, position = ?, department = ?, company_name = ?
+       WHERE em_code = ?`,
+      [name, position, department, company_name, em_code]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Employee not found'
+      });
+    }
+
+    res.json({ success: true, message: 'แก้ไขพนักงานเรียบร้อย' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      success: false,
+      message: 'Internal Server Error'
+    });
+  }
+});
+
 // ลบพนักงาน
 router.delete('/:em_code', async (req, res) => {
   try {

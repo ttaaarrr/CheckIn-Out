@@ -40,21 +40,23 @@ function calculateOT(records) {
 
 // POST บันทึกเวลา พร้อม GPS
 router.post('/', async (req, res) => {
-  const { empId, type, company_name, latitude, longitude } = req.body;
+  const { empId, type, company_name, latitude, longitude, device_id } = req.body;
+  const today = new Date().toISOString().slice(0, 10);
   const conn = await pool.getConnection();
 
   try {
-    const today = new Date().toISOString().slice(0, 10);
-
+    // ตรวจว่า type ถูกต้อง
     const validTypes = ['in','out','ot_in_before','ot_in_after','ot_out_before','ot_out_after'];
     if (!validTypes.includes(type)) {
       return res.json({ success: false, message: `Type ไม่ถูกต้อง: ${type}` });
     }
 
+    // ตรวจ GPS
     if (!latitude || !longitude) {
       return res.json({ success: false, message: 'ต้องเปิด GPS ก่อนลงเวลา' });
     }
 
+    // ตรวจบริษัท
     const [companyRow] = await conn.query(
       'SELECT latitude AS lat, longitude AS lng, radius_km FROM company WHERE name = ?',
       [company_name]
@@ -75,8 +77,8 @@ router.post('/', async (req, res) => {
       const a =
         Math.sin(dLat/2)**2 +
         Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
-      const c = 2*Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-      return R*c;
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      return R * c;
     }
 
     const distance = getDistanceFromLatLonInKm(latitude, longitude, companyLat, companyLng);
@@ -84,13 +86,13 @@ router.post('/', async (req, res) => {
       return res.json({ success: false, message: 'คุณอยู่นอกพื้นที่บริษัท' });
     }
 
-    // ตรวจ record ซ้ำ
+    // ตรวจ record ของพนักงานวันนี้
     const [records] = await conn.query(
       'SELECT type FROM time_records WHERE em_code = ? AND date = ? AND company_name = ?',
       [empId, today, company_name]
     );
 
-    // ฟังก์ชันตรวจลงเวลา
+    // ฟังก์ชันตรวจเวลา
     function validateOT(type, records) {
       const types = records.map(r => r.type);
 
@@ -108,7 +110,6 @@ router.post('/', async (req, res) => {
         return `คุณได้บันทึก "${type}" ไปแล้ววันนี้`;
       }
 
-      // ตรวจ OT
       if (type === 'ot_in_before' && types.includes('in')) {
         return 'ไม่สามารถบันทึก OT ก่อนเข้างานได้ เนื่องจากมีการลงเวลาเข้าทำงานแล้ว';
       }
@@ -132,11 +133,31 @@ router.post('/', async (req, res) => {
     if (otError) {
       return res.json({ success: false, message: otError });
     }
+const [deviceOwner] = await conn.query(
+  `
+  SELECT em_code
+  FROM time_records
+  WHERE device_id = ?
+    AND date = ?
+  ORDER BY id ASC
+  LIMIT 1
+  `,
+  [device_id, today]
+);
 
-    // insert record
+if (
+  deviceOwner.length > 0 &&
+  String(deviceOwner[0].em_code) !== String(empId)
+) {
+  return res.json({
+    success: false,
+    message: 'อุปกรณ์นี้ถูกใช้ลงเวลาโดยพนักงานคนอื่นแล้วในวันนี้'
+  });
+}
+    // Insert record
     const [result] = await conn.query(
-      'INSERT INTO time_records (em_code, type, time, date, company_name, latitude, longitude) VALUES (?, ?, CURTIME(), CURDATE(), ?, ?, ?)',
-      [empId, type, company_name, latitude, longitude]
+      'INSERT INTO time_records (em_code, type, time, date, company_name, latitude, longitude, device_id) VALUES (?, ?, CURTIME(), CURDATE(), ?, ?, ?, ?)',
+      [empId, type, company_name, latitude, longitude, device_id]
     );
 
     const [rows] = await conn.query('SELECT time FROM time_records WHERE id = ?', [result.insertId]);
