@@ -11,7 +11,8 @@ export default function Checkin() {
   const [companies, setCompanies] = useState([]);
   const [records, setRecords] = useState([]);
   const [showOTButtons, setShowOTButtons] = useState(false);
- const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const typeMapTH = { 
     in: 'เข้างาน', 
@@ -47,7 +48,16 @@ export default function Checkin() {
     };
 
     fetchCompanies();
-    return () => clearInterval(timer);
+     if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      () => {},
+      () => {},
+      { enableHighAccuracy: false }
+    );
+  }
+
+  return () => clearInterval(timer);
+       
   }, []);
 
   const getTimeRecords = async (empId) => {
@@ -89,9 +99,20 @@ const getDeviceId = () => {
 
   const getPosition = () =>
     new Promise((resolve, reject) => {
-      if (!navigator.geolocation) return reject(new Error('Browser ไม่รองรับ GPS'));
-      navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true });
-    });
+    if (!navigator.geolocation) {
+      return reject(new Error('Browser ไม่รองรับ GPS'));
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      resolve,
+      reject,
+      {
+        enableHighAccuracy: false, 
+        timeout: 3000,             
+        maximumAge: 60000,         
+      }
+    );
+  });
 const checkEmployeeInCompany = async (employeeInput, company_name) => {
   try {
     const res = await axios.get('https://api-checkin-out.bpit-staff.com/api/employees/check', {
@@ -109,19 +130,21 @@ const handleCheckin = async (type) => {
     return;
   }
 
-  // 1. ตรวจสอบรหัสหรือชื่อพนักงาน
+  // ตรวจสอบรหัสหรือชื่อพนักงาน
   const { exists, employee } = await checkEmployeeInCompany(empId, companyId);
+    if (loading) return;
+
   if (!exists) {
     setMessage({ text: `ไม่พบข้อมูล ${empId} ในบริษัท ${companyId}`, type: 'error' });
     return;
   }
-
+  setLoading(true);
   try {
     const position = await getPosition();
     const { latitude, longitude } = position.coords;
 
     const res = await logTime({
-      empId: employee.em_code, // ใช้ em_code จริง
+      empId: employee.em_code,
       type,
       company_name: companyId,
       latitude,
@@ -139,20 +162,22 @@ const handleCheckin = async (type) => {
   } catch (err) {
     console.error(err);
     setMessage({ text: 'กรุณาเปิด GPS ก่อนลงเวลา', type: 'error' });
+  }finally {
+    setLoading(false);
   }
-};
+} ;
   return (
     <div className="min-h-screen flex flex-col items-center relative p-4 ">
 
-  {/* กล่องหลัก */}
+{/* กล่องหลัก */}
   <div className="w-full max-w-md mx-auto bg-white rounded-2xl shadow-xl p-6 mt-6 border border-gray-100">
 
-    {/* Header */}
+{/* Header */}
     <div className="mb-8 flex flex-col items-center text-blue-800 text-4xl font-extrabold">
       <h1 className="leading-tight text-center">BPIT Time App</h1>
     </div>
 
-    {/* วันที่ + เวลา */}
+{/* วันที่ + เวลา */}
     <div className="text-center mb-6">
       <h4 className="text-xl font-extrabold text-blue-700">
         บันทึกเวลาเข้า-ออกงาน
@@ -178,7 +203,7 @@ const handleCheckin = async (type) => {
       </p>
     </div>
 
-    {/* Input รหัสพนักงาน */}
+{/* Input รหัสพนักงาน */}
     <div className="relative mb-4">
       <User className="absolute left-3 top-3 text-gray-400 w-5 h-5" />
       <input
@@ -191,7 +216,7 @@ const handleCheckin = async (type) => {
       />
     </div>
 
-    {/* เลือกบริษัท */}
+{/* เลือกบริษัท */}
     <div className="relative mb-6">
       <Building2 className="absolute left-3 top-3 text-gray-400 w-5 h-5" />
       <select
@@ -207,7 +232,7 @@ const handleCheckin = async (type) => {
       </select>
     </div>
 
-    {/* ปุ่มลงเวลา */}
+{/* ปุ่มลงเวลา */}
     <div className="grid grid-cols-2 gap-3 mb-6">
       {["in", "out"].map((type) => (
         <button
@@ -223,7 +248,7 @@ const handleCheckin = async (type) => {
       ))}
     </div>
 
-    {/* ปุ่ม OT */}
+{/* ปุ่ม OT */}
     <button
       onClick={() => setShowOTButtons(prev => !prev)}
       className="flex items-center justify-center gap-2 w-full py-3 mb-6 
@@ -233,7 +258,7 @@ const handleCheckin = async (type) => {
       <Edit className="w-5 h-5" /> OT
     </button>
 
-    {/* ปุ่ม OT 4 แบบ */}
+{/* ปุ่ม OT 4 แบบ */}
     {showOTButtons && (
       <div className="grid grid-cols-2 gap-3 mb-6">
         {["ot_in_before", "ot_in_after", "ot_out_before", "ot_out_after"].map(
@@ -250,7 +275,7 @@ const handleCheckin = async (type) => {
       </div>
     )}
 
-    {/* ข้อความสถานะ */}
+{/* ข้อความสถานะ */}
     {message && (
       <div
         className={`mt-3 p-4 rounded-lg text-center font-medium text-base ${
@@ -262,30 +287,10 @@ const handleCheckin = async (type) => {
         {message.text}
       </div>
     )}
-
-    {/* ประวัติ */}
-    {records.length > 0 && (
-      <div className="mt-8">
-        <h3 className="text-lg font-bold text-gray-800 mb-3">
-          ประวัติเวลาพนักงาน
-        </h3>
-        <ul className="max-h-56 overflow-auto border border-gray-200 rounded-lg 
-                       divide-y divide-gray-100 bg-gray-50 text-base">
-          {records.map((r) => (
-            <li key={r.id} className="px-3 py-2">
-              {new Date(r.date).toLocaleDateString("th-TH")} {r.time}{" "}
-              <span className="font-semibold text-blue-600">
-                [{typeMapTH[r.type] || r.type}]
-              </span>
-            </li>
-          ))}
-        </ul>
-      </div>
-    )}
   </div>
 
-  {/* ปุ่มลอยมุมขวา */}
- <div
+{/* ปุ่มลอยมุมขวา */}
+<div
   className="fixed z-40 bottom-4 right-4 sm:bottom-6 sm:right-6 pointer-events-none">
   <button
     onClick={() => setOpen(!open)}
