@@ -48,11 +48,11 @@ export default function Checkin() {
     };
 
     fetchCompanies();
-     if (navigator.geolocation) {
+      if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
-      () => {},
-      () => {},
-      { enableHighAccuracy: false }
+      () => console.log('GPS ready'),
+      () => console.log('GPS denied'),
+      { enableHighAccuracy: true }
     );
   }
 
@@ -107,9 +107,9 @@ const getDeviceId = () => {
       resolve,
       reject,
       {
-        enableHighAccuracy: false, 
-        timeout: 3000,             
-        maximumAge: 60000,         
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
       }
     );
   });
@@ -124,7 +124,9 @@ const checkEmployeeInCompany = async (employeeInput, company_name) => {
     return { exists: false };
   }
 };
-const handleCheckin = async (type) => {
+const handleCheckin = async (type) => { 
+  
+  if (loading) return;
   if (!empId || !companyId) {
     setMessage({ text: 'กรุณากรอกข้อมูลพนักงานและเลือกบริษัท', type: 'error' });
     return;
@@ -132,7 +134,7 @@ const handleCheckin = async (type) => {
 
   // ตรวจสอบรหัสหรือชื่อพนักงาน
   const { exists, employee } = await checkEmployeeInCompany(empId, companyId);
-    if (loading) return;
+ 
 
   if (!exists) {
     setMessage({ text: `ไม่พบข้อมูล ${empId} ในบริษัท ${companyId}`, type: 'error' });
@@ -170,7 +172,7 @@ const handleCheckin = async (type) => {
     <div className="min-h-screen flex flex-col items-center relative p-4 ">
 
 {/* กล่องหลัก */}
-  <div className="w-full max-w-md mx-auto bg-white rounded-2xl shadow-xl p-6 mt-6 border border-gray-100">
+ <div className="relative w-full max-w-md mx-auto bg-white rounded-2xl shadow-xl p-6 mt-6 border border-gray-100">
 
 {/* Header */}
     <div className="mb-8 flex flex-col items-center text-blue-800 text-4xl font-extrabold">
@@ -235,38 +237,44 @@ const handleCheckin = async (type) => {
 {/* ปุ่มลงเวลา */}
     <div className="grid grid-cols-2 gap-3 mb-6">
       {["in", "out"].map((type) => (
-        <button
-          key={type}
-          onClick={() => handleCheckin(type)}
-          className={`flex items-center justify-center gap-2 py-3 rounded-xl 
-                     text-white font-semibold shadow-md text-base ${typeColor[type]}`}
-        >
-          {type === "in" && <LogIn className="w-5 h-5" />}
-          {type === "out" && <LogOut className="w-5 h-5" />}
-          {typeMapTH[type]}
-        </button>
+  <button
+  disabled={loading}
+  onClick={() => handleCheckin(type)}
+  className={`flex items-center justify-center gap-2 py-3 rounded-xl 
+    text-white font-semibold shadow-md text-base
+    ${typeColor[type]}
+    ${loading ? 'opacity-60 cursor-not-allowed' : ''}`}
+>
+  {type === "in" && <LogIn className="w-5 h-5" />}
+  {type === "out" && <LogOut className="w-5 h-5" />}
+  {typeMapTH[type]}
+</button>
       ))}
     </div>
 
 {/* ปุ่ม OT */}
     <button
-      onClick={() => setShowOTButtons(prev => !prev)}
-      className="flex items-center justify-center gap-2 w-full py-3 mb-6 
-                 rounded-xl bg-purple-500 hover:bg-purple-600 text-white 
-                 font-semibold shadow-md text-base"
-    >
-      <Edit className="w-5 h-5" /> OT
-    </button>
+  disabled={loading}
+  onClick={() => setShowOTButtons(prev => !prev)}
+  className={`flex items-center justify-center gap-2 w-full py-3 mb-6 
+    rounded-xl bg-purple-500 text-white font-semibold shadow-md
+    ${loading ? 'opacity-60 cursor-not-allowed' : ''}`}
+>
+  <Edit className="w-5 h-5" /> OT
+</button>
 
 {/* ปุ่ม OT 4 แบบ */}
     {showOTButtons && (
       <div className="grid grid-cols-2 gap-3 mb-6">
         {["ot_in_before", "ot_in_after", "ot_out_before", "ot_out_after"].map(
           (type) => (
-            <button
+           <button
               key={type}
+              disabled={loading}
               onClick={() => handleCheckin(type)}
-              className={`py-3 rounded text-white text-base ${typeColor[type]} hover:opacity-90`}
+              className={`py-3 rounded text-white text-base
+                ${typeColor[type]}
+                ${loading ? 'opacity-60 cursor-not-allowed' : ''}`}
             >
               {typeMapTH[type]}
             </button>
@@ -288,7 +296,7 @@ const handleCheckin = async (type) => {
       </div>
     )}
   </div>
-
+ 
 {/* ปุ่มลอยมุมขวา */}
 <div
   className="fixed z-40 bottom-4 right-4 sm:bottom-6 sm:right-6 pointer-events-none">
@@ -327,6 +335,36 @@ const handleCheckin = async (type) => {
     </div>
   )}
 </div>
+{loading && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center
+                  bg-gradient-to-b from-black/40 to-black/60 backdrop-blur-md">
+
+    <div className="relative bg-white rounded-[28px] px-10 py-9 
+                    shadow-[0_20px_50px_rgba(0,0,0,0.25)]
+                    flex flex-col items-center gap-5 animate-premiumIn">
+
+      {/* Ring spinner */}
+      <div className="relative w-16 h-16">
+        <span className="absolute inset-0 rounded-full 
+                         border-[3px] border-blue-100" />
+        <span className="absolute inset-0 rounded-full 
+                         border-[3px] border-blue-600 border-t-transparent
+                         animate-spin" />
+      </div>
+
+      {/* Text */}
+      <p className="text-blue-900 font-bold text-lg tracking-wide">
+        กำลังบันทึกเวลา
+      </p>
+      <p className="text-gray-500 text-sm">
+        ระบบกำลังประมวลผลข้อมูล
+      </p>
+
+    </div>
+  </div>
+)}
+
+
 </div>
   );
 }
