@@ -53,14 +53,34 @@ export default function Checkin() {
     };
 
     fetchCompanies();
-      if (navigator.geolocation) {
+  //     if (navigator.geolocation) {
+  //   navigator.geolocation.getCurrentPosition(
+  //     () => console.log('GPS ready'),
+  //     () => console.log('GPS denied'),
+  //     { enableHighAccuracy: true }
+  //   );
+  // }
+ if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
-      () => console.log('GPS ready'),
-      () => console.log('GPS denied'),
-      { enableHighAccuracy: true }
+      (position) => {
+        console.log("GPS READY");
+        console.log("Lat:", position.coords.latitude);
+        console.log("Lng:", position.coords.longitude);
+        console.log("Accuracy:", position.coords.accuracy);
+
+        setLatitude(position.coords.latitude);
+        setLongitude(position.coords.longitude);
+      },
+      (error) => {
+        console.log("GPS ERROR:", error.code);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 15000,
+        maximumAge: 0
+      }
     );
   }
-
   return () => clearInterval(timer);
        
   }, []);
