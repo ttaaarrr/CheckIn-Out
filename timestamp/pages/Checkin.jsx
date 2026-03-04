@@ -4,7 +4,12 @@ import { Clock, Building2, User, LogIn, LogOut, Edit } from 'lucide-react';
 import { Link } from "react-router-dom";
 
 export default function Checkin() {
-  const [empId, setEmpId] = useState('');
+  const [empId, setEmpId] = useState(() => {
+    if (typeof window !== "undefined") {
+    return localStorage.getItem("empId") || "";
+  }
+  return "";
+});
   const [companyId, setCompanyId] = useState('');
   const [currentTime, setCurrentTime] = useState(new Date());
   const [message, setMessage] = useState(null);
@@ -155,7 +160,6 @@ const handleCheckin = async (type) => {
 
     if (res.success) {
       setMessage({ text: `${empId} บันทึกเวลา ${typeMapTH[type]} สำเร็จ: ${res.time}`, type: 'success' });
-      setEmpId('');
       setRecords(await getTimeRecords(employee.em_code));
       if (type.startsWith('ot')) setShowOTButtons(false);
     } else {
@@ -211,12 +215,20 @@ const handleCheckin = async (type) => {
       <input
         type="text"
         value={empId}
-        onChange={(e) => setEmpId(e.target.value)}
+        onChange={(e) => {
+  const value = e.target.value;
+  setEmpId(value);
+
+  if (value.trim() !== "") {
+    localStorage.setItem("empId", value);
+  }
+}}
         placeholder="รหัสพนักงานหรือชื่อพนักงาน"
         className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg 
                   focus:ring-2 focus:ring-blue-400 text-base"
       />
     </div>
+
 
 {/* เลือกบริษัท */}
     <div className="relative mb-6">
