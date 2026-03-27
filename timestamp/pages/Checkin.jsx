@@ -93,17 +93,26 @@ export default function Checkin() {
       return [];
     }
   };
-const getDeviceId = () => {
-  const data = [
-    navigator.userAgent,
-    navigator.language,
-    screen.width,
-    screen.height,
-    Intl.DateTimeFormat().resolvedOptions().timeZone,
-  ].join('|');
+// const getDeviceId = () => {
+//   const data = [
+//     navigator.userAgent,
+//     navigator.language,
+//     screen.width,
+//     screen.height,
+//     Intl.DateTimeFormat().resolvedOptions().timeZone,
+//   ].join('|');
 
-  return btoa(data); // แปลงเป็น string ใช้เป็น device_id
+//   return btoa(data); // แปลงเป็น string ใช้เป็น device_id
+// };
+  const getDeviceId = () => {
+  let device_id = localStorage.getItem("device_id");
+  if (!device_id) {
+    device_id = crypto.randomUUID(); // สุ่มครั้งเดียว
+    localStorage.setItem("device_id", device_id); // เก็บไว้ถาวร
+  }
+  return device_id;
 };
+
   const logTime = async ({ empId, type, company_name, latitude, longitude }) => {
   const device_id  = getDeviceId();
     try {
