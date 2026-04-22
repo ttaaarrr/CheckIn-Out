@@ -37,11 +37,21 @@ function calculateOT(records) {
     otTotal: totalHours + 'ชม. ' + totalMins + 'นาที'  // รวมก่อน+หลัง
   };
 }
-
+const typeLabelMap = {
+  in: 'เข้างาน',
+  out: 'ออกงาน',
+  ot_in_before: 'เข้า OT ก่อนเวลางาน',
+  ot_out_before: 'ออก OT ก่อนเวลางาน',
+  ot_in_after: 'เข้า OT หลังเวลางาน',
+  ot_out_after: 'ออก OT หลังเวลางาน'
+};
 // POST บันทึกเวลา พร้อม GPS
 router.post('/', async (req, res) => {
-  const { empId, type, company_name, latitude, longitude, device_id } = req.body;
-  const today = new Date().toISOString().slice(0, 10);
+  
+  const { empId, type, company_name, latitude, longitude, device_id, note  } = req.body;
+  const today = new Date().toLocaleDateString('sv-SE', {
+  timeZone: 'Asia/Bangkok'
+});
   const conn = await pool.getConnection();
 
   try {
@@ -82,6 +92,12 @@ router.post('/', async (req, res) => {
     }
 
     const distance = getDistanceFromLatLonInKm(latitude, longitude, companyLat, companyLng);
+    console.log("User Lat:", latitude);
+console.log("User Lng:", longitude);
+console.log("Company Lat:", companyLat);
+console.log("Company Lng:", companyLng);
+console.log("Distance (km):", distance);
+console.log("Distance (meters):", distance * 1000);
     if (distance > radiusKm) {
       return res.json({ success: false, message: 'คุณอยู่นอกพื้นที่บริษัท' });
     }
@@ -102,12 +118,20 @@ router.post('/', async (req, res) => {
         }
       }
 
-      if (type === 'out' && !types.includes('in')) {
-        return 'คุณยังไม่ได้ลงเวลาเข้างาน ไม่สามารถลงเวลาออกงานได้';
+      // if (type === 'out' && !types.includes('in')) {
+      //   return 'คุณยังไม่ได้ลงเวลาเข้างาน ไม่สามารถลงเวลาออกงานได้';
+      // }
+      if (type === 'out' && types.includes('ot_in_after')) {
+        return 'คุณได้ลงเวลาเข้างาน OT หลังเลิกงานแล้ว ไม่สามารถลงเวลาออกปกติซ้ำได้';
       }
-
-      if (types.includes(type)) {
-        return `คุณได้บันทึก "${type}" ไปแล้ววันนี้`;
+      if (type === 'out' && 
+          types.includes('ot_in_before') &&
+         !types.includes('ot_out_before')) 
+        {
+        return 'คุณยังไม่ได้ลงเวลาออก OT ก่อนเข้างานแล้ว ไม่สามารถลงเวลาออกปกติซ้ำได้';
+      }
+      if (type !== "out" && types.includes(type)) {
+        return `คุณได้บันทึก "${typeLabelMap[type]}" ไปแล้ววันนี้`;
       }
 
       if (type === 'ot_in_before' && types.includes('in')) {
@@ -133,31 +157,92 @@ router.post('/', async (req, res) => {
     if (otError) {
       return res.json({ success: false, message: otError });
     }
-const [deviceOwner] = await conn.query(
-  `
-  SELECT em_code
-  FROM time_records
-  WHERE device_id = ?
-    AND date = ?
-  ORDER BY id ASC
-  LIMIT 1
-  `,
-  [device_id, today]
-);
 
-if (
-  deviceOwner.length > 0 &&
-  String(deviceOwner[0].em_code) !== String(empId)
-) {
-  return res.json({
-    success: false,
-    message: 'อุปกรณ์นี้ถูกใช้ลงเวลาโดยพนักงานคนอื่นแล้วในวันนี้'
-  });
+    // ตรวจว่าเครื่องถูกใช้โดยคนอื่นหรือไม่
+    let checkDeviceQuery = '';
+    const checkParams = [device_id, company_name, today];
+
+    if (['in'].includes(type)) {
+  checkDeviceQuery = `
+    SELECT em_code
+    FROM time_records
+    WHERE device_id = ? 
+      AND company_name = ? 
+      AND date = ? 
+      AND type = 'in'
+    ORDER BY id ASC
+    LIMIT 1
+  `;
+} else if (['out'].includes(type)) {
+  checkDeviceQuery = `
+    SELECT em_code
+    FROM time_records
+    WHERE device_id = ?
+      AND company_name = ?
+      AND date = ?
+      AND type = 'out'
+    ORDER BY id ASC
+    LIMIT 1
+  `;
+} else if (['ot_in_before'].includes(type)) {
+  checkDeviceQuery = `
+    SELECT em_code
+    FROM time_records
+    WHERE device_id = ?
+      AND company_name = ?
+      AND date = ? 
+      AND type = 'ot_in_before'
+    ORDER BY id ASC
+    LIMIT 1
+  `;
+} else if (['ot_out_before'].includes(type)) {
+  checkDeviceQuery = `
+    SELECT em_code
+    FROM time_records
+    WHERE device_id = ?
+      AND company_name = ? 
+      AND date = ?
+      AND type = 'ot_out_before'
+    ORDER BY id ASC
+    LIMIT 1
+  `;
+} else if (['ot_in_after'].includes(type)) {
+  checkDeviceQuery = `
+    SELECT em_code
+    FROM time_records
+    WHERE device_id = ?
+      AND company_name = ?
+      AND date = ?
+      AND type = 'ot_in_after'
+    ORDER BY id ASC
+    LIMIT 1
+  `;
+} else if (['ot_out_after'].includes(type)) {
+  checkDeviceQuery = `
+    SELECT em_code
+    FROM time_records
+    WHERE device_id = ?
+      AND company_name = ?
+      AND date = ? 
+      AND type = 'ot_out_after'
+    ORDER BY id ASC
+    LIMIT 1
+  `;
 }
+    if (checkDeviceQuery) {
+      const [ownerRows] = await conn.query(checkDeviceQuery, checkParams);
+      if (ownerRows.length > 0 && String(ownerRows[0].em_code) !== String(empId)) {
+        return res.json({
+          success: false,
+          message: 'อุปกรณ์นี้ถูกใช้ลงเวลาโดยพนักงานคนอื่นแล้วในวันนี้'
+        });
+      }
+    }
+
     // Insert record
     const [result] = await conn.query(
-      'INSERT INTO time_records (em_code, type, time, date, company_name, latitude, longitude, device_id) VALUES (?, ?, CURTIME(), CURDATE(), ?, ?, ?, ?)',
-      [empId, type, company_name, latitude, longitude, device_id]
+    'INSERT INTO time_records (em_code, type, time, date, company_name, latitude, longitude, device_id, note) VALUES (?, ?, CURTIME(), CURDATE(), ?, ?, ?, ?, ?)',
+[empId, type, company_name, latitude, longitude, device_id, note || null]
     );
 
     const [rows] = await conn.query('SELECT time FROM time_records WHERE id = ?', [result.insertId]);
@@ -171,7 +256,6 @@ if (
     conn.release();
   }
 });
-
 // ประวัติพนักงาน
 router.get('/', async (req, res) => {
   const { date } = req.query;
@@ -180,7 +264,7 @@ router.get('/', async (req, res) => {
   const conn = await pool.getConnection();
   try {
     const [rows] = await conn.execute(
-      `SELECT t.id, t.em_code, t.type, t.time, t.date, t.company_name, t.latitude, t.longitude, e.name
+      `SELECT t.id, t.em_code, t.type, t.time, t.date, t.company_name, t.latitude, t.longitude, t.note, e.name
        FROM time_records t
        LEFT JOIN employees e ON t.em_code = e.em_code
        WHERE t.date = ?
@@ -202,7 +286,7 @@ router.get('/monthly', async (req, res) => {
   const conn = await pool.getConnection();
   try {
     let sql = `
-      SELECT tr.em_code, tr.company_name, tr.date, tr.type, tr.time, e.name
+      SELECT tr.em_code, tr.company_name, tr.date, tr.type, tr.time, tr.note, e.name
       FROM time_records tr
       JOIN employees e ON tr.em_code = e.em_code
       WHERE DATE_FORMAT(tr.date, '%Y-%m') = ?
@@ -210,7 +294,7 @@ router.get('/monthly', async (req, res) => {
     const params = [month];
     if (company && company !== 'all') {
       sql += ' AND tr.company_name = ?';
-      params.push(company);
+      params.push(company); 
     }
     const [rows] = await conn.query(sql, params);
     res.json({ success: true, records: rows });
@@ -233,7 +317,7 @@ router.get('/range', authMiddleware, async (req, res) => {
   const conn = await pool.getConnection();
   try {
     let sql = `
-      SELECT tr.em_code, tr.company_name, tr.date, tr.type, tr.time, e.name
+    SELECT tr.em_code, tr.company_name, tr.date, tr.type, tr.time, tr.note, e.name
       FROM time_records tr
       LEFT JOIN employees e ON tr.em_code = e.em_code
       WHERE tr.date BETWEEN ? AND ?
