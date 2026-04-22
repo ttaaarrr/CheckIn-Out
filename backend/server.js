@@ -8,7 +8,9 @@ const companyRoutes = require('./routes/company');
 const employeeRoutes = require('./routes/employees');
 const login = require('./routes/login'); 
 const user = require('./routes/user');
+const register = require('./routes/register')
 // const otRequestRoutes = require('./routes/ot-request');
+const inviteRoutes = require("./routes/invite");
 
 const app = express();
 
@@ -44,8 +46,8 @@ app.use('/api/company', companyRoutes);
 app.use('/api/employees', employeeRoutes);
 app.use('/api/user', user);
 // app.use('/api/ot-request', otRequestRoutes);
-// Health check
-app.get('/health', (req, res) => res.send('OK'));
+app.use('/api/register', register);
+app.use("/api/invite", inviteRoutes);
 // Start server
 const PORT = process.env.PORT || 3009;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
