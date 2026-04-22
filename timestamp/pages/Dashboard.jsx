@@ -66,7 +66,7 @@ useEffect(() => {
         companyMap[normalized] = c.id;
       });
 
-      // 2. fetch employees
+      //  fetch employees
       const url =
         selectedCompany === "all"
           ? "https://api-checkin-out.bpit-staff.com/api/employees?company_name=A"
@@ -84,7 +84,7 @@ const employeesWithId = empRes.data.employees.map(emp => {
 });
 
       setEmployees(employeesWithId);
-      // console.log("🟢 Employees with ID:", employeesWithId);
+     
 
     } catch (err) {
       console.error(err);
@@ -171,7 +171,7 @@ const employeesWithId = empRes.data.employees.map(emp => {
   // สร้าง tableData หน้าเว็บ
   const tableData = {};
  records.forEach((r) => {
-  if (!r.type || !r.em_code) return;
+     if (!r.type || !r.em_code) return;
   
   // ตรวจสอบบริษัทก่อน
   if (selectedCompany !== "all" && r.company_name !== selectedCompany) return;
@@ -192,10 +192,12 @@ tableData[key] = {
   otInAfter: "-",
   otOutAfter: "-",
   lateMinutes: "-",
+  note: "-", 
 };
   }
   const field = typeMap[r.type.toLowerCase()];
   if (field) tableData[key][field] = r.time || "-";
+  if (r.note) tableData[key].note = r.note;
   if (field === "checkIn") {
   const company = companies.find(
     c => c.name.trim().toLowerCase() === (tableData[key].company || "").trim().toLowerCase()
@@ -576,7 +578,7 @@ lateMinutes = lateMinutes === "" ? "-" : lateMinutes;
     calcDuration(r.checkIn, r.checkOut),
     lateMinutes || "",
     "", "", "", "",
-    r.note || ""
+    ""
   ]);
 
   // จัด cell
@@ -793,6 +795,7 @@ console.log("บริษัทที่เลือก:", selectedCompany);
               <th rowSpan={2} className="border px-2 py-1">ชั่วโมงทำงาน</th>
               <th rowSpan={2} className="border px-2 py-1">ชั่วโมง OT</th>
               <th rowSpan={2} className="border px-2 py-1">สาย (นาที)</th>
+              <th rowSpan={2} className="border px-2 py-1">หมายเหตุ</th>
             </tr>
             <tr>
               <th className="border px-2 py-1">OT IN (ก่อนเข้างาน)</th>
@@ -816,6 +819,7 @@ console.log("บริษัทที่เลือก:", selectedCompany);
                 <td className="border px-2 py-1">{calcDuration(r.checkIn, r.checkOut)}</td>
                 <td className="border px-2 py-1">{calcTotalOT(r)}</td>
                 <td className="border px-2 py-1">{r.lateMinutes}</td>
+                <td className="border px-2 py-1">{r.note || "-"}</td>
               </tr>
             ))}
           </tbody>
