@@ -96,61 +96,115 @@ router.post('/', authMiddleware, async (req, res) => {
 // แก้ไขบริษัท
 router.put('/:name', authMiddleware, async (req, res) => {
   const oldName = req.params.name;
-  const { name, address, latitude, longitude, time_in, time_out } = req.body;
-  const { role, id } = req.user;
-  if (!name) {
-  return res.status(400).json({
-    success: false,
-    message: 'กรอกชื่อบริษัท'
-  });
-}
-if (!time_in || !time_out) {
-  return res.status(400).json({
-    success: false,
-    message: 'กรุณากรอกเวลาเข้างานและเลิกงาน'
-  });
-}
 
-if (time_in >= time_out) {
-  return res.status(400).json({
-    success: false,
-    message: 'เวลาเข้างานต้องน้อยกว่าเวลาเลิกงาน'
-  });
-}
+  const {
+    name,
+    address,
+    latitude,
+    longitude,
+    radius_km,
+    time_in,
+    time_out
+  } = req.body;
+
+  const { role, id } = req.user;
+
+  // validation
+  if (!name) {
+    return res.status(400).json({
+      success: false,
+      message: 'กรอกชื่อบริษัท'
+    });
+  }
+
+  if (!time_in || !time_out) {
+    return res.status(400).json({
+      success: false,
+      message: 'กรุณากรอกเวลาเข้างานและเลิกงาน'
+    });
+  }
+
+  if (time_in >= time_out) {
+    return res.status(400).json({
+      success: false,
+      message: 'เวลาเข้างานต้องน้อยกว่าเวลาเลิกงาน'
+    });
+  }
+
+  if (!radius_km || radius_km <= 0) {
+    return res.status(400).json({
+      success: false,
+      message: 'radius_km ไม่ถูกต้อง'
+    });
+  }
+
   let conn;
   try {
     conn = await pool.getConnection();
-      await conn.beginTransaction(); 
-    // เช็กสิทธิ์ก่อน
-    let checkSql = 'SELECT added_by FROM company WHERE name = ?';
-    let [rows] = await conn.execute(checkSql, [oldName]);
+    await conn.beginTransaction();
+
+    // เช็กสิทธิ์
+    const [rows] = await conn.execute(
+      'SELECT added_by FROM company WHERE name = ?',
+      [oldName]
+    );
 
     if (rows.length === 0) {
-      return res.status(404).json({ success: false, message: 'Company not found' });
+      return res.status(404).json({
+        success: false,
+        message: 'Company not found'
+      });
     }
 
     if (role === 'manager' && Number(rows[0].added_by) !== Number(id)) {
-  return res.status(403).json({ success: false, message: 'Forbidden' });
+      return res.status(403).json({
+        success: false,
+        message: 'Forbidden'
+      });
     }
 
+    // UPDATE company (⭐ จุดสำคัญ)
     await conn.execute(
       `UPDATE company 
-       SET name = ?, address = ?, latitude = ?, longitude = ?, time_in =?, time_out = ?
+       SET 
+         name = ?,
+         address = ?,
+         latitude = ?,
+         longitude = ?,
+         radius_km = ?,
+         time_in = ?,
+         time_out = ?
        WHERE name = ?`,
-      [name, address, latitude, longitude, time_in, time_out, oldName]
+      [
+        name,
+        address,
+        latitude,
+        longitude,
+        radius_km,
+        time_in,
+        time_out,
+        oldName
+      ]
     );
-   await conn.execute(
+
+    // UPDATE employees ให้ตามชื่อใหม่
+    await conn.execute(
       `UPDATE employees
        SET company_name = ?
        WHERE company_name = ?`,
       [name, oldName]
     );
-      await conn.commit();
+
+    await conn.commit();
     res.json({ success: true });
+
   } catch (err) {
     if (conn) await conn.rollback();
     console.error('PUT /api/company error:', err);
-    res.status(500).json({ success: false, message: 'Database error' });
+    res.status(500).json({
+      success: false,
+      message: 'Database error'
+    });
   } finally {
     if (conn) conn.release();
   }
@@ -164,29 +218,52 @@ router.delete('/:name', authMiddleware, async (req, res) => {
   let conn;
   try {
     conn = await pool.getConnection();
+    await conn.beginTransaction();
 
+    // 1. เช็กสิทธิ์
     const [rows] = await conn.execute(
       'SELECT added_by FROM company WHERE name = ?',
       [name]
     );
 
     if (rows.length === 0) {
+      await conn.rollback();
       return res.status(404).json({ success: false, message: 'Company not found' });
     }
 
     if (role === 'manager' && Number(rows[0].added_by) !== Number(id)) {
-  return res.status(403).json({ success: false, message: 'Forbidden' });
+      await conn.rollback();
+      return res.status(403).json({ success: false, message: 'Forbidden' });
     }
 
-    await conn.execute('DELETE FROM company WHERE name = ?', [name]);
+    // 2. ลบข้อมูลลูกก่อน
+    await conn.execute(
+      'DELETE FROM time_records WHERE company_name = ?',
+      [name]
+    );
 
+    await conn.execute(
+      'DELETE FROM employees WHERE company_name = ?',
+      [name]
+    );
+
+    // 3. ลบบริษัท
+    await conn.execute(
+      'DELETE FROM company WHERE name = ?',
+      [name]
+    );
+
+    await conn.commit();
     res.json({ success: true });
+
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: err.message });
+    if (conn) await conn.rollback();
+    console.error('DELETE company error:', err);
+    res.status(500).json({ success: false, message: 'Delete failed' });
   } finally {
     if (conn) conn.release();
   }
 });
+
 
 module.exports = router;
