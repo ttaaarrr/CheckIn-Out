@@ -297,6 +297,14 @@ router.get('/monthly', async (req, res) => {
       params.push(company); 
     }
     const [rows] = await conn.query(sql, params);
+    rows.forEach(r => {
+  if (r.date) {
+    const d = new Date(r.date);
+    d.setHours(d.getHours() + 7);
+    r.date = d.toISOString().slice(0, 10);
+  }
+});
+
     res.json({ success: true, records: rows });
   } catch (err) {
     console.error(err);
