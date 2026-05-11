@@ -388,13 +388,13 @@ export default function Checkin() {
               </div>
             ) : (
               <div className="max-h-72 overflow-y-auto divide-y divide-gray-100">
-                {Object.entries(groupedRecords).map(([dateLabel, dayRecs]) => (
+               {Object.entries(groupedRecords) .reverse().map(([dateLabel, dayRecs]) => (
                   <div key={dateLabel}>
                     {/* วันที่ header */}
                     <div className="bg-gray-50 px-4 py-2 text-xs font-bold text-gray-500 uppercase tracking-wide sticky top-0">
                       {dateLabel}
                     </div>
-                    {dayRecs.map((rec, i) => {
+                     {dayRecs.reverse().map((rec, i) => {
                      const localDate = new Date(new Date(rec.date).getTime() + 7 * 60 * 60 * 1000);
                       const rawDate = localDate.toISOString().slice(0, 10);
                       const [ry, rm, rd] = rawDate.split('-').map(Number);
