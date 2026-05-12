@@ -63,7 +63,7 @@ export default function Checkin() {
 
     const fetchCompanies = async () => {
       try {
-        const res = await fetch('https://api-checkin-out.bpit-staff.com/api/company/public');
+        const res = await fetch(`https://api-checkin-out.bpit-staff.com/api/company/public');
         const data = await res.json();
         if (data.success) {
           setCompanies(data.companies.map(c => ({ id: c.name, name: c.name })));
@@ -93,7 +93,7 @@ export default function Checkin() {
   const getTimeRecords = async (empCode) => {
   try {
     const month = new Date().toISOString().slice(0, 7); 
-    const res = await axios.get(`https://api-checkin-out.bpit-staff.com/api/time-record/monthly`, {
+    const res = await axios.get(`http://localhost:3009/api/time-record/monthly`, {
       params: { month, company: companyId }
     });
     if (!res.data.success) return [];
@@ -117,7 +117,7 @@ export default function Checkin() {
   const logTime = async ({ empId, type, company_name, latitude, longitude, note }) => {
     const device_id = getDeviceId();
     try {
-      const res = await axios.post('https://api-checkin-out.bpit-staff.com/api/time-record', {
+      const res = await axios.post(`https://api-checkin-out.bpit-staff.com/api/time-record', {
         empId,
         type,
         company_name,
@@ -138,16 +138,16 @@ export default function Checkin() {
       if (!navigator.geolocation) {
         return reject(new Error('Browser ไม่รองรับ GPS'));
       }
-     navigator.geolocation.getCurrentPosition(resolve, reject, {
-  enableHighAccuracy: false,
-  timeout: 15000,
-  maximumAge: 30000,
-});
+      navigator.geolocation.getCurrentPosition(resolve, reject, {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      });
     });
 
   const checkEmployeeInCompany = async (employeeInput, company_name) => {
     try {
-      const res = await axios.get('https://api-checkin-out.bpit-staff.com/api/employees/check', {
+      const res = await axios.get(`https://api-checkin-out.bpit-staff.com/api/employees/check', {
         params: { query: employeeInput, company_name }
       });
       return res.data;
@@ -158,59 +158,50 @@ export default function Checkin() {
   };
 
   const handleCheckin = async (type) => {
-  if (loading) return;
-  if (!empId || !companyId) {
-    setMessage({ text: 'กรุณากรอกข้อมูลพนักงานและเลือกบริษัท', type: 'error' });
-    return;
-  }
-
-  const { exists, employee } = await checkEmployeeInCompany(empId, companyId);
-  if (!exists) {
-    setMessage({ text: `ไม่พบข้อมูล ${empId} ในบริษัท ${companyId}`, type: 'error' });
-    return;
-  }
-
-  // แยก GPS error ออกมาก่อน
-  let position;
-  try {
-    position = await getPosition();
-  } catch (err) {
-    setMessage({ text: 'ไม่สามารถรับตำแหน่ง GPS ได้ กรุณาเปิด GPS แล้วลองใหม่', type: 'error' });
-    return;
-  }
-
-  // ถึงตรงนี้ได้ GPS แน่นอนแล้ว
-  setLoading(true);
-  try {
-    const { latitude, longitude } = position.coords;
-
-    const res = await logTime({
-      empId: employee.em_code,
-      type,
-      company_name: companyId,
-      latitude,
-      longitude,
-      note: note.trim(),
-    });
-
-    if (res.success) {
-      setMessage({ text: `${empId} บันทึกเวลา ${typeMapTH[type]} สำเร็จ: ${res.time}`, type: 'success' });
-      setNote('');
-      const newRecords = await getTimeRecords(employee.em_code);
-      setRecords(newRecords);
-      setShowHistory(true);
-      if (type.startsWith('ot')) setShowOTButtons(false);
-    } else {
-      setMessage({ text: res.message, type: 'error' });
+    if (loading) return;
+    if (!empId || !companyId) {
+      setMessage({ text: 'กรุณากรอกข้อมูลพนักงานและเลือกบริษัท', type: 'error' });
+      return;
     }
-  } catch (err) {
-    // ถึงตรงนี้แปลว่า network ล้ม หรือ server down จริงๆ
-    console.error('logTime error:', err);
-    setMessage({ text: 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ กรุณาตรวจสอบอินเตอร์เน็ต', type: 'error' });
-  } finally {
-    setLoading(false);
-  }
-};
+
+    const { exists, employee } = await checkEmployeeInCompany(empId, companyId);
+
+    if (!exists) {
+      setMessage({ text: `ไม่พบข้อมูล ${empId} ในบริษัท ${companyId}`, type: 'error' });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const position = await getPosition();
+      const { latitude, longitude } = position.coords;
+
+      const res = await logTime({
+        empId: employee.em_code,
+        type,
+        company_name: companyId,
+        latitude,
+        longitude,
+        note: note.trim(),
+      });
+
+      if (res.success) {
+        setMessage({ text: `${empId} บันทึกเวลา ${typeMapTH[type]} สำเร็จ: ${res.time}`, type: 'success' });
+        setNote('');
+        const newRecords = await getTimeRecords(employee.em_code);
+        setRecords(newRecords);
+        setShowHistory(true);
+        if (type.startsWith('ot')) setShowOTButtons(false);
+      } else {
+        setMessage({ text: res.message, type: 'error' });
+      }
+    } catch (err) {
+      console.error(err);
+      setMessage({ text: 'กรุณาเปิด GPS ก่อนลงเวลา', type: 'error' });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleLoadHistory = async () => {
     if (!empId || !companyId) {
@@ -397,13 +388,13 @@ export default function Checkin() {
               </div>
             ) : (
               <div className="max-h-72 overflow-y-auto divide-y divide-gray-100">
-               {Object.entries(groupedRecords) .reverse().map(([dateLabel, dayRecs]) => (
+                {Object.entries(groupedRecords).reverse().map(([dateLabel, dayRecs]) => (
                   <div key={dateLabel}>
                     {/* วันที่ header */}
                     <div className="bg-gray-50 px-4 py-2 text-xs font-bold text-gray-500 uppercase tracking-wide sticky top-0">
                       {dateLabel}
                     </div>
-                    {[...dayRecs].reverse().map((rec, i) => {
+                    {...dayRecs.reverse().map((rec, i) => {
                      const localDate = new Date(new Date(rec.date).getTime() + 7 * 60 * 60 * 1000);
                       const rawDate = localDate.toISOString().slice(0, 10);
                       const [ry, rm, rd] = rawDate.split('-').map(Number);
