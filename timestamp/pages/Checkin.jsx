@@ -90,20 +90,20 @@ export default function Checkin() {
     return () => clearInterval(timer);
   }, []);
 
-  const getTimeRecords = async (empCode) => {
-  try {
-    const month = new Date().toISOString().slice(0, 7); 
-    const res = await axios.get(`https://api-checkin-out.bpit-staff.com/api/time-record/monthly`, {
-      params: { month, company: companyId }
-    });
-    if (!res.data.success) return [];
-    // filter เฉพาะของพนักงานคนนี้
-    return res.data.records.filter(r => String(r.em_code) === String(empCode));
-  } catch (err) {
-     console.log("getTimeRecords error:", err);
-    return [];
-  }
-};
+  //  รับ company เป็น parameter
+  const getTimeRecords = async (empCode, company) => {
+    try {
+      const month = new Date().toISOString().slice(0, 7);
+      const res = await axios.get(`https://api-checkin-out.bpit-staff.com/api/time-record/monthly`, {
+        params: { month, company: company }
+      });
+      if (!res.data.success) return [];
+      return res.data.records.filter(r => String(r.em_code) === String(empCode));
+    } catch (err) {
+      console.log("getTimeRecords error:", err);
+      return [];
+    }
+  };
 
   const getDeviceId = () => {
     let device_id = localStorage.getItem("device_id");
@@ -188,7 +188,7 @@ export default function Checkin() {
       if (res.success) {
         setMessage({ text: `${empId} บันทึกเวลา ${typeMapTH[type]} สำเร็จ: ${res.time}`, type: 'success' });
         setNote('');
-        const newRecords = await getTimeRecords(employee.em_code);
+        const newRecords = await getTimeRecords(employee.em_code, companyId);
         setRecords(newRecords);
         setShowHistory(true);
         if (type.startsWith('ot')) setShowOTButtons(false);
@@ -215,12 +215,9 @@ export default function Checkin() {
 
     setHistoryLoading(true);
     const { exists, employee } = await checkEmployeeInCompany(empId, companyId);
-    console.log("exists:", exists, "employee:", employee);
     if (exists) {
-      const recs = await getTimeRecords(employee.em_code);
+      const recs = await getTimeRecords(employee.em_code, companyId);
       setRecords(recs);
-      console.log("rec.date raw:", recs.map(r => r.date));
-      console.log("sliced dates:", recs.map(r => r.date.slice(0, 10)));
       setShowHistory(true);
     } else {
       setMessage({ text: `ไม่พบข้อมูล ${empId} ในบริษัท ${companyId}`, type: 'error' });
@@ -228,19 +225,19 @@ export default function Checkin() {
     setHistoryLoading(false);
   };
 
-  // Group records by date for display
- const groupedRecords = records.reduce((acc, rec) => {
-  const localDate = new Date(new Date(rec.date).getTime() + 7 * 60 * 60 * 1000);
-  const rawDate = rec.date.slice(0, 10);
-  const [y, m, d] = rawDate.split('-').map(Number);
-  const dateObj = new Date(y, m - 1, d);
-  const dateStr = dateObj.toLocaleDateString('th-TH', {
-    weekday: 'short', day: 'numeric', month: 'short', year: 'numeric'
-  });
-  if (!acc[dateStr]) acc[dateStr] = [];
-  acc[dateStr].push(rec);
-  return acc;
-}, {});
+  //ใช้ timezone +7
+  const groupedRecords = records.reduce((acc, rec) => {
+    const localDate = new Date(new Date(rec.date).getTime() + 7 * 60 * 60 * 1000);
+    const rawDate = localDate.toISOString().slice(0, 10);
+    const [y, m, d] = rawDate.split('-').map(Number);
+    const dateObj = new Date(y, m - 1, d);
+    const dateStr = dateObj.toLocaleDateString('th-TH', {
+      weekday: 'short', day: 'numeric', month: 'short', year: 'numeric'
+    });
+    if (!acc[dateStr]) acc[dateStr] = [];
+    acc[dateStr].push(rec);
+    return acc;
+  }, {});
 
   return (
     <div className="min-h-screen flex flex-col items-center relative p-4">
@@ -302,7 +299,7 @@ export default function Checkin() {
           </select>
         </div>
 
-        {/* หมายเหตุ — เชื่อมกับ state */}
+        {/* หมายเหตุ */}
         <div className="relative mb-6">
           <NotebookText className="absolute left-3 top-3 text-gray-400 w-5 h-5" />
           <input
@@ -394,13 +391,13 @@ export default function Checkin() {
                     <div className="bg-gray-50 px-4 py-2 text-xs font-bold text-gray-500 uppercase tracking-wide sticky top-0">
                       {dateLabel}
                     </div>
-                    {dayRecs.reverse().map((rec, i) => {
-                     const localDate = new Date(new Date(rec.date).getTime() + 7 * 60 * 60 * 1000);
+                    {[...dayRecs].reverse().map((rec, i) => {
+                      const localDate = new Date(new Date(rec.date).getTime() + 7 * 60 * 60 * 1000);
                       const rawDate = localDate.toISOString().slice(0, 10);
                       const [ry, rm, rd] = rawDate.split('-').map(Number);
                       const [hh, mm] = rec.time.split(':').map(Number);
                       const timeStr = new Date(ry, rm - 1, rd, hh, mm)
-                       .toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', hour12: false });
+                        .toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', hour12: false });
                       return (
                         <div key={i} className="flex items-start gap-3 px-4 py-3 hover:bg-gray-50 transition-colors">
                           {/* เวลา */}
@@ -428,8 +425,6 @@ export default function Checkin() {
             )}
           </div>
         )}
-
-
       </div>
 
       {/* ปุ่มลอยมุมขวา */}
@@ -467,7 +462,7 @@ export default function Checkin() {
         )}
       </div>
 
-      {/* Modal popup กลางหน้าจอ */}
+      {/* Modal popup */}
       {message && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center px-6"
@@ -480,7 +475,6 @@ export default function Checkin() {
               animate-[popIn_0.25s_cubic-bezier(0.34,1.56,0.64,1)_both]`}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* ไอคอนวงกลมใหญ่ */}
             <div className={`w-24 h-24 rounded-full flex items-center justify-center
               ${message.type === 'success' ? 'bg-green-100' : 'bg-red-100'}`}>
               {message.type === 'success'
@@ -489,18 +483,15 @@ export default function Checkin() {
               }
             </div>
 
-            {/* หัวข้อ */}
             <p className={`text-2xl font-extrabold text-center
               ${message.type === 'success' ? 'text-green-700' : 'text-red-700'}`}>
               {message.type === 'success' ? 'บันทึกสำเร็จ!' : 'เกิดข้อผิดพลาด'}
             </p>
 
-            {/* ข้อความ */}
             <p className="text-base text-gray-600 text-center leading-relaxed">
               {message.text}
             </p>
 
-            {/* ปุ่มปิด */}
             <button
               onClick={() => setMessage(null)}
               className={`mt-2 w-full py-3 rounded-2xl text-white font-bold text-lg shadow
