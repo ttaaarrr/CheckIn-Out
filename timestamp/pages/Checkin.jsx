@@ -394,7 +394,7 @@ export default function Checkin() {
                     <div className="bg-gray-50 px-4 py-2 text-xs font-bold text-gray-500 uppercase tracking-wide sticky top-0">
                       {dateLabel}
                     </div>
-                    {...dayRecs.reverse().map((rec, i) => {
+                    {dayRecs.reverse().map((rec, i) => {
                      const localDate = new Date(new Date(rec.date).getTime() + 7 * 60 * 60 * 1000);
                       const rawDate = localDate.toISOString().slice(0, 10);
                       const [ry, rm, rd] = rawDate.split('-').map(Number);
