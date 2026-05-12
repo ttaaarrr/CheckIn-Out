@@ -63,7 +63,7 @@ export default function Checkin() {
 
     const fetchCompanies = async () => {
       try {
-        const res = await fetch(`https://api-checkin-out.bpit-staff.com/api/company/public');
+        const res = await fetch(`https://api-checkin-out.bpit-staff.com/api/company/public`);
         const data = await res.json();
         if (data.success) {
           setCompanies(data.companies.map(c => ({ id: c.name, name: c.name })));
@@ -93,7 +93,7 @@ export default function Checkin() {
   const getTimeRecords = async (empCode) => {
   try {
     const month = new Date().toISOString().slice(0, 7); 
-    const res = await axios.get(`http://localhost:3009/api/time-record/monthly`, {
+    const res = await axios.get(`https://api-checkin-out.bpit-staff.com/api/time-record/monthly`, {
       params: { month, company: companyId }
     });
     if (!res.data.success) return [];
@@ -117,7 +117,7 @@ export default function Checkin() {
   const logTime = async ({ empId, type, company_name, latitude, longitude, note }) => {
     const device_id = getDeviceId();
     try {
-      const res = await axios.post(`https://api-checkin-out.bpit-staff.com/api/time-record', {
+      const res = await axios.post(`https://api-checkin-out.bpit-staff.com/api/time-record`, {
         empId,
         type,
         company_name,
@@ -147,7 +147,7 @@ export default function Checkin() {
 
   const checkEmployeeInCompany = async (employeeInput, company_name) => {
     try {
-      const res = await axios.get(`https://api-checkin-out.bpit-staff.com/api/employees/check', {
+      const res = await axios.get(`https://api-checkin-out.bpit-staff.com/api/employees/check`, {
         params: { query: employeeInput, company_name }
       });
       return res.data;
