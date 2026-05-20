@@ -302,32 +302,40 @@ empList.forEach(e => { if (e && e.em_code !== undefined && e.em_code !== null) e
 
 // เติมข้อมูลจริงจาก dailyRows
 dailyRows.forEach((r) => {
-
-   const emp = employees.find(e => e.em_code.toString() === r.em_code.toString());
-
-  if (!emp) {
-    console.warn("//");
-    return;
-  }
+  const emp = employees.find(e => e.em_code.toString() === r.em_code.toString());
+  if (!emp) return;
 
   const dateStr = r.date;
   const key = `${emp.em_code}_${dateStr}`;
-  if (!groupedRecords[key]) {
-    console.warn("ไม่พบ key:", key);
-    return;
-  }
+  if (!groupedRecords[key]) return;
 
   const type = (r.type || '').toLowerCase();
-  if (type === 'in') groupedRecords[key].checkIn = r.time || '-';
-  else if (type === 'out') groupedRecords[key].checkOut = r.time || '-';
-  else if (type === 'ot_in_before') groupedRecords[key].otInBefore = r.time || '-';
-  else if (type === 'ot_out_before') groupedRecords[key].otOutBefore = r.time || '-';
-  else if (type === 'ot_in_after') groupedRecords[key].otInAfter = r.time || '-';
-  else if (type === 'ot_out_after') groupedRecords[key].otOutAfter = r.time || '-';
+  const newTime = r.time || '-';
+
+  // ฟังก์ชันเปรียบเทียบว่าควร overwrite ไหม
+  const shouldUpdate = (field) => {
+    const existing = groupedRecords[key][field];
+    if (!existing || existing === '-') return true;
+    if (!newTime || newTime === '-') return false;
+
+    // เอาเวลาล่าสุด (ค่ามากกว่า) สำหรับ out / ot_out
+    // เอาเวลาแรกสุด (ค่าน้อยกว่า) สำหรับ in / ot_in
+    const existingMin = timeToMinutes(existing);
+    const newMin = timeToMinutes(newTime);
+    if (existingMin === null || newMin === null) return false;
+
+    const isOutType = field === 'checkOut' || field === 'otOutBefore' || field === 'otOutAfter';
+    return isOutType ? newMin > existingMin : newMin < existingMin;
+  };
+
+  if (type === 'in' && shouldUpdate('checkIn')) groupedRecords[key].checkIn = newTime;
+  else if (type === 'out' && shouldUpdate('checkOut')) groupedRecords[key].checkOut = newTime;
+  else if (type === 'ot_in_before' && shouldUpdate('otInBefore')) groupedRecords[key].otInBefore = newTime;
+  else if (type === 'ot_out_before' && shouldUpdate('otOutBefore')) groupedRecords[key].otOutBefore = newTime;
+  else if (type === 'ot_in_after' && shouldUpdate('otInAfter')) groupedRecords[key].otInAfter = newTime;
+  else if (type === 'ot_out_after' && shouldUpdate('otOutAfter')) groupedRecords[key].otOutAfter = newTime;
 
   if (r.note) groupedRecords[key].note = r.note;
-console.log(key, groupedRecords[key]);
-
 });
 
   // สร้าง Excel
