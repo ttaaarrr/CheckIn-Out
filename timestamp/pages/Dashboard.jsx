@@ -176,15 +176,17 @@ const employeesWithId = empRes.data.employees.map(emp => {
   // ตรวจสอบบริษัทก่อน
   if (selectedCompany !== "all" && r.company_name !== selectedCompany) return;
 
+  // ✅ แก้ไข: เพิ่ม company_name ใน key เพื่อป้องกัน em_code ซ้ำข้ามบริษัท
   const key = `${r.em_code}_${r.company_name}_${getLocalDateStr(selectedDate)}`;
   if (!tableData[key]) {
-   const emp = employees.find(e => e.em_code === r.em_code && e.company_name === r.company_name);
+    // ✅ แก้ไข: เพิ่ม company_name ในเงื่อนไข find เพื่อให้จับคู่ถูกคน
+    const emp = employees.find(e => e.em_code === r.em_code && e.company_name === r.company_name);
 
 tableData[key] = {
   em_code: r.em_code,
   name: emp?.name || r.name || "-",
   company_id: emp?.company_id ?? null,
-  company: emp?.company_name || selectedCompany,
+  company: emp?.company_name || r.company_name || selectedCompany,
   checkIn: "-",
   checkOut: "-",
   otInBefore: "-",
@@ -279,11 +281,11 @@ if (!empList.length) {
 // ทำให้ em_code เป็นสตริง เพื่อให้ key ตรงกัน
 empList.forEach(e => { if (e && e.em_code !== undefined && e.em_code !== null) e.em_code = e.em_code.toString(); });
 
-// console.log("employees for export:", empList); 
-  // สร้าง groupedRecords: emp+date
+  // สร้าง groupedRecords: emp+company+date
   const groupedRecords = {};
   empList.forEach((emp) => {
     dayList.forEach((dateStr) => {
+      // ✅ แก้ไข: เพิ่ม company_name ใน key
       const key = `${emp.em_code}_${emp.company_name}_${dateStr}`;
       groupedRecords[key] = {
         em_code: emp.em_code,
@@ -302,10 +304,14 @@ empList.forEach(e => { if (e && e.em_code !== undefined && e.em_code !== null) e
 
 // เติมข้อมูลจริงจาก dailyRows
 dailyRows.forEach((r) => {
-  const emp = employees.find(e => e.em_code.toString() === r.em_code.toString() && e.company_name === r.company_name);
+  // ✅ แก้ไข: เพิ่ม company_name ในเงื่อนไข find
+  const emp = employees.find(
+    e => e.em_code.toString() === r.em_code.toString() && e.company_name === r.company_name
+  );
   if (!emp) return;
 
   const dateStr = r.date;
+  // ✅ แก้ไข: เพิ่ม company_name ใน key
   const key = `${emp.em_code}_${emp.company_name}_${dateStr}`;
   if (!groupedRecords[key]) return;
 
@@ -505,24 +511,6 @@ sheet.getCell('O10').value = '(ป่วย/กิจ/พักร้อน)';
    right: {style:'thin'} };
 });
 
-// จัดความกว้างคอลัมน์
-sheet.columns = [
-  { key: 'day', width: 10 },
-  { key: 'date', width: 12 },
-  { key: 'in', width: 10 },
-  { key: 'out', width: 10 },
-  { key: 'ot_before_in', width: 12 },
-  { key: 'ot_before_out', width: 12 },
-  { key: 'ot_after_in', width: 12 },
-  { key: 'ot_after_out', width: 12 },
-  { key: 'work_hours', width: 10 },
-  { key: 'late_minuter', width: 10 },
-  { key: 'ot_1', width: 10 },
-  { key: 'ot_1_5', width: 10 },
-  { key: 'ot_2', width: 10 },
-  { key: 'ot_3', width: 10 },
-  { key: 'note', width: 12 }
-];
 // Column width
 sheet.columns = [
   { width: 10}, {width:12},{width:10},
@@ -531,6 +519,7 @@ sheet.columns = [
   {width:10}, {width:10}, {width:10},
   {width:10}, {width:10}, {width:12}
 ];
+
 const timeToMinutes = (t) => {
   if(!t || t === '-') return null;
   const parts = t.split(':').map(Number);
@@ -539,9 +528,11 @@ const timeToMinutes = (t) => {
   const m = parts[1];
   return h * 60 + m;
 };
+
 // Fill data
 dayList.forEach((dateStr) => {
-  const key = `${emp.em_code}_${dateStr}`;
+  // ✅ แก้ไข: เพิ่ม company_name ใน key
+  const key = `${emp.em_code}_${emp.company_name}_${dateStr}`;
   const r = groupedRecords[key];
   if (!r) return;
 
@@ -779,17 +770,6 @@ console.log("บริษัทที่เลือก:", selectedCompany);
     </div>
   ) : (
     <>
-      {/* Debug */}
-      {/* {console.log(
-        "tableData:",
-        Object.values(tableData).map((r) => ({
-          em_code: r.em_code,
-          name: r.name,
-          company_id: r.company_id,
-          company_name: r.company
-        }))
-      )} */}
-
       {/*  ตารางรองรับจอมือถือ — เลื่อนขวาได้ */}
       <div className="bg-white shadow-md rounded-lg overflow-x-auto">
         <table className="min-w-max border border-gray-300 border-collapse text-sm mx-auto">
