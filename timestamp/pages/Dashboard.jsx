@@ -176,9 +176,9 @@ const employeesWithId = empRes.data.employees.map(emp => {
   // ตรวจสอบบริษัทก่อน
   if (selectedCompany !== "all" && r.company_name !== selectedCompany) return;
 
-  const key = `${r.em_code}_${getLocalDateStr(selectedDate)}`;
+  const key = `${r.em_code}_${r.company_name}_${getLocalDateStr(selectedDate)}`;
   if (!tableData[key]) {
-   const emp = employees.find(e => e.em_code === r.em_code);
+   const emp = employees.find(e => e.em_code === r.em_code && e.company_name === r.company_name);
 
 tableData[key] = {
   em_code: r.em_code,
@@ -284,7 +284,7 @@ empList.forEach(e => { if (e && e.em_code !== undefined && e.em_code !== null) e
   const groupedRecords = {};
   empList.forEach((emp) => {
     dayList.forEach((dateStr) => {
-      const key = `${emp.em_code}_${dateStr}`;
+      const key = `${emp.em_code}_${emp.company_name}_${dateStr}`;
       groupedRecords[key] = {
         em_code: emp.em_code,
         name: emp.name,
@@ -302,11 +302,11 @@ empList.forEach(e => { if (e && e.em_code !== undefined && e.em_code !== null) e
 
 // เติมข้อมูลจริงจาก dailyRows
 dailyRows.forEach((r) => {
-  const emp = employees.find(e => e.em_code.toString() === r.em_code.toString());
+  const emp = employees.find(e => e.em_code.toString() === r.em_code.toString() && e.company_name === r.company_name);
   if (!emp) return;
 
   const dateStr = r.date;
-  const key = `${emp.em_code}_${dateStr}`;
+  const key = `${emp.em_code}_${emp.company_name}_${dateStr}`;
   if (!groupedRecords[key]) return;
 
   const type = (r.type || '').toLowerCase();
