@@ -285,7 +285,14 @@ const selectSuggestion = (item) => {
       //  แก้ไขพนักงาน
       res = await api.put(
         `https://api-checkin-out.bpit-staff.com/api/employees/${editingEmp.em_code}`,
-        { ...newEmp, company_name: selectedCompany }
+        // { ...newEmp, company_name: selectedCompany }
+       {
+    em_code: newEmp.em_code,
+    name: newEmp.name,
+    department: newEmp.department,
+    position: newEmp.position,
+    company_name: selectedCompany,
+  }
       );
     } else {
       //  เพิ่มพนักงาน
@@ -544,7 +551,7 @@ const selectSuggestion = (item) => {
               type="text"
               className="w-full px-4 py-2 border rounded-lg"
               value={newEmp.em_code}
-                disabled={!!editingEmp} 
+                {/* disabled={!!editingEmp}  */}
               onChange={e => setNewEmp({ ...newEmp, em_code: e.target.value })}
             />
           </div>
