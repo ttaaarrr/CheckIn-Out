@@ -122,6 +122,8 @@ export default function Employees() {
         latitude: c.latitude,
         longitude: c.longitude,
         radius_km: c.radius_km,
+        time_in: c.time_in,
+        time_out: c.time_out,
        })));
       }
     } catch (err) {
@@ -551,7 +553,6 @@ const selectSuggestion = (item) => {
               type="text"
               className="w-full px-4 py-2 border rounded-lg"
               value={newEmp.em_code}
-                {/* disabled={!!editingEmp}  */}
               onChange={e => setNewEmp({ ...newEmp, em_code: e.target.value })}
             />
           </div>
