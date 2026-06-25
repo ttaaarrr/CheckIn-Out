@@ -14,7 +14,7 @@ const timeToMinutes = (t) => {
 export default function Dashboard({ user }) {
   const navigate = useNavigate();
   const [records, setRecords] = useState([]);
-  const [employees, setEmployees] = useState([]);
+  const [employees, ] = useState([]);
   const [companies, setCompanies] = useState([]);
   const [selectedCompany, setSelectedCompany] = useState("all");
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -176,12 +176,18 @@ const employeesWithId = empRes.data.employees.map(emp => {
   // ตรวจสอบบริษัทก่อน
   if (selectedCompany !== "all" && r.company_name !== selectedCompany) return;
 
-  // ✅ แก้ไข: เพิ่ม company_name ใน key เพื่อป้องกัน em_code ซ้ำข้ามบริษัท
+  //  แก้ไข: เพิ่ม company_name ใน key เพื่อป้องกัน em_code ซ้ำข้ามบริษัท
   const key = `${r.em_code}_${r.company_name}_${getLocalDateStr(selectedDate)}`;
   if (!tableData[key]) {
-    // ✅ แก้ไข: เพิ่ม company_name ในเงื่อนไข find เพื่อให้จับคู่ถูกคน
-    const emp = employees.find(e => e.em_code === r.em_code && e.company_name === r.company_name);
+    //  แก้ไข: เพิ่ม company_name ในเงื่อนไข find เพื่อให้จับคู่ถูกคน
+  const emp = employees.find(
+  e => e.em_code.toString() === r.em_code.toString() &&
+       e.company_name === r.company_name
+);
 
+if (!emp) {
+  console.log("NOT FOUND", r);
+}
 tableData[key] = {
   em_code: r.em_code,
   name: emp?.name || r.name || "-",
@@ -261,6 +267,7 @@ tableData[key] = {
     const responses = await Promise.all(requests);
     responses.forEach(({ dateStr, data }) => {
       if (data && data.success && Array.isArray(data.records)) {
+        console.log("record sample =", data.records[0]);
         data.records.forEach(r => {
           dailyRows.push({ ...r, date: dateStr });
         });
