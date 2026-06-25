@@ -242,11 +242,22 @@ tableData[key] = {
   // ดึงข้อมูลรายวันทั้งหมดแบบขนาน แล้วรวมเป็นแถวที่มี date
   let dailyRows = [];
   try {
-    const requests = dayList.map(dateStr =>
-      api.get(
-        `https://api-checkin-out.bpit-staff.com/api/time-record?date=${dateStr}&company=${selectedCompany}`
-      ).then(res => ({ dateStr, data: res.data }))
-    );
+  const requests = dayList.map(dateStr => {
+
+    const url =
+      `https://api-checkin-out.bpit-staff.com/api/time-record?date=${dateStr}&company=${selectedCompany}`;
+
+    console.log("selectedCompany =", selectedCompany);
+    console.log("URL =", url);
+
+    return api.get(url)
+      .then(res => {
+        console.log("DATA =", res.data);
+        return { dateStr, data: res.data };
+      });
+  });
+
+
     const responses = await Promise.all(requests);
     responses.forEach(({ dateStr, data }) => {
       if (data && data.success && Array.isArray(data.records)) {
