@@ -12,7 +12,7 @@ const timeToMinutes = (t) => {
   return h * 60 + m;
 };
 
-// ✅ FIX 1: normalize ชื่อบริษัทให้ตรงกัน (ตัดช่องว่างหัวท้าย + ลด whitespace ซ้ำ)
+
 const normalizeName = (name) =>
   (name || "").replace(/\s+/g, " ").trim().toLowerCase();
 
@@ -63,14 +63,13 @@ export default function Dashboard({ user }) {
 
         setCompanies(companyList);
 
-        // ✅ FIX 2: ใช้ normalizeName ใน companyMap
+   
         const companyMap = {};
         companyList.forEach(c => {
           companyMap[normalizeName(c.name)] = c.id;
         });
 
-        // ✅ FIX 3: encodeURIComponent ชื่อบริษัทใน URL
-        const url =
+         const url =
           selectedCompany === "all"
             ? "https://api-checkin-out.bpit-staff.com/api/employees?company_name=A"
             : `https://api-checkin-out.bpit-staff.com/api/employees?company_name=${encodeURIComponent(selectedCompany)}`;
@@ -114,7 +113,6 @@ export default function Dashboard({ user }) {
           );
         }
 
-        // ✅ FIX 3: encodeURIComponent ในส่วนนี้ด้วย
         const recRes = await api.get(
           `https://api-checkin-out.bpit-staff.com/api/time-record?date=${formatDateForApi(selectedDate)}${
             selectedCompany !== "all" ? `&company=${encodeURIComponent(selectedCompany)}` : ""
@@ -180,7 +178,7 @@ export default function Dashboard({ user }) {
 
     const key = `${r.em_code}_${r.company_name}_${getLocalDateStr(selectedDate)}`;
     if (!tableData[key]) {
-      // ✅ FIX 4: ใช้ normalizeName เพื่อ match บริษัท
+  
       const emp = employees.find(
         e => e.em_code.toString() === r.em_code.toString() &&
           normalizeName(e.company_name) === normalizeName(r.company_name)
@@ -207,7 +205,7 @@ export default function Dashboard({ user }) {
     if (field) tableData[key][field] = r.time || "-";
     if (r.note) tableData[key].note = r.note;
     if (field === "checkIn") {
-      // ✅ FIX 4: ใช้ normalizeName เพื่อ match บริษัท
+ 
       const company = companies.find(
         c => normalizeName(c.name) === normalizeName(tableData[key].company)
       );
@@ -243,7 +241,7 @@ export default function Dashboard({ user }) {
 
     let dailyRows = [];
     try {
-      // ✅ FIX 3: encodeURIComponent ในทุก URL ของ exportExcel
+ 
       const requests = dayList.map(dateStr => {
         const url = `https://api-checkin-out.bpit-staff.com/api/time-record?date=${dateStr}&company=${encodeURIComponent(selectedCompany)}`;
         console.log("Fetching URL:", url);
@@ -268,7 +266,6 @@ export default function Dashboard({ user }) {
           e.em_code = e.em_code.toString();
       });
 
-      // ✅ DEBUG LOG
       console.log("dailyRows count:", dailyRows.length);
       console.log("dailyRows sample:", dailyRows.slice(0, 3));
 
@@ -280,7 +277,7 @@ export default function Dashboard({ user }) {
     let empList = employees;
     if (!empList.length) {
       try {
-        // ✅ FIX 3: encodeURIComponent ที่นี่ด้วย
+
         const empRes = await api.get(
           `https://api-checkin-out.bpit-staff.com/api/employees?company_name=${encodeURIComponent(selectedCompany)}`
         );
@@ -297,11 +294,9 @@ export default function Dashboard({ user }) {
         e.em_code = e.em_code.toString();
     });
 
-    // ✅ DEBUG LOG
     console.log("empList count:", empList.length);
     console.log("empList sample:", empList.slice(0, 3).map(e => ({ em_code: e.em_code, company_name: e.company_name })));
 
-    // ✅ DEBUG LOG: ตรวจ matching
     const unmatchedRows = dailyRows.filter(r =>
       !empList.find(
         e => e.em_code === r.em_code.toString() &&
@@ -317,7 +312,7 @@ export default function Dashboard({ user }) {
     const groupedRecords = {};
     empList.forEach((emp) => {
       dayList.forEach((dateStr) => {
-        // ✅ FIX 4: ใช้ normalizeName ใน key
+
         const key = `${emp.em_code}_${normalizeName(emp.company_name)}_${dateStr}`;
         groupedRecords[key] = {
           em_code: emp.em_code,
@@ -334,7 +329,6 @@ export default function Dashboard({ user }) {
       });
     });
 
-    // ✅ FIX 4: ใช้ normalizeName ในการ match และ key
     dailyRows.forEach((r) => {
       const emp = empList.find(
         e => e.em_code.toString() === r.em_code.toString() &&
@@ -524,15 +518,13 @@ export default function Dashboard({ user }) {
         { width: 10 }, { width: 10 }, { width: 12 }
       ];
 
-      // ✅ FIX 4: ใช้ normalizeName ใน key ตอน fill data
-      dayList.forEach((dateStr) => {
+       dayList.forEach((dateStr) => {
         const key = `${emp.em_code}_${normalizeName(emp.company_name)}_${dateStr}`;
         const r = groupedRecords[key];
         if (!r) return;
 
         let lateMinutes = "";
 
-        // ✅ FIX 4: ใช้ normalizeName ในการ find บริษัท
         const company = companies.find(
           c => normalizeName(c.name) === normalizeName(r.company_name)
         );
